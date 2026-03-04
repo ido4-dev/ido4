@@ -1,0 +1,19 @@
+{
+  "name": "ido4-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ido4 Next — Development Governance Platform. MCP-native methodology enforcement for AI-augmented teams.",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "lint": "tsc --noEmit --project tsconfig.json",
+    "clean": "rm -rf packages/*/dist"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "MIT"
+}

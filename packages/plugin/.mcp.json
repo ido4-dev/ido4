@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "ido4": {
+      "command": "npx",
+      "args": ["@ido4/mcp"],
+      "env": {}
+    }
+  }
+}
