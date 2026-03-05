@@ -6,6 +6,8 @@
  */
 
 import type { ValidationResult } from '../domains/tasks/types.js';
+import type { ActorIdentity } from '../shared/logger.js';
+import type { ToolResponse } from '../shared/tool-response.js';
 
 // ─── GitHub Infrastructure Interfaces ───
 
@@ -24,6 +26,7 @@ export interface IIssueRepository {
   addComment(issueNumber: number, comment: string): Promise<void>;
   closeIssue(issueNumber: number): Promise<void>;
   findPullRequestForIssue(issueNumber: number): Promise<PullRequestInfo | null>;
+  getSubIssues(issueNumber: number): Promise<SubIssueData[]>;
 }
 
 export interface IProjectRepository {
@@ -37,6 +40,7 @@ export interface IRepositoryRepository {
   mergePullRequest(prNumber: number, mergeMethod?: string): Promise<void>;
   findPullRequestForIssue(issueNumber: number): Promise<PullRequestInfo | null>;
   checkWaveBranchMerged(waveName: string): Promise<boolean>;
+  getPullRequestReviews(prNumber: number): Promise<PullRequestReviewData[]>;
 }
 
 export interface IEpicRepository {
@@ -47,14 +51,14 @@ export interface IEpicRepository {
 // ─── Domain Service Interfaces ───
 
 export interface ITaskService {
-  startTask(request: TaskTransitionRequest): Promise<TaskTransitionResult>;
-  reviewTask(request: TaskTransitionRequest): Promise<TaskTransitionResult>;
-  approveTask(request: TaskTransitionRequest): Promise<TaskTransitionResult>;
-  blockTask(request: BlockTaskRequest): Promise<TaskTransitionResult>;
-  unblockTask(request: TaskTransitionRequest): Promise<TaskTransitionResult>;
-  returnTask(request: ReturnTaskRequest): Promise<TaskTransitionResult>;
-  refineTask(request: TaskTransitionRequest): Promise<TaskTransitionResult>;
-  readyTask(request: TaskTransitionRequest): Promise<TaskTransitionResult>;
+  startTask(request: TaskTransitionRequest): Promise<ToolResponse<TaskTransitionData>>;
+  reviewTask(request: TaskTransitionRequest): Promise<ToolResponse<TaskTransitionData>>;
+  approveTask(request: TaskTransitionRequest): Promise<ToolResponse<TaskTransitionData>>;
+  blockTask(request: BlockTaskRequest): Promise<ToolResponse<TaskTransitionData>>;
+  unblockTask(request: TaskTransitionRequest): Promise<ToolResponse<TaskTransitionData>>;
+  returnTask(request: ReturnTaskRequest): Promise<ToolResponse<TaskTransitionData>>;
+  refineTask(request: TaskTransitionRequest): Promise<ToolResponse<TaskTransitionData>>;
+  readyTask(request: TaskTransitionRequest): Promise<ToolResponse<TaskTransitionData>>;
   getTask(request: GetTaskRequest): Promise<TaskData>;
   getTaskField(request: GetTaskRequest): Promise<unknown>;
 }
@@ -93,9 +97,21 @@ export interface IProjectConfig {
     id: string;
     number: number;
     repository: string;
+    title?: string;
   };
-  fields: Record<string, string>;
+  fields: {
+    status_field_id: string;
+    wave_field_id: string;
+    epic_field_id: string;
+    dependencies_field_id: string;
+    ai_suitability_field_id: string;
+    risk_level_field_id: string;
+    effort_field_id: string;
+    ai_context_field_id: string;
+    [key: string]: string;
+  };
   status_options: Record<string, { name: string; id: string }>;
+  ai_suitability_options?: Record<string, { name: string; id: string }>;
   wave_config?: {
     format: string;
     autoDetect: boolean;
@@ -108,6 +124,8 @@ export interface IWorkflowConfig {
   getFieldId(key: string): string;
   isValidTransition(from: string, to: string): boolean;
   getAllStatusValues(): Record<string, string>;
+  /** Returns all valid destination statuses from the given status name */
+  getValidNextTransitions(fromStatus: string): string[];
 }
 
 export interface IGitWorkflowConfig {
@@ -168,6 +186,7 @@ export interface PullRequestInfo {
   url: string;
   state: string;
   merged: boolean;
+  headRefName?: string;
 }
 
 export interface UserInfo {
@@ -227,7 +246,27 @@ export interface EpicIssueData {
 export interface IssueTimelineData {
   number: number;
   title: string;
-  timelineItems: unknown[];
+  body?: string;
+  state?: string;
+  url?: string;
+  connectedIssues: Array<{ number: number; title: string; state: string }>;
+  subIssues: SubIssueData[];
+  subIssuesSummary: { total: number; completed: number };
+}
+
+export interface SubIssueData {
+  number: number;
+  title: string;
+  state: 'OPEN' | 'CLOSED';
+  url: string;
+}
+
+export interface PullRequestReviewData {
+  id: string;
+  author: string;
+  state: 'PENDING' | 'COMMENTED' | 'APPROVED' | 'CHANGES_REQUESTED' | 'DISMISSED';
+  body: string;
+  submittedAt: string;
 }
 
 export interface DependencyAnalysisResult {
@@ -258,6 +297,8 @@ export interface AllTransitionsResult {
 
 export interface TaskTransitionRequest {
   issueNumber: number;
+  /** The actor performing this transition — required for governance audit trail */
+  actor: ActorIdentity;
   message?: string;
   skipValidation?: boolean;
   dryRun?: boolean;
@@ -277,21 +318,21 @@ export interface GetTaskRequest {
   field?: string;
 }
 
-export interface TaskTransitionResult {
-  success: boolean;
+/** Data payload for a task transition — governance metadata lives in ToolResponse<T> */
+export interface TaskTransitionData {
   issueNumber: number;
   fromStatus: string;
   toStatus: string;
-  suggestions: Suggestion[];
-  warnings: Warning[];
-  auditEntry: AuditEntry;
 }
 
 export interface Suggestion {
+  /** MCP tool name to invoke (e.g., 'start_task', 'assign_wave') */
   action: string;
   description: string;
   parameters: Record<string, unknown>;
   priority: 'high' | 'medium' | 'low';
+  /** When true, agents must request human approval before executing (ADR-14) */
+  humanPermissionRequired?: boolean;
 }
 
 export interface Warning {
@@ -300,14 +341,38 @@ export interface Warning {
   severity: 'info' | 'warning' | 'error';
 }
 
+export interface AuditValidationDetail {
+  stepName: string;
+  passed: boolean;
+  message?: string;
+}
+
+export interface AuditValidationResult {
+  stepsRun: number;
+  stepsPassed: number;
+  stepsFailed: number;
+  stepsWarned: number;
+  details: AuditValidationDetail[];
+}
+
+export interface AuditMetadata {
+  wave?: string;
+  epic?: string;
+  prNumber?: number;
+  dryRun?: boolean;
+  [key: string]: unknown;
+}
+
 export interface AuditEntry {
   timestamp: string;
   transition: string;
   issueNumber: number;
   fromStatus: string;
   toStatus: string;
-  actor: string;
-  validationStepsRun: number;
-  validationStepsPassed: number;
-  dryRun: boolean;
+  /** Structured actor identity — who performed this action (ADR-15) */
+  actor: ActorIdentity;
+  /** Detailed validation results from the BRE pipeline */
+  validationResult: AuditValidationResult;
+  /** Contextual metadata for the transition */
+  metadata: AuditMetadata;
 }

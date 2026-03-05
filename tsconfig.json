@@ -18,7 +18,7 @@
     "exactOptionalPropertyTypes": false,
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
-    "skipLibCheck": false,
+    "skipLibCheck": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "composite": true
@@ -27,5 +27,5 @@
     { "path": "packages/core" },
     { "path": "packages/mcp" }
   ],
-  "exclude": ["node_modules", "dist", "packages/*/dist"]
+  "exclude": ["node_modules", "dist", "packages/*/dist", "packages/*/tests", "packages/*/vitest.config.mts"]
 }

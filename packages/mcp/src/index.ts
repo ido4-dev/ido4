@@ -23,25 +23,14 @@
  *   }
  */
 
-// TODO: Phase 2 implementation
-// 1. Import Server from @modelcontextprotocol/sdk
-// 2. Import ServiceContainer from @ido4/core
-// 3. Create STDIO transport
-// 4. Register tools (task_*, wave_*, project_*, dependency_*, intelligence_*)
-// 5. Register resources (project://, wave://, methodology://, audit://)
-// 6. Register prompts (/standup, /plan-wave, /board, /retro, /compliance)
-// 7. Initialize ServiceContainer on first tool call (lazy, with project root detection)
-// 8. Start server
+import { startServer } from './server.js';
 
 async function main(): Promise<void> {
-  // eslint-disable-next-line no-console
-  console.error('ido4 MCP server starting...');
-  // Server implementation will go here in Phase 2
-  throw new Error('@ido4/mcp server not yet implemented — Phase 2 work');
+  process.stderr.write('ido4 MCP server starting...\n');
+  await startServer();
 }
 
 main().catch((error: unknown) => {
-  // eslint-disable-next-line no-console
-  console.error('Fatal error:', error);
+  process.stderr.write(`Fatal error: ${error instanceof Error ? error.message : String(error)}\n`);
   process.exit(1);
 });
