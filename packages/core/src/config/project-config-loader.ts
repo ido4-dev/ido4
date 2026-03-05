@@ -36,6 +36,15 @@ const ProjectConfigSchema = z.object({
   ai_suitability_options: z.record(
     z.object({ name: z.string(), id: z.string() }),
   ).optional(),
+  risk_level_options: z.record(
+    z.object({ name: z.string(), id: z.string() }),
+  ).optional(),
+  effort_options: z.record(
+    z.object({ name: z.string(), id: z.string() }),
+  ).optional(),
+  task_type_options: z.record(
+    z.object({ name: z.string(), id: z.string() }),
+  ).optional(),
   wave_config: z.object({
     format: z.string(),
     autoDetect: z.boolean(),

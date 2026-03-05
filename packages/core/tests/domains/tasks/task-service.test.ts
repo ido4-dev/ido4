@@ -2,21 +2,31 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { TaskService } from '../../../src/domains/tasks/task-service.js';
 import { TaskWorkflowService } from '../../../src/domains/tasks/task-workflow-service.js';
 import { SuggestionService } from '../../../src/domains/tasks/suggestion-service.js';
-import type { IIssueRepository, ITaskTransitionValidator, IWorkflowConfig, TaskTransitionData, Suggestion } from '../../../src/container/interfaces.js';
+import type { IIssueRepository, IProjectRepository, ITaskTransitionValidator, IWorkflowConfig, TaskTransitionData, Suggestion } from '../../../src/container/interfaces.js';
 import type { IEventBus } from '../../../src/shared/events/event-bus.js';
 import type { DomainEvent } from '../../../src/shared/events/types.js';
 import { TestLogger } from '../../helpers/test-logger.js';
-import { createMockTaskData, createMockWorkflowConfig, createMockGitWorkflowConfig } from '../../helpers/mock-factories.js';
+import { createMockTaskData, createMockProjectConfig, createMockWorkflowConfig, createMockGitWorkflowConfig } from '../../helpers/mock-factories.js';
 import { SYSTEM_ACTOR } from '../../../src/index.js';
 import type { ValidationResult, TransitionType } from '../../../src/domains/tasks/types.js';
 import type { WorkflowTransitionResult } from '../../../src/domains/tasks/task-workflow-service.js';
 
 function createMockIssueRepo(): IIssueRepository {
   return {
-    getTask: vi.fn(), getTaskWithDetails: vi.fn(), updateTaskStatus: vi.fn(),
-    updateTaskField: vi.fn(), updateTaskWave: vi.fn(), assignTask: vi.fn(),
-    addComment: vi.fn(), closeIssue: vi.fn(), findPullRequestForIssue: vi.fn(),
-    getSubIssues: vi.fn().mockResolvedValue([]),
+    getTask: vi.fn(), getTaskWithDetails: vi.fn(), createIssue: vi.fn(),
+    updateTaskStatus: vi.fn(), updateTaskField: vi.fn(), updateTaskWave: vi.fn(),
+    assignTask: vi.fn(), addComment: vi.fn(), closeIssue: vi.fn(),
+    findPullRequestForIssue: vi.fn(), getSubIssues: vi.fn().mockResolvedValue([]),
+  };
+}
+
+function createMockProjectRepo(): IProjectRepository {
+  return {
+    getProjectItems: vi.fn().mockResolvedValue([]),
+    addItemToProject: vi.fn().mockResolvedValue('PVTI_item1'),
+    updateItemField: vi.fn(),
+    getWaveStatus: vi.fn(),
+    getCurrentUser: vi.fn(),
   };
 }
 
@@ -59,18 +69,21 @@ describe('TaskService', () => {
   let workflowService: TaskWorkflowService;
   let suggestionService: SuggestionService;
   let issueRepo: ReturnType<typeof createMockIssueRepo>;
+  let projectRepo: ReturnType<typeof createMockProjectRepo>;
   let validator: ReturnType<typeof createMockValidator>;
   let eventBus: ReturnType<typeof createMockEventBus>;
   let logger: TestLogger;
 
   beforeEach(() => {
     issueRepo = createMockIssueRepo();
+    projectRepo = createMockProjectRepo();
     validator = createMockValidator();
     eventBus = createMockEventBus();
     logger = new TestLogger();
 
     const workflowConfig = createMockWorkflowConfig();
     const gitWorkflowConfig = createMockGitWorkflowConfig();
+    const projectConfig = createMockProjectConfig();
 
     // Use real WorkflowService and SuggestionService but mock their dependencies
     workflowService = new TaskWorkflowService(issueRepo, validator, workflowConfig, logger);
@@ -78,7 +91,7 @@ describe('TaskService', () => {
 
     service = new TaskService(
       workflowService, suggestionService, validator,
-      issueRepo, workflowConfig, eventBus, 'test-session', logger,
+      issueRepo, projectRepo, projectConfig, workflowConfig, eventBus, 'test-session', logger,
     );
 
     // Default: task in Ready for Dev, validation passes

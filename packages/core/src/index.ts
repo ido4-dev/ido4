@@ -36,6 +36,8 @@ export type {
   WaveAssignResult,
   WaveCompletionResult,
   EpicIntegrityResult,
+  EpicIssueData,
+  IssueTimelineData,
   DependencyAnalysisResult,
   DependencyNode,
   DependencyValidationResult,
@@ -53,6 +55,13 @@ export type {
   AuditMetadata,
   SubIssueData,
   PullRequestReviewData,
+  ListTasksRequest,
+  ListTasksData,
+  CreateTaskRequest,
+  CreateTaskData,
+  ProjectInitOptions,
+  ProjectInitResult,
+  IProjectInitService,
 } from './container/interfaces.js';
 
 // Domain types
@@ -139,6 +148,9 @@ export { DependencyService } from './domains/dependencies/index.js';
 
 // Domain Services — Waves
 export { WaveService } from './domains/waves/index.js';
+
+// Domain Services — Projects
+export { ProjectInitService } from './domains/projects/index.js';
 
 // Configuration
 export { ProjectConfigLoader } from './config/index.js';

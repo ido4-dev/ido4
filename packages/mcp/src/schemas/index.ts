@@ -5,7 +5,20 @@ export {
   GetTaskSchema,
   ValidateTransitionSchema,
   ValidateAllTransitionsSchema,
+  ListTasksSchema,
+  CreateTaskSchema,
+  FindTaskPrSchema,
+  GetPrReviewsSchema,
+  AddTaskCommentSchema,
+  GetSubIssuesSchema,
 } from './task-schemas.js';
+
+export {
+  SearchEpicsSchema,
+  GetEpicTasksSchema,
+  GetEpicTimelineSchema,
+  ValidateEpicIntegritySchema,
+} from './epic-schemas.js';
 
 export {
   WaveNameSchema,
@@ -16,3 +29,7 @@ export {
 export {
   DependencySchema,
 } from './dependency-schemas.js';
+
+export {
+  InitProjectSchema,
+} from './project-schemas.js';

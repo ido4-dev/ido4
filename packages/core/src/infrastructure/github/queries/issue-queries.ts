@@ -112,6 +112,31 @@ export interface GetSubIssuesResponse {
   };
 }
 
+export interface CreateIssueResponse {
+  createIssue: {
+    issue: {
+      id: string;
+      number: number;
+      title: string;
+      url: string;
+    };
+  };
+}
+
+export interface AddProjectItemResponse {
+  addProjectV2ItemById: {
+    item: {
+      id: string;
+    };
+  };
+}
+
+export interface GetRepositoryIdResponse {
+  repository: {
+    id: string;
+  };
+}
+
 // ─── Queries ───
 
 export const GET_TASK_BY_ISSUE = `
@@ -213,6 +238,44 @@ export const FIND_PR_FOR_ISSUE = `
           }
         }
       }
+    }
+  }
+`;
+
+export const CREATE_ISSUE = `
+  mutation CreateIssue($repositoryId: ID!, $title: String!, $body: String) {
+    createIssue(input: {
+      repositoryId: $repositoryId
+      title: $title
+      body: $body
+    }) {
+      issue {
+        id
+        number
+        title
+        url
+      }
+    }
+  }
+`;
+
+export const ADD_PROJECT_ITEM = `
+  mutation AddProjectItem($projectId: ID!, $contentId: ID!) {
+    addProjectV2ItemById(input: {
+      projectId: $projectId
+      contentId: $contentId
+    }) {
+      item {
+        id
+      }
+    }
+  }
+`;
+
+export const GET_REPOSITORY_ID = `
+  query GetRepositoryId($owner: String!, $name: String!) {
+    repository(owner: $owner, name: $name) {
+      id
     }
   }
 `;

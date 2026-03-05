@@ -14,11 +14,17 @@ import type {
   ITaskService,
   ITaskTransitionValidator,
   IIssueRepository,
+  IProjectRepository,
+  IProjectConfig,
   IWorkflowConfig,
   TaskTransitionRequest,
   BlockTaskRequest,
   ReturnTaskRequest,
   GetTaskRequest,
+  ListTasksRequest,
+  ListTasksData,
+  CreateTaskRequest,
+  CreateTaskData,
   TaskData,
   TaskTransitionData,
   Warning,
@@ -40,6 +46,8 @@ export class TaskService implements ITaskService {
     private readonly suggestionService: SuggestionService,
     _transitionValidator: ITaskTransitionValidator,
     private readonly issueRepository: IIssueRepository,
+    private readonly projectRepository: IProjectRepository,
+    private readonly projectConfig: IProjectConfig,
     _workflowConfig: IWorkflowConfig,
     private readonly eventBus: IEventBus,
     private readonly sessionId: string,
@@ -86,6 +94,124 @@ export class TaskService implements ITaskService {
     const task = await this.issueRepository.getTask(request.issueNumber);
     if (!request.field) return task;
     return (task as unknown as Record<string, unknown>)[request.field];
+  }
+
+  async listTasks(request: ListTasksRequest): Promise<ToolResponse<ListTasksData>> {
+    const items = await this.projectRepository.getProjectItems();
+
+    let tasks: TaskData[] = items.map((item) => ({
+      id: item.content.url,
+      itemId: item.id,
+      number: item.content.number,
+      title: item.content.title,
+      body: item.content.body,
+      status: item.fieldValues.Status ?? 'Unknown',
+      wave: item.fieldValues.Wave,
+      epic: item.fieldValues.Epic,
+      dependencies: item.fieldValues.Dependencies,
+      aiSuitability: item.fieldValues['AI Suitability'],
+      riskLevel: item.fieldValues['Risk Level'],
+      effort: item.fieldValues.Effort,
+      taskType: item.fieldValues['Task Type'],
+      aiContext: item.fieldValues['AI Context'],
+      url: item.content.url,
+      closed: item.content.closed,
+    }));
+
+    if (request.status) {
+      tasks = tasks.filter((t) => t.status === request.status);
+    }
+    if (request.wave) {
+      tasks = tasks.filter((t) => t.wave === request.wave);
+    }
+
+    return {
+      success: true,
+      data: { tasks, total: tasks.length, filters: request },
+      suggestions: [],
+      warnings: [],
+    };
+  }
+
+  async createTask(request: CreateTaskRequest): Promise<ToolResponse<CreateTaskData>> {
+    if (request.dryRun) {
+      return {
+        success: true,
+        data: {
+          issueNumber: 0, issueId: '', itemId: '', url: '',
+          title: request.title, status: 'Backlog', fieldsSet: [],
+        },
+        suggestions: [],
+        warnings: [{ code: 'DRY_RUN', message: 'Dry run — no issue created', severity: 'info' }],
+      };
+    }
+
+    // 1. Create GitHub issue
+    const issue = await this.issueRepository.createIssue(request.title, request.body);
+
+    // 2. Add to project
+    const itemId = await this.projectRepository.addItemToProject(issue.id);
+
+    // 3. Set initial status
+    const statusKey = request.initialStatus ?? 'BACKLOG';
+    await this.issueRepository.updateTaskStatus(issue.number, statusKey);
+
+    // 4. Set optional text fields
+    const fieldsSet: string[] = ['status'];
+    const textFields = [
+      { key: 'wave', value: request.wave },
+      { key: 'epic', value: request.epic },
+      { key: 'dependencies', value: request.dependencies },
+      { key: 'ai_context', value: request.aiContext },
+    ];
+    for (const { key, value } of textFields) {
+      if (value) {
+        await this.issueRepository.updateTaskField(issue.number, key, value, 'text');
+        fieldsSet.push(key);
+      }
+    }
+
+    // 5. Set optional single-select fields (resolve key → option ID)
+    const selectFields = [
+      { key: 'effort', optionKey: request.effort, options: this.projectConfig.effort_options },
+      { key: 'risk_level', optionKey: request.riskLevel, options: this.projectConfig.risk_level_options },
+      { key: 'ai_suitability', optionKey: request.aiSuitability, options: this.projectConfig.ai_suitability_options },
+      { key: 'task_type', optionKey: request.taskType, options: this.projectConfig.task_type_options },
+    ];
+    for (const { key, optionKey, options } of selectFields) {
+      if (optionKey && options?.[optionKey]) {
+        await this.issueRepository.updateTaskField(issue.number, key, options[optionKey]!.id, 'singleSelect');
+        fieldsSet.push(key);
+      }
+    }
+
+    // 6. Emit event
+    this.eventBus.emit({
+      type: 'task.transition',
+      timestamp: new Date().toISOString(),
+      sessionId: this.sessionId,
+      actor: request.actor,
+      issueNumber: issue.number,
+      fromStatus: '',
+      toStatus: statusKey,
+      transition: 'create' as TransitionType,
+      dryRun: false,
+    });
+
+    return {
+      success: true,
+      data: {
+        issueNumber: issue.number,
+        issueId: issue.id,
+        itemId,
+        url: issue.url,
+        title: request.title,
+        status: statusKey,
+        fieldsSet,
+      },
+      suggestions: this.suggestionService.generatePostCreateSuggestions(issue.number),
+      warnings: [],
+    };
   }
 
   private async executeTransition(

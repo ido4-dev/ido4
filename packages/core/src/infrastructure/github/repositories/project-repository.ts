@@ -23,11 +23,13 @@ import {
   UPDATE_ITEM_FIELD_TEXT,
   UPDATE_ITEM_FIELD_SELECT,
   GET_CURRENT_USER,
+  ADD_PROJECT_ITEM,
 } from '../queries/index.js';
 import type {
   GetProjectItemsResponse,
   ProjectItemNode,
   GetCurrentUserResponse,
+  AddProjectItemResponse,
 } from '../queries/index.js';
 
 export class GitHubProjectRepository implements IProjectRepository {
@@ -49,6 +51,17 @@ export class GitHubProjectRepository implements IProjectRepository {
     return nodes
       .filter((node) => node.content !== null)
       .map((node) => this.mapProjectItemNode(node));
+  }
+
+  async addItemToProject(contentId: string): Promise<string> {
+    const data = await this.client.mutate<AddProjectItemResponse>(ADD_PROJECT_ITEM, {
+      projectId: this.config.project.id,
+      contentId,
+    });
+
+    const itemId = data.addProjectV2ItemById.item.id;
+    this.logger.debug('Item added to project', { contentId, itemId });
+    return itemId;
   }
 
   async updateItemField(

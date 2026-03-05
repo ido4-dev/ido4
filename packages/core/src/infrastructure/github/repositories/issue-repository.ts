@@ -18,16 +18,18 @@ import {
   CLOSE_ISSUE,
   FIND_PR_FOR_ISSUE,
   GET_SUB_ISSUES,
+  CREATE_ISSUE,
+  GET_REPOSITORY_ID,
+  UPDATE_ITEM_FIELD_TEXT,
+  UPDATE_ITEM_FIELD_SELECT,
 } from '../queries/index.js';
 import type {
   GetTaskByIssueResponse,
   GetIssueIdResponse,
   FindPRForIssueResponse,
   GetSubIssuesResponse,
-} from '../queries/index.js';
-import {
-  UPDATE_ITEM_FIELD_TEXT,
-  UPDATE_ITEM_FIELD_SELECT,
+  CreateIssueResponse,
+  GetRepositoryIdResponse,
 } from '../queries/index.js';
 
 export class GitHubIssueRepository implements IIssueRepository {
@@ -67,6 +69,24 @@ export class GitHubIssueRepository implements IIssueRepository {
   async getTaskWithDetails(issueNumber: number, _options?: TaskDetailOptions): Promise<TaskData> {
     // For now, same as getTask. In future, could expand query with comments/timeline.
     return this.getTask(issueNumber);
+  }
+
+  async createIssue(title: string, body?: string): Promise<{ id: string; number: number; url: string }> {
+    const repoData = await this.client.query<GetRepositoryIdResponse>(
+      GET_REPOSITORY_ID,
+      { owner: this.owner, name: this.repo },
+    );
+    const repositoryId = repoData.repository.id;
+
+    const data = await this.client.mutate<CreateIssueResponse>(CREATE_ISSUE, {
+      repositoryId,
+      title,
+      body: body ?? '',
+    });
+
+    const issue = data.createIssue.issue;
+    this.logger.info('Issue created', { number: issue.number, title });
+    return { id: issue.id, number: issue.number, url: issue.url };
   }
 
   async updateTaskStatus(issueNumber: number, statusKey: string): Promise<void> {

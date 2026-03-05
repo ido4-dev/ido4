@@ -12,6 +12,8 @@ const mockTaskService = {
   readyTask: vi.fn(),
   getTask: vi.fn(),
   getTaskField: vi.fn(),
+  listTasks: vi.fn(),
+  createTask: vi.fn(),
 };
 
 const mockTransitionValidator = {
@@ -19,9 +21,21 @@ const mockTransitionValidator = {
   validateAllTransitions: vi.fn(),
 };
 
+const mockIssueRepository = {
+  findPullRequestForIssue: vi.fn(),
+  addComment: vi.fn(),
+  getSubIssues: vi.fn(),
+};
+
+const mockRepositoryRepository = {
+  getPullRequestReviews: vi.fn(),
+};
+
 const mockContainer = {
   taskService: mockTaskService,
   taskTransitionValidator: mockTransitionValidator,
+  issueRepository: mockIssueRepository,
+  repositoryRepository: mockRepositoryRepository,
 };
 
 const { mockGetContainer } = vi.hoisted(() => ({
@@ -169,6 +183,215 @@ describe('Task Tools', () => {
       expect(mockTransitionValidator.validateAllTransitions).toHaveBeenCalledWith(42);
       const parsed = JSON.parse(result.content[0]!.text);
       expect(parsed.data.issueNumber).toBe(42);
+    });
+  });
+
+  describe('list and create tools', () => {
+    it('list_tasks passes filters to service', async () => {
+      mockTaskService.listTasks.mockResolvedValue({
+        success: true,
+        data: { tasks: [], total: 0, filters: { status: 'In Progress' } },
+        suggestions: [],
+        warnings: [],
+      });
+
+      const result = await callTool(server, 'list_tasks', {
+        status: 'In Progress',
+        wave: 'wave-001',
+      }) as { content: Array<{ text: string }> };
+
+      expect(mockTaskService.listTasks).toHaveBeenCalledWith({
+        status: 'In Progress',
+        wave: 'wave-001',
+        assignee: undefined,
+      });
+
+      const parsed = JSON.parse(result.content[0]!.text);
+      expect(parsed.success).toBe(true);
+    });
+
+    it('list_tasks works with no filters', async () => {
+      mockTaskService.listTasks.mockResolvedValue({
+        success: true,
+        data: { tasks: [], total: 0, filters: {} },
+        suggestions: [],
+        warnings: [],
+      });
+
+      await callTool(server, 'list_tasks', {});
+      expect(mockTaskService.listTasks).toHaveBeenCalledWith({
+        status: undefined,
+        wave: undefined,
+        assignee: undefined,
+      });
+    });
+
+    it('create_task passes all args to service', async () => {
+      mockTaskService.createTask.mockResolvedValue({
+        success: true,
+        data: {
+          issueNumber: 99,
+          issueId: 'I_99',
+          itemId: 'PVTI_99',
+          url: 'https://github.com/owner/repo/issues/99',
+          title: 'New task',
+          status: 'BACKLOG',
+          fieldsSet: ['status'],
+        },
+        suggestions: [],
+        warnings: [],
+      });
+
+      const result = await callTool(server, 'create_task', {
+        title: 'New task',
+        body: 'Task body',
+        wave: 'wave-001',
+        epic: 'Auth',
+      }) as { content: Array<{ text: string }> };
+
+      expect(mockTaskService.createTask).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'New task',
+          body: 'Task body',
+          wave: 'wave-001',
+          epic: 'Auth',
+        }),
+      );
+
+      const parsed = JSON.parse(result.content[0]!.text);
+      expect(parsed.success).toBe(true);
+      expect(parsed.data.issueNumber).toBe(99);
+    });
+
+    it('create_task includes actor', async () => {
+      mockTaskService.createTask.mockResolvedValue({
+        success: true,
+        data: { issueNumber: 1, issueId: '', itemId: '', url: '', title: '', status: '', fieldsSet: [] },
+        suggestions: [],
+        warnings: [],
+      });
+
+      await callTool(server, 'create_task', { title: 'Test' });
+
+      expect(mockTaskService.createTask).toHaveBeenCalledWith(
+        expect.objectContaining({
+          actor: expect.objectContaining({ type: 'ai-agent' }),
+        }),
+      );
+    });
+
+    it('create_task passes dryRun flag', async () => {
+      mockTaskService.createTask.mockResolvedValue({
+        success: true,
+        data: { issueNumber: 0, issueId: '', itemId: '', url: '', title: 'Dry', status: 'Backlog', fieldsSet: [] },
+        suggestions: [],
+        warnings: [{ code: 'DRY_RUN', message: 'Dry run', severity: 'info' }],
+      });
+
+      await callTool(server, 'create_task', { title: 'Dry', dryRun: true });
+
+      expect(mockTaskService.createTask).toHaveBeenCalledWith(
+        expect.objectContaining({ dryRun: true }),
+      );
+    });
+  });
+
+  describe('PR and review tools', () => {
+    it('find_task_pr calls issueRepository.findPullRequestForIssue', async () => {
+      const prInfo = {
+        number: 15,
+        title: 'feat: implement login page',
+        url: 'https://github.com/owner/repo/pull/15',
+        state: 'OPEN',
+        merged: false,
+        headRefName: 'feature/login',
+      };
+      mockIssueRepository.findPullRequestForIssue.mockResolvedValue(prInfo);
+
+      const result = await callTool(server, 'find_task_pr', { issueNumber: 42 }) as { content: Array<{ text: string }> };
+      const parsed = JSON.parse(result.content[0]!.text);
+
+      expect(mockIssueRepository.findPullRequestForIssue).toHaveBeenCalledWith(42);
+      expect(parsed.success).toBe(true);
+      expect(parsed.data.issueNumber).toBe(42);
+      expect(parsed.data.pullRequest.number).toBe(15);
+      expect(parsed.data.pullRequest.merged).toBe(false);
+    });
+
+    it('find_task_pr returns null when no PR exists', async () => {
+      mockIssueRepository.findPullRequestForIssue.mockResolvedValue(null);
+
+      const result = await callTool(server, 'find_task_pr', { issueNumber: 42 }) as { content: Array<{ text: string }> };
+      const parsed = JSON.parse(result.content[0]!.text);
+
+      expect(parsed.success).toBe(true);
+      expect(parsed.data.pullRequest).toBeNull();
+    });
+
+    it('get_pr_reviews calls repositoryRepository.getPullRequestReviews', async () => {
+      const reviews = [
+        { id: 'R_1', author: 'alice', state: 'APPROVED', body: 'Looks good!', submittedAt: '2025-01-15T10:00:00Z' },
+        { id: 'R_2', author: 'bob', state: 'CHANGES_REQUESTED', body: 'Fix linting', submittedAt: '2025-01-15T11:00:00Z' },
+      ];
+      mockRepositoryRepository.getPullRequestReviews.mockResolvedValue(reviews);
+
+      const result = await callTool(server, 'get_pr_reviews', { prNumber: 15 }) as { content: Array<{ text: string }> };
+      const parsed = JSON.parse(result.content[0]!.text);
+
+      expect(mockRepositoryRepository.getPullRequestReviews).toHaveBeenCalledWith(15);
+      expect(parsed.success).toBe(true);
+      expect(parsed.data.prNumber).toBe(15);
+      expect(parsed.data.reviews).toHaveLength(2);
+      expect(parsed.data.total).toBe(2);
+    });
+  });
+
+  describe('governed communication', () => {
+    it('add_task_comment calls issueRepository.addComment', async () => {
+      mockIssueRepository.addComment.mockResolvedValue(undefined);
+
+      const result = await callTool(server, 'add_task_comment', {
+        issueNumber: 42,
+        comment: 'Starting implementation — wave-001 context.',
+      }) as { content: Array<{ text: string }> };
+      const parsed = JSON.parse(result.content[0]!.text);
+
+      expect(mockIssueRepository.addComment).toHaveBeenCalledWith(42, 'Starting implementation — wave-001 context.');
+      expect(parsed.success).toBe(true);
+      expect(parsed.data.issueNumber).toBe(42);
+      expect(parsed.data.commented).toBe(true);
+    });
+  });
+
+  describe('task decomposition', () => {
+    it('get_sub_issues calls issueRepository.getSubIssues', async () => {
+      const subIssues = [
+        { number: 50, title: 'Sub-task A', state: 'CLOSED', url: 'https://github.com/owner/repo/issues/50' },
+        { number: 51, title: 'Sub-task B', state: 'OPEN', url: 'https://github.com/owner/repo/issues/51' },
+        { number: 52, title: 'Sub-task C', state: 'CLOSED', url: 'https://github.com/owner/repo/issues/52' },
+      ];
+      mockIssueRepository.getSubIssues.mockResolvedValue(subIssues);
+
+      const result = await callTool(server, 'get_sub_issues', { issueNumber: 42 }) as { content: Array<{ text: string }> };
+      const parsed = JSON.parse(result.content[0]!.text);
+
+      expect(mockIssueRepository.getSubIssues).toHaveBeenCalledWith(42);
+      expect(parsed.success).toBe(true);
+      expect(parsed.data.parentIssueNumber).toBe(42);
+      expect(parsed.data.subIssues).toHaveLength(3);
+      expect(parsed.data.total).toBe(3);
+      expect(parsed.data.completed).toBe(2);
+    });
+
+    it('get_sub_issues returns empty when no sub-issues exist', async () => {
+      mockIssueRepository.getSubIssues.mockResolvedValue([]);
+
+      const result = await callTool(server, 'get_sub_issues', { issueNumber: 42 }) as { content: Array<{ text: string }> };
+      const parsed = JSON.parse(result.content[0]!.text);
+
+      expect(parsed.data.subIssues).toHaveLength(0);
+      expect(parsed.data.total).toBe(0);
+      expect(parsed.data.completed).toBe(0);
     });
   });
 

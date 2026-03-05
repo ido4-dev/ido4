@@ -166,7 +166,7 @@ export class ServiceContainer {
     );
     const taskService = new TaskService(
       workflowService, suggestionService, taskTransitionValidator,
-      issueRepository, workflowConfig, eventBus, sessionId, logger,
+      issueRepository, projectRepository, projectConfig, workflowConfig, eventBus, sessionId, logger,
     );
     const waveService = new WaveService(
       projectRepository, issueRepository, epicValidator, workflowConfig, logger,

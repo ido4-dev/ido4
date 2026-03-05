@@ -25,16 +25,30 @@ describe('createServer', () => {
     expect(typeof server.connect).toBe('function');
   });
 
-  it('registers all 12 task tools', () => {
+  it('registers all 18 task tools', () => {
     const server = createServer();
 
     const taskToolNames = [
       'start_task', 'review_task', 'approve_task', 'block_task',
       'unblock_task', 'return_task', 'refine_task', 'ready_task',
-      'get_task', 'get_task_field', 'validate_transition', 'validate_all_transitions',
+      'get_task', 'get_task_field', 'list_tasks', 'create_task',
+      'validate_transition', 'validate_all_transitions',
+      'find_task_pr', 'get_pr_reviews', 'add_task_comment', 'get_sub_issues',
     ];
 
     for (const name of taskToolNames) {
+      expect(hasRegisteredTool(server, name), `Missing tool: ${name}`).toBe(true);
+    }
+  });
+
+  it('registers all 4 epic tools', () => {
+    const server = createServer();
+
+    const epicToolNames = [
+      'search_epics', 'get_epic_tasks', 'get_epic_timeline', 'validate_epic_integrity',
+    ];
+
+    for (const name of epicToolNames) {
       expect(hasRegisteredTool(server, name), `Missing tool: ${name}`).toBe(true);
     }
   });
@@ -58,9 +72,15 @@ describe('createServer', () => {
     expect(hasRegisteredTool(server, 'validate_dependencies')).toBe(true);
   });
 
-  it('registers 19 tools total', () => {
+  it('registers all 2 project tools', () => {
     const server = createServer();
-    expect(getRegisteredToolNames(server)).toHaveLength(19);
+    expect(hasRegisteredTool(server, 'init_project')).toBe(true);
+    expect(hasRegisteredTool(server, 'get_project_status')).toBe(true);
+  });
+
+  it('registers 31 tools total', () => {
+    const server = createServer();
+    expect(getRegisteredToolNames(server)).toHaveLength(31);
   });
 
   it('registers resources', () => {
@@ -81,5 +101,7 @@ describe('createServer', () => {
     expect(hasRegisteredPrompt(server, 'standup')).toBe(true);
     expect(hasRegisteredPrompt(server, 'plan-wave')).toBe(true);
     expect(hasRegisteredPrompt(server, 'board')).toBe(true);
+    expect(hasRegisteredPrompt(server, 'compliance')).toBe(true);
+    expect(hasRegisteredPrompt(server, 'retro')).toBe(true);
   });
 });

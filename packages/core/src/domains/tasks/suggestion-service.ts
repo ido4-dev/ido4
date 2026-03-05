@@ -259,6 +259,23 @@ export class SuggestionService {
     return suggestions;
   }
 
+  generatePostCreateSuggestions(issueNumber: number): Suggestion[] {
+    return [
+      {
+        action: 'assign_task_to_wave',
+        description: 'Assign the new task to a wave',
+        parameters: { issueNumber },
+        priority: 'high',
+      },
+      {
+        action: 'refine_task',
+        description: 'Refine the task to add acceptance criteria',
+        parameters: { issueNumber },
+        priority: 'medium',
+      },
+    ];
+  }
+
   private deduplicateAndSort(suggestions: Suggestion[]): Suggestion[] {
     const seen = new Set<string>();
     const unique: Suggestion[] = [];

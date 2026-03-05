@@ -19,6 +19,7 @@ export interface IGraphQLClient {
 export interface IIssueRepository {
   getTask(issueNumber: number): Promise<TaskData>;
   getTaskWithDetails(issueNumber: number, options?: TaskDetailOptions): Promise<TaskData>;
+  createIssue(title: string, body?: string): Promise<{ id: string; number: number; url: string }>;
   updateTaskStatus(issueNumber: number, statusKey: string): Promise<void>;
   updateTaskField(issueNumber: number, fieldKey: string, value: string, fieldType?: string): Promise<void>;
   updateTaskWave(issueNumber: number, waveName: string): Promise<void>;
@@ -31,6 +32,7 @@ export interface IIssueRepository {
 
 export interface IProjectRepository {
   getProjectItems(options?: PaginationOptions): Promise<ProjectItem[]>;
+  addItemToProject(contentId: string): Promise<string>;
   updateItemField(itemId: string, fieldId: string, value: string, fieldType?: string): Promise<void>;
   getWaveStatus(wave: string): Promise<WaveStatusData>;
   getCurrentUser(): Promise<UserInfo>;
@@ -61,6 +63,8 @@ export interface ITaskService {
   readyTask(request: TaskTransitionRequest): Promise<ToolResponse<TaskTransitionData>>;
   getTask(request: GetTaskRequest): Promise<TaskData>;
   getTaskField(request: GetTaskRequest): Promise<unknown>;
+  listTasks(request: ListTasksRequest): Promise<ToolResponse<ListTasksData>>;
+  createTask(request: CreateTaskRequest): Promise<ToolResponse<CreateTaskData>>;
 }
 
 export interface ITaskTransitionValidator {
@@ -112,6 +116,9 @@ export interface IProjectConfig {
   };
   status_options: Record<string, { name: string; id: string }>;
   ai_suitability_options?: Record<string, { name: string; id: string }>;
+  risk_level_options?: Record<string, { name: string; id: string }>;
+  effort_options?: Record<string, { name: string; id: string }>;
+  task_type_options?: Record<string, { name: string; id: string }>;
   wave_config?: {
     format: string;
     autoDetect: boolean;
@@ -375,4 +382,86 @@ export interface AuditEntry {
   validationResult: AuditValidationResult;
   /** Contextual metadata for the transition */
   metadata: AuditMetadata;
+}
+
+// ─── List / Create Task Interfaces ───
+
+export interface ListTasksRequest {
+  /** Filter by status name (e.g., 'In Progress', 'Blocked') */
+  status?: string;
+  /** Filter by wave name */
+  wave?: string;
+  /** Filter by assignee login */
+  assignee?: string;
+}
+
+export interface ListTasksData {
+  tasks: TaskData[];
+  total: number;
+  filters: ListTasksRequest;
+}
+
+export interface CreateTaskRequest {
+  title: string;
+  body?: string;
+  /** Initial status key (defaults to 'BACKLOG') */
+  initialStatus?: string;
+  wave?: string;
+  epic?: string;
+  aiContext?: string;
+  dependencies?: string;
+  /** Effort estimate key (XS, S, M, L, XL) */
+  effort?: string;
+  /** Risk level key (LOW, MEDIUM, HIGH, CRITICAL) */
+  riskLevel?: string;
+  /** AI suitability key (AI_ONLY, AI_REVIEWED, HYBRID, HUMAN_ONLY) */
+  aiSuitability?: string;
+  /** Task type key (FEATURE, BUG, ENHANCEMENT, DOCUMENTATION, TESTING) */
+  taskType?: string;
+  /** The actor performing this action */
+  actor: ActorIdentity;
+  dryRun?: boolean;
+}
+
+export interface CreateTaskData {
+  issueNumber: number;
+  issueId: string;
+  itemId: string;
+  url: string;
+  title: string;
+  status: string;
+  fieldsSet: string[];
+}
+
+// ─── Project Init Interfaces ───
+
+export interface ProjectInitOptions {
+  /** 'create' = new project, 'connect' = existing project */
+  mode: 'create' | 'connect';
+  /** GitHub repository in owner/repo format */
+  repository?: string;
+  /** Project name (for create mode) */
+  projectName?: string;
+  /** Existing project ID (for connect mode, starts with PVT_) */
+  projectId?: string;
+  /** Absolute path to project root (where .ido4/ will be created) */
+  projectRoot: string;
+}
+
+export interface ProjectInitResult {
+  success: boolean;
+  project: {
+    id: string;
+    number: number;
+    title: string;
+    url: string;
+    repository: string;
+  };
+  fieldsCreated: string[];
+  configPath: string;
+}
+
+export interface IProjectInitService {
+  initializeProject(options: ProjectInitOptions): Promise<ProjectInitResult>;
+  detectRepository(projectRoot: string): Promise<string>;
 }

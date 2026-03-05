@@ -61,6 +61,36 @@ export function createMockProjectConfig(overrides: Partial<IProjectConfig> = {})
       DONE: { name: 'Done', id: 'opt_done' },
       ...overrides.status_options,
     },
+    effort_options: {
+      XS: { name: 'XS', id: 'opt_effort_xs' },
+      S: { name: 'S', id: 'opt_effort_s' },
+      M: { name: 'M', id: 'opt_effort_m' },
+      L: { name: 'L', id: 'opt_effort_l' },
+      XL: { name: 'XL', id: 'opt_effort_xl' },
+      ...overrides.effort_options,
+    },
+    risk_level_options: {
+      LOW: { name: 'Low', id: 'opt_risk_low' },
+      MEDIUM: { name: 'Medium', id: 'opt_risk_medium' },
+      HIGH: { name: 'High', id: 'opt_risk_high' },
+      CRITICAL: { name: 'Critical', id: 'opt_risk_critical' },
+      ...overrides.risk_level_options,
+    },
+    ai_suitability_options: {
+      AI_ONLY: { name: 'AI Only', id: 'opt_ai_only' },
+      AI_REVIEWED: { name: 'AI Reviewed', id: 'opt_ai_reviewed' },
+      HYBRID: { name: 'Hybrid', id: 'opt_ai_hybrid' },
+      HUMAN_ONLY: { name: 'Human Only', id: 'opt_ai_human' },
+      ...overrides.ai_suitability_options,
+    },
+    task_type_options: {
+      FEATURE: { name: 'Feature', id: 'opt_type_feature' },
+      BUG: { name: 'Bug', id: 'opt_type_bug' },
+      ENHANCEMENT: { name: 'Enhancement', id: 'opt_type_enhancement' },
+      DOCUMENTATION: { name: 'Documentation', id: 'opt_type_doc' },
+      TESTING: { name: 'Testing', id: 'opt_type_testing' },
+      ...overrides.task_type_options,
+    },
     wave_config: overrides.wave_config,
   };
 }
