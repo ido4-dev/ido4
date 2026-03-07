@@ -1,6 +1,6 @@
 # @ido4/core
 
-The domain layer of the [ido4 Development Governance Platform](https://github.com/b-coman/ido4-MCP). Contains all governance logic with zero CLI or MCP dependencies.
+The domain layer of the [ido4 Development Governance Platform](https://github.com/ido4-dev/ido4). Contains all governance logic with zero CLI or MCP dependencies.
 
 ## What's Inside
 

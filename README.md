@@ -126,7 +126,7 @@ These aren't hypothetical checks. These are the same governance rules that run o
 
 ```bash
 # Clone and build
-git clone https://github.com/b-coman/ido4-MCP.git
+git clone https://github.com/ido4-dev/ido4.git
 cd ido4-MCP
 npm install && npm run build
 

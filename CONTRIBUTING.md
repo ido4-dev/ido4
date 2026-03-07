@@ -15,7 +15,7 @@ Thank you for your interest in contributing to ido4. This guide covers everythin
 
 ```bash
 # Clone the repository
-git clone https://github.com/b-coman/ido4-MCP.git
+git clone https://github.com/ido4-dev/ido4.git
 cd ido4-MCP
 
 # Install all workspace dependencies
@@ -113,7 +113,7 @@ Claude Code plugin bundle. Contains 8 skills, the project-manager agent with per
 
 ## Reporting Issues
 
-Use [GitHub Issues](https://github.com/b-coman/ido4-MCP/issues) to report bugs or request features. Include:
+Use [GitHub Issues](https://github.com/ido4-dev/ido4/issues) to report bugs or request features. Include:
 
 - What you expected to happen
 - What actually happened

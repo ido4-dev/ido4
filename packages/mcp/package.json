@@ -44,12 +44,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/b-coman/ido4-MCP.git",
+    "url": "https://github.com/ido4-dev/ido4.git",
     "directory": "packages/mcp"
   },
-  "homepage": "https://github.com/b-coman/ido4-MCP/tree/main/packages/mcp",
+  "homepage": "https://github.com/ido4-dev/ido4/tree/main/packages/mcp",
   "bugs": {
-    "url": "https://github.com/b-coman/ido4-MCP/issues"
+    "url": "https://github.com/ido4-dev/ido4/issues"
   },
   "author": "Bogdan Ionut Coman",
   "license": "MIT"

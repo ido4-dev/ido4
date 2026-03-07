@@ -5,7 +5,7 @@
   "author": {
     "name": "Bogdan Ionut Coman"
   },
-  "repository": "https://github.com/b-coman/ido4-MCP",
+  "repository": "https://github.com/ido4-dev/ido4",
   "license": "MIT",
   "keywords": ["governance", "methodology", "mcp", "multi-agent", "wave-based"]
 }
