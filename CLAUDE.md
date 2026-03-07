@@ -76,13 +76,29 @@ Prerequisites:
 
 Skills are namespaced: `/ido4:standup`, `/ido4:board`, `/ido4:pilot-test`, etc.
 
-## Code Provenance
+## Releasing
 
-Domain logic is being extracted from the original ido4 CLI at:
-`/Users/bogdanionutcoman/dev-projects/github-pm-ai-manager/`
+Both `@ido4/core` and `@ido4/mcp` are published to npm. CI auto-publishes on version tags.
 
-The vision document describing the full transformation is at:
-`/Users/bogdanionutcoman/dev-projects/github-pm-ai-manager/docs/_IN-DEVELOPMENT/ido4-next-vision-and-roadmap.md`
+**To release a new version:**
+1. Bump version in both `packages/core/package.json` and `packages/mcp/package.json` (keep them in sync)
+2. Commit: `git commit -am "release v0.x.y"`
+3. Tag: `git tag v0.x.y`
+4. Push: `git push origin main --tags`
+5. GitHub Actions builds, tests, and publishes both packages to npm
+
+**CI Workflows** (`.github/workflows/`):
+- `ci.yml` — Runs build + test on every push to `main` and on PRs
+- `publish.yml` — Publishes to npm on `v*` tags. Requires `NPM_TOKEN` repo secret (already configured)
+
+**Package versions must stay in sync** — both packages are released together.
+
+## Distribution
+
+- **npm**: `@ido4/core`, `@ido4/mcp` — https://www.npmjs.com/org/ido4
+- **GitHub**: https://github.com/ido4-dev/ido4
+- **Docs (GitBook)**: https://hydro-dev.gitbook.io/ido4 — auto-syncs from `docs/` directory
+- **Website**: https://github.com/ido4-dev/ido4-website (separate repo, deployed to ido4.dev)
 
 ## Rules
 
