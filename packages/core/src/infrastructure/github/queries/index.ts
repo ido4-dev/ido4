@@ -6,6 +6,7 @@ export {
   ADD_COMMENT,
   CLOSE_ISSUE,
   FIND_PR_FOR_ISSUE,
+  ADD_SUB_ISSUE,
   GET_SUB_ISSUES,
   CREATE_ISSUE,
   ADD_PROJECT_ITEM,
@@ -18,6 +19,7 @@ export type {
   AddCommentResponse,
   CloseIssueResponse,
   FindPRForIssueResponse,
+  AddSubIssueResponse,
   GetSubIssuesResponse,
   CreateIssueResponse,
   AddProjectItemResponse,
@@ -28,12 +30,14 @@ export {
   GET_PROJECT_ITEMS,
   UPDATE_ITEM_FIELD_TEXT,
   UPDATE_ITEM_FIELD_SELECT,
+  DELETE_PROJECT,
   GET_CURRENT_USER,
 } from './project-queries.js';
 export type {
   GetProjectItemsResponse,
   ProjectItemNode,
   UpdateItemFieldResponse,
+  DeleteProjectResponse,
   GetCurrentUserResponse,
 } from './project-queries.js';
 
@@ -43,12 +47,28 @@ export {
   FIND_PR_FOR_ISSUE_REPO,
   GET_BRANCH_MERGE_STATUS,
   GET_PR_REVIEWS,
+  GET_DEFAULT_BRANCH,
+  CREATE_REF,
+  CREATE_PULL_REQUEST,
+  CLOSE_PULL_REQUEST,
+  DELETE_REF,
+  GET_COMMIT_STATUS_CHECKS,
+  GET_VULNERABILITY_ALERTS,
+  CREATE_COMMIT_ON_BRANCH,
 } from './repository-queries.js';
 export type {
   GetPullRequestResponse,
   MergePullRequestResponse,
   GetBranchMergeStatusResponse,
   GetPRReviewsResponse,
+  GetDefaultBranchResponse,
+  CreateRefResponse,
+  CreatePullRequestResponse,
+  ClosePullRequestResponse,
+  DeleteRefResponse,
+  GetCommitStatusChecksResponse,
+  GetCodeScanningAlertsResponse,
+  CreateCommitOnBranchResponse,
 } from './repository-queries.js';
 
 export {

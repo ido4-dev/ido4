@@ -1,9 +1,11 @@
 {
   "name": "ido4",
-  "version": "0.2.0",
-  "title": "ido4 — Development Governance",
-  "description": "Wave-based development governance with deterministic business rule enforcement. Enables AI-augmented teams to deliver enterprise-grade software with methodology compliance.",
-  "author": "ido4",
-  "homepage": "https://github.com/ido4-dev/ido4-mcp",
-  "categories": ["project-management", "developer-tools", "governance"]
+  "description": "Development Governance Platform — deterministic methodology enforcement for AI-augmented development teams",
+  "version": "0.1.0",
+  "author": {
+    "name": "Bogdan Ionut Coman"
+  },
+  "repository": "https://github.com/b-coman/ido4-MCP",
+  "license": "MIT",
+  "keywords": ["governance", "methodology", "mcp", "multi-agent", "wave-based"]
 }

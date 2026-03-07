@@ -44,6 +44,8 @@ export interface ValidationContext {
   config: import('../../container/interfaces.js').IProjectConfig;
   workflowConfig: import('../../container/interfaces.js').IWorkflowConfig;
   gitWorkflowConfig?: import('../../container/interfaces.js').IGitWorkflowConfig;
+  /** Optional actor identity for agent-aware validation (e.g., TaskLockValidation) */
+  actor?: import('../../shared/logger.js').ActorIdentity;
 }
 
 export const WORKFLOW_STATUSES = {

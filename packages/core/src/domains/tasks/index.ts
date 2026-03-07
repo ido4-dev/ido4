@@ -15,3 +15,6 @@ export type {
   WorkflowStatusValue,
 } from './types.js';
 export { WORKFLOW_STATUSES } from './types.js';
+export { ValidationStepRegistry } from './validation-step-registry.js';
+export type { IValidationStepRegistry, StepDependencies, ValidationStepFactory } from './validation-step-registry.js';
+export { registerAllBuiltinSteps } from './validation-steps/index.js';

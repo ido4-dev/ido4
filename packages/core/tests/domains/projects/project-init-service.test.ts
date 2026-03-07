@@ -7,6 +7,7 @@ import type {
   CreateProjectResponse,
   CreateFieldTextResponse,
   CreateFieldSingleSelectResponse,
+  UpdateFieldSingleSelectResponse,
   GetProjectWithFieldsResponse,
 } from '../../../src/infrastructure/github/queries/project-init-queries.js';
 import { FIELD_OPTIONS } from '../../../src/infrastructure/github/queries/project-init-queries.js';
@@ -78,6 +79,26 @@ function makeCreateFieldSelectResponse(id: string, name: string, options: Array<
   };
 }
 
+function makeUpdateStatusFieldResponse(): UpdateFieldSingleSelectResponse {
+  return {
+    updateProjectV2Field: {
+      projectV2Field: {
+        id: 'PVTSSF_status',
+        name: 'Status',
+        options: [
+          { id: 'opt_backlog', name: 'Backlog', color: 'GRAY' },
+          { id: 'opt_refinement', name: 'In Refinement', color: 'BLUE' },
+          { id: 'opt_ready', name: 'Ready for Dev', color: 'BLUE' },
+          { id: 'opt_blocked', name: 'Blocked', color: 'RED' },
+          { id: 'opt_progress', name: 'In Progress', color: 'YELLOW' },
+          { id: 'opt_review', name: 'In Review', color: 'ORANGE' },
+          { id: 'opt_done', name: 'Done', color: 'GREEN' },
+        ],
+      },
+    },
+  };
+}
+
 function makeProjectWithFieldsResponse(): GetProjectWithFieldsResponse {
   return {
     node: {
@@ -140,6 +161,10 @@ function setupFullCreateMocks(client: IGraphQLClient): void {
   query.mockResolvedValueOnce(makeRepoOwnerResponse());
   // CREATE_PROJECT
   mutate.mockResolvedValueOnce(makeCreateProjectResponse());
+  // GET_PROJECT_WITH_FIELDS (for configureStatusField — find Status field ID)
+  query.mockResolvedValueOnce(makeProjectWithFieldsResponse());
+  // UPDATE_FIELD_SINGLE_SELECT (configureStatusField — set ido4 status options)
+  mutate.mockResolvedValueOnce(makeUpdateStatusFieldResponse());
   // CREATE_FIELD_TEXT × 4
   mutate.mockResolvedValueOnce(makeCreateFieldTextResponse('PVTF_wave', 'Wave'));
   mutate.mockResolvedValueOnce(makeCreateFieldTextResponse('PVTF_epic', 'Epic'));
@@ -150,7 +175,7 @@ function setupFullCreateMocks(client: IGraphQLClient): void {
   mutate.mockResolvedValueOnce(makeCreateFieldSelectResponse('PVTSSF_risk', 'Risk Level', FIELD_OPTIONS.RISK_LEVEL as unknown as Array<{ name: string; color: string }>));
   mutate.mockResolvedValueOnce(makeCreateFieldSelectResponse('PVTSSF_effort', 'Effort', FIELD_OPTIONS.EFFORT as unknown as Array<{ name: string; color: string }>));
   mutate.mockResolvedValueOnce(makeCreateFieldSelectResponse('PVTSSF_type', 'Task Type', FIELD_OPTIONS.TASK_TYPE as unknown as Array<{ name: string; color: string }>));
-  // GET_PROJECT_WITH_FIELDS (read-back)
+  // GET_PROJECT_WITH_FIELDS (final read-back)
   query.mockResolvedValueOnce(makeProjectWithFieldsResponse());
 }
 
@@ -243,7 +268,8 @@ describe('ProjectInitService', () => {
       expect(result.success).toBe(true);
       expect(result.project.id).toBe('PVT_test123');
       expect(result.project.repository).toBe('testuser/testrepo');
-      expect(result.fieldsCreated).toHaveLength(8);
+      expect(result.fieldsCreated).toHaveLength(9);
+      expect(result.fieldsCreated).toContain('Status (configured)');
       expect(result.fieldsCreated).toContain('Wave');
       expect(result.fieldsCreated).toContain('AI Suitability');
     });
@@ -355,9 +381,10 @@ describe('ProjectInitService', () => {
 
       const mutate = client.mutate as ReturnType<typeof vi.fn>;
       // Call 0: CREATE_PROJECT
-      // Calls 1-4: CREATE_FIELD_TEXT (Wave, Epic, Dependencies, AI Context)
-      // Calls 5-8: CREATE_FIELD_SINGLE_SELECT (AI Suitability, Risk Level, Effort, Task Type)
-      expect(mutate).toHaveBeenCalledTimes(9); // 1 project + 4 text + 4 select
+      // Call 1: UPDATE_FIELD_SINGLE_SELECT (configure Status options)
+      // Calls 2-5: CREATE_FIELD_TEXT (Wave, Epic, Dependencies, AI Context)
+      // Calls 6-9: CREATE_FIELD_SINGLE_SELECT (AI Suitability, Risk Level, Effort, Task Type)
+      expect(mutate).toHaveBeenCalledTimes(10); // 1 project + 1 status update + 4 text + 4 select
     });
 
     it('auto-detects repository when not provided', async () => {
@@ -370,9 +397,11 @@ describe('ProjectInitService', () => {
 
       query.mockResolvedValueOnce(makeRepoOwnerResponse('autouser'));
       mutate.mockResolvedValueOnce(makeCreateProjectResponse());
+      query.mockResolvedValueOnce(makeProjectWithFieldsResponse()); // configureStatusField read
+      mutate.mockResolvedValueOnce(makeUpdateStatusFieldResponse()); // configureStatusField update
       for (let i = 0; i < 4; i++) mutate.mockResolvedValueOnce(makeCreateFieldTextResponse(`PVTF_${i}`, `field${i}`));
       for (let i = 0; i < 4; i++) mutate.mockResolvedValueOnce(makeCreateFieldSelectResponse(`PVTSSF_${i}`, `select${i}`, []));
-      query.mockResolvedValueOnce(makeProjectWithFieldsResponse());
+      query.mockResolvedValueOnce(makeProjectWithFieldsResponse()); // final read-back
 
       const result = await service.initializeProject({
         mode: 'create',

@@ -132,6 +132,26 @@ export const UPDATE_ITEM_FIELD_SELECT = `
   }
 `;
 
+export interface DeleteProjectResponse {
+  deleteProjectV2: {
+    projectV2: {
+      id: string;
+    };
+  };
+}
+
+export const DELETE_PROJECT = `
+  mutation DeleteProject($projectId: ID!) {
+    deleteProjectV2(input: {
+      projectId: $projectId
+    }) {
+      projectV2 {
+        id
+      }
+    }
+  }
+`;
+
 export const GET_CURRENT_USER = `
   query GetCurrentUser {
     viewer {

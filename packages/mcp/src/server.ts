@@ -9,6 +9,15 @@ import { registerWaveTools } from './tools/index.js';
 import { registerDependencyTools } from './tools/index.js';
 import { registerProjectTools } from './tools/index.js';
 import { registerEpicTools } from './tools/index.js';
+import { registerSandboxTools } from './tools/index.js';
+import { registerAuditTools } from './tools/index.js';
+import { registerAnalyticsTools } from './tools/index.js';
+import { registerAgentTools } from './tools/index.js';
+import { registerComplianceTools } from './tools/index.js';
+import { registerSkillDataTools } from './tools/index.js';
+import { registerDistributionTools } from './tools/index.js';
+import { registerCoordinationTools } from './tools/index.js';
+import { registerGateTools } from './tools/index.js';
 import { registerResources } from './resources/index.js';
 import { registerPrompts } from './prompts/index.js';
 
@@ -24,6 +33,15 @@ export function createServer(): McpServer {
   registerDependencyTools(server);
   registerProjectTools(server);
   registerEpicTools(server);
+  registerSandboxTools(server);
+  registerAuditTools(server);
+  registerAnalyticsTools(server);
+  registerAgentTools(server);
+  registerComplianceTools(server);
+  registerSkillDataTools(server);
+  registerDistributionTools(server);
+  registerCoordinationTools(server);
+  registerGateTools(server);
 
   // Register resources
   registerResources(server);

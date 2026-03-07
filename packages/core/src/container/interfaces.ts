@@ -26,6 +26,7 @@ export interface IIssueRepository {
   assignTask(issueNumber: number, assignee: string): Promise<void>;
   addComment(issueNumber: number, comment: string): Promise<void>;
   closeIssue(issueNumber: number): Promise<void>;
+  addSubIssue(parentIssueId: string, childIssueId: string): Promise<void>;
   findPullRequestForIssue(issueNumber: number): Promise<PullRequestInfo | null>;
   getSubIssues(issueNumber: number): Promise<SubIssueData[]>;
 }
@@ -34,8 +35,15 @@ export interface IProjectRepository {
   getProjectItems(options?: PaginationOptions): Promise<ProjectItem[]>;
   addItemToProject(contentId: string): Promise<string>;
   updateItemField(itemId: string, fieldId: string, value: string, fieldType?: string): Promise<void>;
+  deleteProject(): Promise<void>;
   getWaveStatus(wave: string): Promise<WaveStatusData>;
   getCurrentUser(): Promise<UserInfo>;
+}
+
+export interface DefaultBranchInfo {
+  repositoryId: string;
+  branchName: string;
+  oid: string;
 }
 
 export interface IRepositoryRepository {
@@ -43,6 +51,25 @@ export interface IRepositoryRepository {
   findPullRequestForIssue(issueNumber: number): Promise<PullRequestInfo | null>;
   checkWaveBranchMerged(waveName: string): Promise<boolean>;
   getPullRequestReviews(prNumber: number): Promise<PullRequestReviewData[]>;
+  getDefaultBranchInfo(): Promise<DefaultBranchInfo>;
+  createBranch(repositoryId: string, branchName: string, fromOid: string): Promise<{ refId: string }>;
+  createPullRequest(repositoryId: string, options: { title: string; body: string; baseBranch: string; headBranch: string }): Promise<{ id: string; number: number; url: string }>;
+  closePullRequest(prId: string): Promise<void>;
+  deleteBranch(refId: string): Promise<void>;
+  createCommitOnBranch(repositoryNameWithOwner: string, branchName: string, expectedHeadOid: string, filePath: string, fileContents: string, message: string): Promise<{ oid: string }>;
+  getCommitStatusChecks(prNumber: number): Promise<StatusCheckData[]>;
+  getVulnerabilityAlerts(): Promise<CodeScanningAlert[]>;
+}
+
+export interface StatusCheckData {
+  name: string;
+  state: string;
+  conclusion: string | null;
+}
+
+export interface CodeScanningAlert {
+  severity: string;
+  summary: string;
 }
 
 export interface IEpicRepository {
@@ -102,6 +129,7 @@ export interface IProjectConfig {
     number: number;
     repository: string;
     title?: string;
+    url?: string;
   };
   fields: {
     status_field_id: string;
@@ -465,3 +493,65 @@ export interface IProjectInitService {
   initializeProject(options: ProjectInitOptions): Promise<ProjectInitResult>;
   detectRepository(projectRoot: string): Promise<string>;
 }
+
+// ─── Audit Service Interface (re-exported from domain) ───
+
+export type {
+  IAuditService,
+  IAuditStore,
+  SerializedDomainEvent,
+  PersistedAuditEvent,
+  AuditQuery,
+  AuditQueryResult,
+  AuditSummary,
+  AuditSummaryOptions,
+} from '../domains/audit/index.js';
+
+// ─── Agent Service Interface (re-exported from domain) ───
+
+export type {
+  IAgentService,
+  IAgentStore,
+  AgentRegistration,
+  RegisteredAgent,
+  TaskLock,
+  AgentStoreData,
+} from '../domains/agents/index.js';
+
+// ─── Analytics Service Interface (re-exported from domain) ───
+
+export type {
+  IAnalyticsService,
+  AnalyticsOptions,
+  WaveAnalytics,
+  ProjectAnalytics,
+  TaskCycleTime,
+} from '../domains/analytics/index.js';
+
+// ─── Compliance Service Interface (re-exported from domain) ───
+
+export type {
+  IComplianceService,
+  ComplianceScoreOptions,
+  ComplianceScore,
+  CategoryScore,
+} from '../domains/compliance/index.js';
+
+// ─── Work Distribution Service Interface (re-exported from domain) ───
+
+export type {
+  IWorkDistributionService,
+  WorkRecommendation,
+  TaskRecommendation,
+  ScoreBreakdown,
+  HandoffResult,
+} from '../domains/distribution/index.js';
+
+// ─── Merge Readiness Service Interface (re-exported from domain) ───
+
+export type {
+  IMergeReadinessService,
+  MergeGateConfig,
+  MergeReadinessResult,
+  MergeCheck,
+} from '../domains/gate/index.js';

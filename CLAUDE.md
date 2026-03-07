@@ -62,6 +62,20 @@ npm run test         # Run all tests
 npm run clean        # Remove all dist/ directories
 ```
 
+## Local Development with Plugin
+
+To run Claude Code with the full ido4 plugin (skills, agent, hooks, MCP server):
+
+```bash
+claude --plugin-dir ./packages/plugin
+```
+
+Prerequisites:
+- `GITHUB_TOKEN` env var set (or `export GITHUB_TOKEN=$(gh auth token)`)
+- Build completed: `npm run build`
+
+Skills are namespaced: `/ido4:standup`, `/ido4:board`, `/ido4:pilot-test`, etc.
+
 ## Code Provenance
 
 Domain logic is being extracted from the original ido4 CLI at:

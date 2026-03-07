@@ -7,6 +7,7 @@ import {
   PLAN_WAVE_PROMPT,
   BOARD_PROMPT,
   COMPLIANCE_PROMPT,
+  HEALTH_PROMPT,
   RETRO_PROMPT,
 } from '../../src/prompts/index.js';
 
@@ -95,7 +96,7 @@ describe('Prompts', () => {
     it('returns base prompt without waveName', async () => {
       const result = await callPrompt(server, 'board') as PromptResult;
 
-      expect(result.messages[0]!.content.text).toContain('kanban');
+      expect(result.messages[0]!.content.text).toContain('flow intelligence');
       expect(result.messages[0]!.content.text).not.toContain('Wave to display:');
     });
 
@@ -105,9 +106,10 @@ describe('Prompts', () => {
       expect(result.messages[0]!.content.text).toContain('Wave to display: Wave 1');
     });
 
-    it('includes column balance analysis', async () => {
+    it('includes cascade and false status analysis', async () => {
       const result = await callPrompt(server, 'board') as PromptResult;
-      expect(result.messages[0]!.content.text).toContain('Column Balance');
+      expect(result.messages[0]!.content.text).toContain('cascade');
+      expect(result.messages[0]!.content.text).toContain('False status');
     });
 
     it('includes flow analysis guidance', async () => {
@@ -147,7 +149,35 @@ describe('Prompts', () => {
 
     it('includes compliance scoring', async () => {
       const result = await callPrompt(server, 'compliance') as PromptResult;
-      expect(result.messages[0]!.content.text).toContain('Overall Compliance');
+      expect(result.messages[0]!.content.text).toContain('Compliance Score');
+    });
+  });
+
+  describe('health', () => {
+    it('is registered', () => {
+      expect(hasRegisteredPrompt(server, 'health')).toBe(true);
+    });
+
+    it('returns user message with health check instructions', async () => {
+      const result = await callPrompt(server, 'health') as PromptResult;
+
+      expect(result.messages).toHaveLength(1);
+      expect(result.messages[0]!.role).toBe('user');
+      expect(result.messages[0]!.content.text).toContain('health check');
+    });
+
+    it('includes RED/YELLOW/GREEN assessment criteria', async () => {
+      const result = await callPrompt(server, 'health') as PromptResult;
+      const text = result.messages[0]!.content.text;
+
+      expect(text).toContain('RED');
+      expect(text).toContain('YELLOW');
+      expect(text).toContain('GREEN');
+    });
+
+    it('uses get_health_data composite tool', async () => {
+      const result = await callPrompt(server, 'health') as PromptResult;
+      expect(result.messages[0]!.content.text).toContain('get_health_data');
     });
   });
 
@@ -174,7 +204,7 @@ describe('Prompts', () => {
       const text = result.messages[0]!.content.text;
 
       expect(text).toContain('Delivery Analysis');
-      expect(text).toContain('Flow Analysis');
+      expect(text).toContain('Flow');
     });
 
     it('includes blocker pattern analysis', async () => {
@@ -190,25 +220,25 @@ describe('Prompts', () => {
 
   describe('few-shot examples', () => {
     it('STANDUP_PROMPT includes example output', () => {
-      expect(STANDUP_PROMPT).toContain('What Governance Expertise Sounds Like');
+      expect(STANDUP_PROMPT).toContain('Data-Backed Governance Expertise Sounds Like');
       expect(STANDUP_PROMPT).toContain('cascade');
     });
 
     it('PLAN_WAVE_PROMPT includes example output', () => {
-      expect(PLAN_WAVE_PROMPT).toContain('What Principle-Aware Planning Sounds Like');
+      expect(PLAN_WAVE_PROMPT).toContain('Data-Driven Principle-Aware Planning Sounds Like');
       expect(PLAN_WAVE_PROMPT).toContain('All included per Epic Integrity');
     });
 
     it('BOARD_PROMPT includes example output', () => {
-      expect(BOARD_PROMPT).toContain('Board With Flow Intelligence');
+      expect(BOARD_PROMPT).toContain('Flow Intelligence Report');
     });
 
     it('COMPLIANCE_PROMPT includes example output', () => {
-      expect(COMPLIANCE_PROMPT).toContain('Compliance Audit With Teeth');
+      expect(COMPLIANCE_PROMPT).toContain('Compliance Intelligence');
     });
 
     it('RETRO_PROMPT includes example output', () => {
-      expect(RETRO_PROMPT).toContain('Retrospective With Insight');
+      expect(RETRO_PROMPT).toContain('Data-Backed Retrospective');
     });
   });
 
@@ -219,8 +249,8 @@ describe('Prompts', () => {
       expect(STANDUP_PROMPT).toContain('Late (>70%)');
     });
 
-    it('BOARD_PROMPT includes phase-aware focus', () => {
-      expect(BOARD_PROMPT).toContain('Phase-Aware Focus');
+    it('BOARD_PROMPT includes phase detection', () => {
+      expect(BOARD_PROMPT).toContain('Phase Detection');
     });
   });
 
@@ -245,15 +275,21 @@ describe('Prompts', () => {
       expect(PLAN_WAVE_PROMPT).toContain('Self-Contained');
     });
 
-    it('BOARD_PROMPT includes flow analysis', () => {
-      expect(BOARD_PROMPT).toContain('kanban');
-      expect(BOARD_PROMPT).toContain('Column Balance');
+    it('BOARD_PROMPT includes flow intelligence', () => {
+      expect(BOARD_PROMPT).toContain('flow intelligence');
+      expect(BOARD_PROMPT).toContain('cascade');
       expect(BOARD_PROMPT).toContain('bottleneck');
     });
 
     it('COMPLIANCE_PROMPT audits all principles', () => {
-      expect(COMPLIANCE_PROMPT).toContain('5 Unbreakable Principles');
+      expect(COMPLIANCE_PROMPT).toContain('Structural Principle Audit');
       expect(COMPLIANCE_PROMPT).toContain('Remediation');
+    });
+
+    it('HEALTH_PROMPT includes multi-dimensional assessment', () => {
+      expect(HEALTH_PROMPT).toContain('flow');
+      expect(HEALTH_PROMPT).toContain('governance');
+      expect(HEALTH_PROMPT).toContain('team');
     });
 
     it('RETRO_PROMPT includes retrospective framework', () => {

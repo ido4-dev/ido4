@@ -3,6 +3,8 @@ export type {
   TaskTransitionEvent,
   WaveAssignmentEvent,
   ValidationEvent,
+  WorkRecommendationEvent,
+  TaskHandoffEvent,
   DomainEvent,
   DomainEventType,
 } from './types.js';

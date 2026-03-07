@@ -78,9 +78,58 @@ describe('createServer', () => {
     expect(hasRegisteredTool(server, 'get_project_status')).toBe(true);
   });
 
-  it('registers 31 tools total', () => {
+  it('registers all 2 audit tools', () => {
     const server = createServer();
-    expect(getRegisteredToolNames(server)).toHaveLength(31);
+    expect(hasRegisteredTool(server, 'query_audit_trail')).toBe(true);
+    expect(hasRegisteredTool(server, 'get_audit_summary')).toBe(true);
+  });
+
+  it('registers all 2 analytics tools', () => {
+    const server = createServer();
+    expect(hasRegisteredTool(server, 'get_analytics')).toBe(true);
+    expect(hasRegisteredTool(server, 'get_task_cycle_time')).toBe(true);
+  });
+
+  it('registers all 4 agent tools', () => {
+    const server = createServer();
+    expect(hasRegisteredTool(server, 'register_agent')).toBe(true);
+    expect(hasRegisteredTool(server, 'list_agents')).toBe(true);
+    expect(hasRegisteredTool(server, 'lock_task')).toBe(true);
+    expect(hasRegisteredTool(server, 'release_task')).toBe(true);
+  });
+
+  it('registers compliance tools', () => {
+    const server = createServer();
+    expect(hasRegisteredTool(server, 'compute_compliance_score')).toBe(true);
+  });
+
+  it('registers all 4 skill data tools', () => {
+    const server = createServer();
+    expect(hasRegisteredTool(server, 'get_standup_data')).toBe(true);
+    expect(hasRegisteredTool(server, 'get_board_data')).toBe(true);
+    expect(hasRegisteredTool(server, 'get_compliance_data')).toBe(true);
+    expect(hasRegisteredTool(server, 'get_health_data')).toBe(true);
+  });
+
+  it('registers all 2 distribution tools', () => {
+    const server = createServer();
+    expect(hasRegisteredTool(server, 'get_next_task')).toBe(true);
+    expect(hasRegisteredTool(server, 'complete_and_handoff')).toBe(true);
+  });
+
+  it('registers coordination tools', () => {
+    const server = createServer();
+    expect(hasRegisteredTool(server, 'get_coordination_state')).toBe(true);
+  });
+
+  it('registers gate tools', () => {
+    const server = createServer();
+    expect(hasRegisteredTool(server, 'check_merge_readiness')).toBe(true);
+  });
+
+  it('registers 51 tools total', () => {
+    const server = createServer();
+    expect(getRegisteredToolNames(server)).toHaveLength(51);
   });
 
   it('registers resources', () => {
@@ -88,7 +137,10 @@ describe('createServer', () => {
     expect(hasRegisteredResource(server, 'ido4://methodology/principles')).toBe(true);
     expect(hasRegisteredResource(server, 'ido4://methodology/workflow')).toBe(true);
     expect(hasRegisteredResource(server, 'ido4://methodology/statuses')).toBe(true);
+    expect(hasRegisteredResource(server, 'ido4://audit/recent')).toBe(true);
     expect(hasRegisteredResource(server, 'ido4://project/status')).toBe(true);
+    expect(hasRegisteredResource(server, 'ido4://events/recent')).toBe(true);
+    expect(hasRegisteredResource(server, 'ido4://agents/coordination')).toBe(true);
   });
 
   it('registers resource templates', () => {
@@ -102,6 +154,7 @@ describe('createServer', () => {
     expect(hasRegisteredPrompt(server, 'plan-wave')).toBe(true);
     expect(hasRegisteredPrompt(server, 'board')).toBe(true);
     expect(hasRegisteredPrompt(server, 'compliance')).toBe(true);
+    expect(hasRegisteredPrompt(server, 'health')).toBe(true);
     expect(hasRegisteredPrompt(server, 'retro')).toBe(true);
   });
 });

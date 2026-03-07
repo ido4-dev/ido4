@@ -116,6 +116,42 @@ export function registerResources(server: McpServer): void {
     },
   );
 
+  // Dynamic: audit recent events (fast path for /standup)
+  server.resource(
+    'audit-recent',
+    'ido4://audit/recent',
+    { description: 'Last 20 governance events from the audit trail', mimeType: 'application/json' },
+    async (uri) => {
+      const container = await getContainer();
+      const events = await container.auditService.getRecentEvents(20);
+      return {
+        contents: [{
+          uri: uri.href,
+          text: JSON.stringify({ events }, null, 2),
+          mimeType: 'application/json',
+        }],
+      };
+    },
+  );
+
+  // Dynamic: wave analytics
+  server.resource(
+    'analytics-wave',
+    new ResourceTemplate('ido4://analytics/wave/{waveName}', { list: undefined }),
+    { description: 'Analytics for a specific wave (velocity, cycle time, throughput)', mimeType: 'application/json' },
+    async (uri, params) => {
+      const container = await getContainer();
+      const analytics = await container.analyticsService.getWaveAnalytics(params.waveName as string);
+      return {
+        contents: [{
+          uri: uri.href,
+          text: JSON.stringify(analytics, null, 2),
+          mimeType: 'application/json',
+        }],
+      };
+    },
+  );
+
   // Dynamic: project status (list waves)
   server.resource(
     'project-status',
@@ -128,6 +164,43 @@ export function registerResources(server: McpServer): void {
         contents: [{
           uri: uri.href,
           text: JSON.stringify({ waves }, null, 2),
+          mimeType: 'application/json',
+        }],
+      };
+    },
+  );
+
+  // Dynamic: recent governance events (structured, poll-friendly)
+  server.resource(
+    'events-recent',
+    'ido4://events/recent',
+    { description: 'Recent governance events — task transitions, recommendations, handoffs. Poll-friendly for multi-agent coordination.', mimeType: 'application/json' },
+    async (uri) => {
+      const container = await getContainer();
+      const events = await container.auditService.getRecentEvents(50);
+      return {
+        contents: [{
+          uri: uri.href,
+          text: JSON.stringify({ events, count: events.length }, null, 2),
+          mimeType: 'application/json',
+        }],
+      };
+    },
+  );
+
+  // Dynamic: multi-agent coordination snapshot
+  server.resource(
+    'agents-coordination',
+    'ido4://agents/coordination',
+    { description: 'Multi-agent coordination state — who is working on what, active locks, recent handoffs, agent health.', mimeType: 'application/json' },
+    async (uri) => {
+      const container = await getContainer();
+      const { aggregateCoordinationData } = await import('../aggregators/coordination-aggregator.js');
+      const data = await aggregateCoordinationData(container);
+      return {
+        contents: [{
+          uri: uri.href,
+          text: JSON.stringify(data, null, 2),
           mimeType: 'application/json',
         }],
       };

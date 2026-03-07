@@ -59,9 +59,44 @@ export type {
   ListTasksData,
   CreateTaskRequest,
   CreateTaskData,
+  DefaultBranchInfo,
+  StatusCheckData,
+  CodeScanningAlert,
   ProjectInitOptions,
   ProjectInitResult,
   IProjectInitService,
+  IAuditService,
+  IAuditStore,
+  SerializedDomainEvent,
+  PersistedAuditEvent,
+  AuditQuery,
+  AuditQueryResult,
+  AuditSummary,
+  AuditSummaryOptions,
+  IAgentService,
+  IAgentStore,
+  AgentRegistration,
+  RegisteredAgent,
+  TaskLock,
+  AgentStoreData,
+  IAnalyticsService,
+  AnalyticsOptions,
+  WaveAnalytics,
+  ProjectAnalytics,
+  TaskCycleTime,
+  IComplianceService,
+  ComplianceScoreOptions,
+  ComplianceScore,
+  CategoryScore,
+  IWorkDistributionService,
+  WorkRecommendation,
+  TaskRecommendation,
+  ScoreBreakdown,
+  HandoffResult,
+  IMergeReadinessService,
+  MergeGateConfig,
+  MergeReadinessResult,
+  MergeCheck,
 } from './container/interfaces.js';
 
 // Domain types
@@ -112,6 +147,8 @@ export type {
   TaskTransitionEvent,
   WaveAssignmentEvent,
   ValidationEvent,
+  WorkRecommendationEvent,
+  TaskHandoffEvent,
   DomainEvent,
   DomainEventType,
   IEventBus,
@@ -138,6 +175,9 @@ export type { WorkflowTransitionResult } from './domains/tasks/index.js';
 export { TaskTransitionValidator } from './domains/tasks/index.js';
 export { ValidationPipeline } from './domains/tasks/index.js';
 export { SuggestionService } from './domains/tasks/index.js';
+export { ValidationStepRegistry } from './domains/tasks/index.js';
+export type { IValidationStepRegistry, StepDependencies, ValidationStepFactory } from './domains/tasks/index.js';
+export { registerAllBuiltinSteps } from './domains/tasks/index.js';
 
 // Domain Services — Epics
 export { EpicService } from './domains/epics/index.js';
@@ -152,10 +192,48 @@ export { WaveService } from './domains/waves/index.js';
 // Domain Services — Projects
 export { ProjectInitService } from './domains/projects/index.js';
 
+// Domain Services — Audit
+export { AuditService } from './domains/audit/index.js';
+export { JsonlAuditStore } from './domains/audit/index.js';
+
+// Domain Services — Agents
+export { AgentService } from './domains/agents/index.js';
+export { FileAgentStore } from './domains/agents/index.js';
+
+// Domain Services — Analytics
+export { AnalyticsService } from './domains/analytics/index.js';
+
+// Domain Services — Compliance
+export { ComplianceService } from './domains/compliance/index.js';
+
+// Domain Services — Work Distribution
+export { WorkDistributionService } from './domains/distribution/index.js';
+
+// Domain Services — Merge Gate
+export { MergeReadinessService } from './domains/gate/index.js';
+
+// Domain Services — Sandbox
+export { SandboxService } from './domains/sandbox/index.js';
+export { GOVERNANCE_SHOWCASE } from './domains/sandbox/index.js';
+export type {
+  SandboxScenario,
+  EpicDefinition,
+  WaveDefinition,
+  TaskDefinition,
+  SandboxCreateOptions,
+  SandboxCreateResult,
+  SandboxDestroyResult,
+  SandboxResetResult,
+  SeededPRArtifact,
+  ISandboxService,
+} from './domains/sandbox/index.js';
+
 // Configuration
 export { ProjectConfigLoader } from './config/index.js';
 export { WorkflowConfig } from './config/index.js';
 export { GitWorkflowConfig } from './config/index.js';
+export { MethodologyConfig, MethodologyConfigLoader, DEFAULT_METHODOLOGY } from './config/index.js';
+export type { IMethodologyConfig, MethodologyDefinition, MethodologyPipeline } from './config/index.js';
 
 // Infrastructure — GitHub
 export {

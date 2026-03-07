@@ -22,6 +22,7 @@ import {
   GET_PROJECT_ITEMS,
   UPDATE_ITEM_FIELD_TEXT,
   UPDATE_ITEM_FIELD_SELECT,
+  DELETE_PROJECT,
   GET_CURRENT_USER,
   ADD_PROJECT_ITEM,
 } from '../queries/index.js';
@@ -30,6 +31,7 @@ import type {
   ProjectItemNode,
   GetCurrentUserResponse,
   AddProjectItemResponse,
+  DeleteProjectResponse,
 } from '../queries/index.js';
 
 export class GitHubProjectRepository implements IProjectRepository {
@@ -98,6 +100,12 @@ export class GitHubProjectRepository implements IProjectRepository {
           body: item.content.body,
           status: item.fieldValues.Status ?? 'Unknown',
           wave,
+          epic: item.fieldValues.Epic,
+          dependencies: item.fieldValues.Dependencies,
+          aiSuitability: item.fieldValues['AI Suitability'],
+          riskLevel: item.fieldValues['Risk Level'],
+          effort: item.fieldValues.Effort,
+          taskType: item.fieldValues['Task Type'],
           url: item.content.url,
           closed: item.content.closed,
         });
@@ -115,6 +123,13 @@ export class GitHubProjectRepository implements IProjectRepository {
       tasks: waveTasks,
       metrics: { total, completed, inProgress, blocked, ready },
     };
+  }
+
+  async deleteProject(): Promise<void> {
+    await this.client.mutate<DeleteProjectResponse>(DELETE_PROJECT, {
+      projectId: this.config.project.id,
+    });
+    this.logger.info('Project deleted', { projectId: this.config.project.id });
   }
 
   async getCurrentUser(): Promise<UserInfo> {

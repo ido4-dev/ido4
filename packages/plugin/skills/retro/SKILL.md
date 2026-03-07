@@ -2,7 +2,7 @@
 name: retro
 description: Wave retrospective — analyze a completed wave to extract actionable insights and persist findings for future governance
 user-invocable: true
-allowed-tools: mcp__ido4__*
+allowed-tools: mcp__plugin_ido4_ido4__*
 ---
 
 You are conducting a wave retrospective. Your job is to extract actionable insights from the completed (or completing) wave that improve future wave planning and execution. Every recommendation must be grounded in data from this wave — no generic advice.
@@ -13,18 +13,25 @@ Use $ARGUMENTS as the wave name if provided. Otherwise, analyze the most recentl
 
 Before analyzing this wave, check your auto-memory (MEMORY.md is automatically loaded at session start) for previous retrospective findings:
 
-- **Previous wave metrics** — velocity, blocked counts, review turnaround from past waves. If they exist, you can compare and detect trends.
+- **Previous wave metrics** — velocity, throughput, blocked counts, review turnaround, compliance scores from past waves. If they exist, you can compare and detect trends.
 - **Known recurring patterns** — blockers, bottlenecks, process issues flagged before.
 
 This context is essential for trend detection: "This is the third wave where review turnaround exceeded 2 days" is far more valuable than "review turnaround was slow this wave."
 
 ## Step 1: Gather Wave Data
 
+### Snapshot Data
 1. `get_project_status` — overall context and wave history
 2. `get_wave_status` for the target wave — task breakdown and completion data
 3. `list_tasks` filtered to the target wave — full task details with statuses
 4. `list_waves` — to compare with previous waves if they exist
 5. For tasks that were In Review, call `find_task_pr` and `get_pr_reviews` to assess review turnaround
+
+### Temporal & Behavioral Data (Phase 4)
+6. `get_analytics` for the target wave — real cycle time (start→approve), lead time (first non-backlog→approve), throughput (tasks/day), total blocking time
+7. `query_audit_trail` scoped to the wave period — complete event history with actor breakdown, every transition, block, unblock
+8. `compute_compliance_score` — governance health of the wave (overall score, per-category breakdown)
+9. `list_agents` — to understand team composition during this wave
 
 ## Step 2: Analyze
 
@@ -34,25 +41,42 @@ This context is essential for trend detection: "This is the third wave where rev
 - Were tasks added mid-wave? (Scope creep — compare initial vs. final task count if possible)
 - Were tasks deferred out? Why?
 
-### Flow
-Where did tasks spend the most time? Which status was the bottleneck?
-- Many tasks stuck In Review for long → review process constraint
-- Many tasks blocked → external dependencies or poor dependency planning
-- Tasks fly through early stages but stall later → late-stage process issue
-- Tasks stuck in Refinement → specification quality issue
+### Velocity — Real Metrics, Not Estimates
+Replace task-counting with real throughput from analytics:
+- **Throughput**: Tasks completed per day from `get_analytics`. Compare to previous wave: "Throughput: 1.4 tasks/day (vs. 1.8 last wave — 22% decline)."
+- **Cycle time**: Average time from start to approval. Are tasks taking longer? "Avg cycle time: 3.2 days (up from 2.1 — tasks are getting more complex or flow is impeded)."
+- **Lead time**: Time from first non-backlog status to approval. Longer lead time with short cycle time means tasks sit in queues.
+- If no analytics data available (fresh project), fall back to task-count velocity.
+
+### Flow — Measured Blocking, Not Estimated
+Replace estimated bottleneck detection with actual blocking time data from analytics:
+- **Aggregate blocking time**: Total hours/days tasks spent blocked. "37 hours of aggregate blocking time — 60% concentrated on #42."
+- Where did blocking time concentrate? One task or spread across many?
+- Many tasks in Review for long periods → review process constraint (confirm with PR review data)
+- Tasks fly through early stages but stall later → late-stage process issue (confirm with cycle time per status if available)
+
+### Actor Analysis (from audit trail)
+Group audit events by actor to understand team dynamics:
+- Who performed the most transitions? Who performed the fewest?
+- Did any actor cause a disproportionate number of blocks?
+- Agent vs. human activity: "Agent-Alpha: 12 transitions, 0 blocks. Agent-Beta: 8 transitions, 4 blocks — investigate Beta's blocking pattern."
+- If single-actor, note that too — scaling opportunity or single point of failure.
+
+### Governance Quality (from compliance score)
+- What's the compliance score for this wave period? Break down by category:
+  - **BRE pass rate**: What percentage of transition attempts passed validation? Low = actors attempting invalid transitions.
+  - **Process adherence**: Did tasks follow the full workflow (Backlog → Refinement → Ready → ...)? "3 tasks skipped refinement — went from Backlog directly to In Progress."
+  - **Epic integrity / dependency coherence**: Were structural principles maintained?
+  - **Flow efficiency**: How much of the total time was productive vs. blocked?
+- Compare to previous wave's compliance score if available in memory.
 
 ### Blockers
 - How many tasks were blocked during this wave?
-- What was the average block duration?
+- What was the average block duration? (from analytics blocking time)
 - What were the blocking reasons? Group by category: dependency, external system, missing info
 - Pattern detection: same dependency blocking multiple tasks = systemic issue
+- **Recurring block detection**: Audit trail reveals tasks that were blocked → unblocked → blocked again. Root cause wasn't resolved.
 - Cross-reference with previous retros: is this a recurring pattern or new?
-
-### Velocity
-- Tasks completed in this wave
-- Compare to previous waves if data exists (from retro files or `list_waves`)
-- Is velocity improving, declining, or stable?
-- What might explain the trend?
 
 ### Epic Progress
 - Which epics had tasks in this wave?
@@ -68,28 +92,40 @@ Based on DATA from this wave — not generic retrospective platitudes:
 - If blockers recurred on same dependency → "create a mock service" or "front-load dependency resolution"
 - If scope changed mid-wave → "lock wave scope after activation" or "add 1-2 task buffer"
 - If velocity dropped → investigate cause and recommend accordingly
+- If compliance score degraded → identify which category dropped and recommend specific process adjustment
+- If actor imbalance detected → recommend workload distribution or pairing
+- If tasks skipped refinement (process adherence issue) → recommend enforcing the full workflow
 
 Every recommendation must trace to a finding from this wave.
 
 ## Step 4: Deliver the Retrospective
 
-### Example — Retrospective With Insight
+### Example — Data-Backed Retrospective
 
-> Wave-002 delivered 8 of 10 tasks in 12 days. The wave was bottlenecked by review turnaround — 3 tasks spent over 2 days in Review.
+> Wave-002 delivered 8 of 10 tasks in 12 days. Throughput: 0.67 tasks/day (down from 0.83 in Wave-001). The wave was characterized by concentrated blocking time and degrading governance adherence.
 >
-> **Key finding:** #38 sat in Review 6 days without a PR — a false status that cascaded to block #42 and #47 for a combined 7 days. This pattern also appeared in Wave-001 (this is the second consecutive wave with a false review status causing cascading blocks).
+> **Key finding:** 37 hours of aggregate blocking time, 60% on #42 alone. Audit trail confirms #42 was blocked → unblocked → blocked again (root cause unresolved — same dependency #38 each time). #38 sat in Review 6 days without a PR — a false status that cascaded to block #42 and #47 for a combined 7 days.
 >
-> **By the numbers:** 8/10 delivered | velocity: 8 (down from 10 in Wave-001) | 3 tasks blocked (avg 2.3 days) | review avg: 2.4 days
+> **Actor analysis:** Agent-Alpha: 12 transitions, 0 blocks caused. Agent-Beta: 8 transitions, 4 blocks caused — all on dependency-related issues. Beta needs better dependency awareness before starting tasks.
 >
-> **Recommendation:** Daily status check — any task In Review >1 day without a PR gets auto-flagged. Would have saved 5 of 7 blocked days.
+> **Governance quality:** Compliance score 73 (C). BRE pass rate: 92%. Process adherence: 65% — 3 tasks skipped refinement, going from Backlog directly to In Progress. This is the second consecutive wave with process adherence below 80%.
 >
-> **Carry forward:** External API dependency blocked 2 tasks this wave, 1 in Wave-001. Trend confirmed — create mock for Wave-003.
+> **By the numbers:** 8/10 delivered | throughput: 0.67/day (↓19%) | avg cycle time: 3.2d | blocking: 37h total | compliance: C (73) | review avg: 2.4d
+>
+> **Recommendations:**
+> 1. Daily status check — any task In Review >1 day without a PR gets auto-flagged (saves ~5 blocked days based on this wave).
+> 2. Enforce refinement step — 3 tasks that skipped refinement had 2x the cycle time of refined tasks. BRE quality gate could enforce this.
+> 3. Agent-Beta pairing — 4 of 4 blocks caused by Beta were dependency-related. Pair with Alpha for dependency resolution until pattern breaks.
+>
+> **Carry forward:** External API dependency blocked 2 tasks this wave, 1 in Wave-001. Trend confirmed — create mock for Wave-003. Compliance trend: two consecutive waves below B grade — governance debt accumulating.
 
 ### Format
 
-**Opening**: One paragraph with delivery summary and wave character.
-**Key Findings**: 2-4 paragraphs, biggest insight first.
-**By the Numbers**: Compact metrics line.
+**Opening**: One paragraph with delivery summary, throughput comparison, and wave character.
+**Key Findings**: 2-4 paragraphs, biggest insight first. Include audit trail evidence and analytics data.
+**Actor Analysis**: Who did what, blocking patterns per actor (when multi-agent or multi-actor).
+**Governance Quality**: Compliance score breakdown and trend.
+**By the Numbers**: Compact metrics line with real analytics data and trend indicators.
 **Recommendations**: 2-4 specific, data-backed items.
 **Carry Forward**: Items to watch in the next wave.
 
@@ -102,10 +138,16 @@ After delivering the narrative, output a structured summary block that should be
 Wave: [wave name]
 Date: [today's date]
 Tasks completed: X/Y
-Velocity: X tasks
-Avg review days: N
+Throughput: N tasks/day
+Avg cycle time: N days
+Avg lead time: N days
+Total blocking time: N hours
 Blocked count: N (avg N days)
+Compliance score: N (grade)
+BRE pass rate: N%
+Process adherence: N%
 Bottleneck: [primary bottleneck]
+Actor summary: [per-actor transition counts, blocking patterns]
 Recurring patterns: [patterns confirmed across waves]
 Recommendations: [2-4 items]
 Carry forward: [items for next wave]
@@ -123,3 +165,6 @@ This creates the cross-skill feedback loop: retro findings inform future standup
 - Ignore what went well — understand success patterns too
 - Write a data dump instead of a narrative
 - Forget to persist findings — the retro's value compounds when future skills can reference it
+- Use estimated velocity when real throughput data is available from analytics
+- Ignore actor patterns — who is causing blocks matters as much as what is blocked
+- Skip compliance scoring — governance quality is a retro metric, not just a compliance skill concern

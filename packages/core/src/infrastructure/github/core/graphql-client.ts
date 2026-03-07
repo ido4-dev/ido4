@@ -56,6 +56,18 @@ export class GitHubGraphQLClient implements IGraphQLClient {
   }
 
   /**
+   * Execute a mutation with custom headers (e.g., GraphQL-Features: sub_issues).
+   * Package-internal — not part of IGraphQLClient interface.
+   */
+  async mutateWithHeaders<T>(
+    mutation: string,
+    variables?: Record<string, unknown>,
+    headers?: Record<string, string>,
+  ): Promise<T> {
+    return this.executeWithRetry('mutate', mutation, variables, headers);
+  }
+
+  /**
    * Fetch all pages of a paginated query.
    * Uses cursor-based pagination following GitHub's connection pattern.
    */

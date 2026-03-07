@@ -1,8 +1,11 @@
 /**
  * TaskTransitionValidator — BRE orchestrator implementing ITaskTransitionValidator.
  *
- * Maps each TransitionType to a specific set of validation steps,
- * builds a ValidationPipeline, and executes it.
+ * Uses IMethodologyConfig to determine which validation steps run per transition,
+ * and IValidationStepRegistry to instantiate them with dependency injection.
+ *
+ * Backward-compatible: when constructed without config/registry (legacy signature),
+ * falls back to default methodology.
  */
 
 import type {
@@ -17,47 +20,67 @@ import type {
 } from '../../container/interfaces.js';
 import type { ILogger } from '../../shared/logger.js';
 import type { ValidationResult, TransitionType, ValidationContext } from './types.js';
+import type { IMethodologyConfig } from '../../config/methodology-config.js';
+import type { IValidationStepRegistry, StepDependencies } from './validation-step-registry.js';
+import type { IAgentService } from '../agents/agent-service.js';
 import { ValidationPipeline } from './validation-pipeline.js';
-import {
-  StatusTransitionValidation,
-  RefineFromBacklogValidation,
-  ReadyFromRefinementOrBacklogValidation,
-  StartFromReadyForDevValidation,
-  BaseTaskFieldsValidation,
-  FastTrackValidation,
-  AcceptanceCriteriaValidation,
-  EffortEstimationValidation,
-  DependencyIdentificationValidation,
-  WaveAssignmentValidation,
-  AISuitabilityValidation,
-  RiskLevelValidation,
-  StatusAlreadyDoneValidation,
-  TaskAlreadyCompletedValidation,
-  TaskAlreadyBlockedValidation,
-  TaskNotBlockedValidation,
-  TaskBlockedValidation,
-  BackwardTransitionValidation,
-  ApprovalRequirementValidation,
-  EpicIntegrityValidation,
-  DependencyValidation,
-  ImplementationReadinessValidation,
-  SubtaskCompletionValidation,
-} from './validation-steps/index.js';
+import { MethodologyConfig, DEFAULT_METHODOLOGY } from '../../config/methodology-config.js';
+import { ValidationStepRegistry } from './validation-step-registry.js';
+import { registerAllBuiltinSteps } from './validation-steps/index.js';
 
 const ALL_TRANSITIONS: TransitionType[] = [
   'refine', 'ready', 'start', 'review', 'approve', 'complete', 'block', 'unblock', 'return',
 ];
 
 export class TaskTransitionValidator implements ITaskTransitionValidator {
+  private readonly methodologyConfig: IMethodologyConfig;
+  private readonly stepRegistry: IValidationStepRegistry;
+  private readonly stepDeps: StepDependencies;
+  private readonly issueRepository: IIssueRepository;
+  private readonly projectConfig: IProjectConfig;
+  private readonly workflowConfig: IWorkflowConfig;
+  private readonly gitWorkflowConfig: IGitWorkflowConfig;
+  private readonly logger: ILogger;
+
   constructor(
-    private readonly issueRepository: IIssueRepository,
-    private readonly projectConfig: IProjectConfig,
-    private readonly workflowConfig: IWorkflowConfig,
-    private readonly epicValidator: IEpicValidator,
-    private readonly repositoryRepository: IRepositoryRepository,
-    private readonly gitWorkflowConfig: IGitWorkflowConfig,
-    private readonly logger: ILogger,
-  ) {}
+    issueRepository: IIssueRepository,
+    projectConfig: IProjectConfig,
+    workflowConfig: IWorkflowConfig,
+    epicValidator: IEpicValidator,
+    repositoryRepository: IRepositoryRepository,
+    gitWorkflowConfig: IGitWorkflowConfig,
+    logger: ILogger,
+    methodologyConfig?: IMethodologyConfig,
+    stepRegistry?: IValidationStepRegistry,
+    agentService?: IAgentService,
+  ) {
+    this.issueRepository = issueRepository;
+    this.projectConfig = projectConfig;
+    this.workflowConfig = workflowConfig;
+    this.gitWorkflowConfig = gitWorkflowConfig;
+    this.logger = logger;
+
+    // Config-driven BRE: use provided config/registry or create defaults
+    if (methodologyConfig && stepRegistry) {
+      this.methodologyConfig = methodologyConfig;
+      this.stepRegistry = stepRegistry;
+    } else {
+      this.methodologyConfig = new MethodologyConfig(DEFAULT_METHODOLOGY);
+      const registry = new ValidationStepRegistry();
+      registerAllBuiltinSteps(registry);
+      this.stepRegistry = registry;
+    }
+
+    this.stepDeps = {
+      issueRepository,
+      epicValidator,
+      repositoryRepository,
+      projectConfig,
+      workflowConfig,
+      gitWorkflowConfig,
+      agentService,
+    };
+  }
 
   async validateTransition(issueNumber: number, transition: string): Promise<ValidationResult> {
     const task = await this.issueRepository.getTask(issueNumber);
@@ -119,79 +142,11 @@ export class TaskTransitionValidator implements ITaskTransitionValidator {
 
   private createPipeline(transition: TransitionType): ValidationPipeline {
     const pipeline = new ValidationPipeline();
-    const epicIntegrity = new EpicIntegrityValidation(this.epicValidator);
+    const stepNames = this.methodologyConfig.getStepsForTransition(transition);
 
-    switch (transition) {
-      case 'refine':
-        pipeline
-          .addStep(new RefineFromBacklogValidation())
-          .addStep(new BaseTaskFieldsValidation())
-          .addStep(new StatusTransitionValidation('IN_REFINEMENT'))
-          .addStep(epicIntegrity);
-        break;
-
-      case 'ready':
-        pipeline
-          .addStep(new ReadyFromRefinementOrBacklogValidation())
-          .addStep(new FastTrackValidation())
-          .addStep(new AcceptanceCriteriaValidation())
-          .addStep(new EffortEstimationValidation())
-          .addStep(new DependencyIdentificationValidation())
-          .addStep(new StatusTransitionValidation('READY_FOR_DEV'))
-          .addStep(epicIntegrity);
-        break;
-
-      case 'start':
-        pipeline
-          .addStep(new StartFromReadyForDevValidation())
-          .addStep(new StatusTransitionValidation('IN_PROGRESS'))
-          .addStep(new DependencyValidation(this.issueRepository))
-          .addStep(new WaveAssignmentValidation())
-          .addStep(new AISuitabilityValidation())
-          .addStep(new RiskLevelValidation())
-          .addStep(epicIntegrity);
-        break;
-
-      case 'review':
-        pipeline
-          .addStep(new StatusTransitionValidation('IN_REVIEW'))
-          .addStep(new ImplementationReadinessValidation(this.repositoryRepository))
-          .addStep(epicIntegrity);
-        break;
-
-      case 'approve':
-        pipeline
-          .addStep(new StatusTransitionValidation('DONE'))
-          .addStep(new ApprovalRequirementValidation())
-          .addStep(epicIntegrity);
-        break;
-
-      case 'complete':
-        pipeline
-          .addStep(new StatusAlreadyDoneValidation())
-          .addStep(new SubtaskCompletionValidation(this.issueRepository));
-        break;
-
-      case 'block':
-        pipeline
-          .addStep(new TaskAlreadyCompletedValidation())
-          .addStep(new TaskAlreadyBlockedValidation())
-          .addStep(new StatusTransitionValidation('BLOCKED'));
-        break;
-
-      case 'unblock':
-        pipeline
-          .addStep(new TaskAlreadyCompletedValidation())
-          .addStep(new TaskNotBlockedValidation())
-          .addStep(new StatusTransitionValidation('READY_FOR_DEV'));
-        break;
-
-      case 'return':
-        pipeline
-          .addStep(new TaskAlreadyCompletedValidation())
-          .addStep(new TaskBlockedValidation())
-          .addStep(new BackwardTransitionValidation());
-        break;
+    for (const stepName of stepNames) {
+      const step = this.stepRegistry.create(stepName, this.stepDeps);
+      pipeline.addStep(step);
     }
 
     return pipeline;

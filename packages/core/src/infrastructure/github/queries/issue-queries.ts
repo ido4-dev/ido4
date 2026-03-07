@@ -280,6 +280,29 @@ export const GET_REPOSITORY_ID = `
   }
 `;
 
+export interface AddSubIssueResponse {
+  addSubIssue: {
+    issue: {
+      id: string;
+      number: number;
+    };
+  };
+}
+
+export const ADD_SUB_ISSUE = `
+  mutation AddSubIssue($issueId: ID!, $subIssueId: ID!) {
+    addSubIssue(input: {
+      issueId: $issueId
+      subIssueId: $subIssueId
+    }) {
+      issue {
+        id
+        number
+      }
+    }
+  }
+`;
+
 export const GET_SUB_ISSUES = `
   query GetSubIssues($owner: String!, $repo: String!, $issueNumber: Int!) {
     repository(owner: $owner, name: $repo) {

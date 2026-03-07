@@ -17,6 +17,7 @@ import {
   ADD_COMMENT,
   CLOSE_ISSUE,
   FIND_PR_FOR_ISSUE,
+  ADD_SUB_ISSUE,
   GET_SUB_ISSUES,
   CREATE_ISSUE,
   GET_REPOSITORY_ID,
@@ -27,6 +28,7 @@ import type {
   GetTaskByIssueResponse,
   GetIssueIdResponse,
   FindPRForIssueResponse,
+  AddSubIssueResponse,
   GetSubIssuesResponse,
   CreateIssueResponse,
   GetRepositoryIdResponse,
@@ -236,6 +238,16 @@ export class GitHubIssueRepository implements IIssueRepository {
     }
 
     return null;
+  }
+
+  async addSubIssue(parentIssueId: string, childIssueId: string): Promise<void> {
+    await this.client.mutateWithHeaders<AddSubIssueResponse>(
+      ADD_SUB_ISSUE,
+      { issueId: parentIssueId, subIssueId: childIssueId },
+      { 'GraphQL-Features': 'sub_issues' },
+    );
+
+    this.logger.info('Sub-issue added', { parentIssueId, childIssueId });
   }
 
   async getSubIssues(issueNumber: number): Promise<SubIssueData[]> {

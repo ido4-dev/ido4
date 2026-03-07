@@ -25,6 +25,12 @@ import type {
   IProjectConfig,
   IWorkflowConfig,
   IGitWorkflowConfig,
+  IAuditService,
+  IAnalyticsService,
+  IAgentService,
+  IComplianceService,
+  IWorkDistributionService,
+  IMergeReadinessService,
 } from './interfaces.js';
 import type { ILogger } from '../shared/logger.js';
 import type { IEventBus } from '../shared/events/index.js';
@@ -47,6 +53,17 @@ import { TaskWorkflowService } from '../domains/tasks/task-workflow-service.js';
 import { SuggestionService } from '../domains/tasks/suggestion-service.js';
 import { TaskService } from '../domains/tasks/task-service.js';
 import { WaveService } from '../domains/waves/wave-service.js';
+import { AuditService } from '../domains/audit/audit-service.js';
+import { JsonlAuditStore } from '../domains/audit/audit-store.js';
+import { AnalyticsService } from '../domains/analytics/analytics-service.js';
+import { ComplianceService } from '../domains/compliance/compliance-service.js';
+import { AgentService } from '../domains/agents/agent-service.js';
+import { FileAgentStore } from '../domains/agents/agent-store.js';
+import { MethodologyConfigLoader } from '../config/methodology-config.js';
+import { ValidationStepRegistry } from '../domains/tasks/validation-step-registry.js';
+import { registerAllBuiltinSteps } from '../domains/tasks/validation-steps/index.js';
+import { WorkDistributionService } from '../domains/distribution/work-distribution-service.js';
+import { MergeReadinessService } from '../domains/gate/merge-readiness-service.js';
 
 export interface ServiceContainerConfig {
   /** Absolute path to the project root (containing .ido4/ directory) */
@@ -91,6 +108,12 @@ export class ServiceContainer {
   readonly epicService: IEpicService;
   readonly epicValidator: IEpicValidator;
   readonly dependencyService: IDependencyService;
+  readonly auditService: IAuditService;
+  readonly analyticsService: IAnalyticsService;
+  readonly agentService: IAgentService;
+  readonly complianceService: IComplianceService;
+  readonly workDistributionService: IWorkDistributionService;
+  readonly mergeReadinessService: IMergeReadinessService;
 
   private constructor(deps: ServiceContainerDependencies) {
     this.sessionId = deps.sessionId;
@@ -111,6 +134,12 @@ export class ServiceContainer {
     this.epicService = deps.epicService;
     this.epicValidator = deps.epicValidator;
     this.dependencyService = deps.dependencyService;
+    this.auditService = deps.auditService;
+    this.analyticsService = deps.analyticsService;
+    this.agentService = deps.agentService;
+    this.complianceService = deps.complianceService;
+    this.workDistributionService = deps.workDistributionService;
+    this.mergeReadinessService = deps.mergeReadinessService;
   }
 
   /**
@@ -153,10 +182,22 @@ export class ServiceContainer {
     const epicValidator = new EpicValidator(epicService, issueRepository, logger);
     const dependencyService = new DependencyService(issueRepository, workflowConfig, logger);
 
-    // Layer 5b: BRE
+    // Layer 5a: Audit (subscribes to event bus, no domain dependencies)
+    const auditStore = new JsonlAuditStore(config.projectRoot, logger);
+    const auditService = new AuditService(auditStore, eventBus, logger);
+
+    // Layer 5b: Agents (no domain dependencies, needed by BRE for TaskLockValidation)
+    const agentStore = new FileAgentStore(config.projectRoot, logger);
+    const agentService = new AgentService(agentStore, logger);
+
+    // Layer 5c: BRE (config-driven pipeline with all step dependencies)
+    const methodologyConfig = await MethodologyConfigLoader.load(config.projectRoot);
+    const stepRegistry = new ValidationStepRegistry();
+    registerAllBuiltinSteps(stepRegistry);
     const taskTransitionValidator = new TaskTransitionValidator(
       issueRepository, projectConfig, workflowConfig,
       epicValidator, repositoryRepository, gitWorkflowConfig, logger,
+      methodologyConfig, stepRegistry, agentService,
     );
 
     // Layer 6: Facade
@@ -170,6 +211,24 @@ export class ServiceContainer {
     );
     const waveService = new WaveService(
       projectRepository, issueRepository, epicValidator, workflowConfig, logger,
+    );
+
+    // Layer 6b: Analytics (depends on auditService + waveService)
+    const analyticsService = new AnalyticsService(auditService, waveService, eventBus, logger);
+
+    // Layer 7: Compliance (depends on auditService + analyticsService)
+    const complianceService = new ComplianceService(auditService, analyticsService, eventBus, logger);
+
+    // Layer 8: Work Distribution (depends on wave, agent, task, audit)
+    const workDistributionService = new WorkDistributionService(
+      waveService, agentService, taskService,
+      auditService, eventBus, sessionId, logger,
+    );
+
+    // Layer 9: Merge Readiness Gate (depends on task, issue, repo, dependency, epic, audit, compliance)
+    const mergeReadinessService = new MergeReadinessService(
+      taskService, issueRepository, repositoryRepository, dependencyService,
+      epicService, auditService, complianceService, eventBus, sessionId, logger,
     );
 
     return new ServiceContainer({
@@ -191,6 +250,12 @@ export class ServiceContainer {
       epicService,
       epicValidator,
       dependencyService,
+      auditService,
+      analyticsService,
+      agentService,
+      complianceService,
+      workDistributionService,
+      mergeReadinessService,
     });
   }
 }
@@ -214,4 +279,10 @@ interface ServiceContainerDependencies {
   epicService: IEpicService;
   epicValidator: IEpicValidator;
   dependencyService: IDependencyService;
+  auditService: IAuditService;
+  analyticsService: IAnalyticsService;
+  agentService: IAgentService;
+  complianceService: IComplianceService;
+  workDistributionService: IWorkDistributionService;
+  mergeReadinessService: IMergeReadinessService;
 }

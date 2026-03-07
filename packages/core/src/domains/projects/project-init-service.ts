@@ -23,6 +23,7 @@ import {
   CREATE_PROJECT,
   CREATE_FIELD_TEXT,
   CREATE_FIELD_SINGLE_SELECT,
+  UPDATE_FIELD_SINGLE_SELECT,
   GET_PROJECT_WITH_FIELDS,
   FIELD_OPTIONS,
   STATUS_NAME_TO_KEY,
@@ -33,6 +34,7 @@ import type {
   CreateProjectResponse,
   CreateFieldTextResponse,
   CreateFieldSingleSelectResponse,
+  UpdateFieldSingleSelectResponse,
   GetProjectWithFieldsResponse,
   ProjectFieldNode,
 } from '../../infrastructure/github/queries/project-init-queries.js';
@@ -247,6 +249,10 @@ export class ProjectInitService implements IProjectInitService {
   }
 
   private async setupFields(projectId: string, fieldsCreated: string[]): Promise<void> {
+    // Configure the native Status field with ido4's required options
+    await this.configureStatusField(projectId);
+    fieldsCreated.push('Status (configured)');
+
     // Create text fields
     for (const fieldName of TEXT_FIELDS) {
       await this.createTextField(projectId, fieldName);
@@ -258,6 +264,33 @@ export class ProjectInitService implements IProjectInitService {
       await this.createSingleSelectField(projectId, field.name, field.options as unknown as Array<{ name: string; color: string; description?: string }>);
       fieldsCreated.push(field.name);
     }
+  }
+
+  private async configureStatusField(projectId: string): Promise<void> {
+    // Read the project fields to find the native Status field ID
+    const { fields } = await this.readProjectFields(projectId);
+    const statusField = fields.find(f => f.name === 'Status' && f.options);
+
+    if (!statusField) {
+      throw new ConfigurationError({
+        message: 'Native Status field not found on the project',
+        remediation: 'Ensure the GitHub Project V2 was created successfully',
+      });
+    }
+
+    // Update the Status field with ido4's required options
+    await this.graphqlClient.mutate<UpdateFieldSingleSelectResponse>(
+      UPDATE_FIELD_SINGLE_SELECT,
+      {
+        fieldId: statusField.id,
+        options: FIELD_OPTIONS.STATUS.map(opt => ({ name: opt.name, color: opt.color, description: opt.description })),
+      },
+    );
+
+    this.logger.info('Status field configured', {
+      fieldId: statusField.id,
+      options: FIELD_OPTIONS.STATUS.map(o => o.name),
+    });
   }
 
   private async createTextField(projectId: string, name: string): Promise<string> {
@@ -341,6 +374,7 @@ export class ProjectInitService implements IProjectInitService {
         number: project.number,
         repository,
         title: project.title,
+        url: project.url,
       },
       fields: fieldIds,
       status_options: statusOptions,

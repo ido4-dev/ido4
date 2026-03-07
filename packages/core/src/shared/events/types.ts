@@ -52,11 +52,32 @@ export interface ValidationEvent extends GovernanceEvent {
   readonly passed: boolean;
 }
 
+/** Emitted when the platform recommends a task for an agent */
+export interface WorkRecommendationEvent extends GovernanceEvent {
+  readonly type: 'work.recommendation';
+  readonly agentId: string;
+  readonly recommendedIssue: number | null;
+  readonly score: number | null;
+  readonly waveName: string;
+  readonly totalCandidates: number;
+}
+
+/** Emitted when an agent completes a task and the platform coordinates handoff */
+export interface TaskHandoffEvent extends GovernanceEvent {
+  readonly type: 'work.handoff';
+  readonly completedIssue: number;
+  readonly agentId: string;
+  readonly newlyUnblocked: number[];
+  readonly nextRecommendation: number | null;
+}
+
 /** Union of all domain events — use for exhaustive handling */
 export type DomainEvent =
   | TaskTransitionEvent
   | WaveAssignmentEvent
-  | ValidationEvent;
+  | ValidationEvent
+  | WorkRecommendationEvent
+  | TaskHandoffEvent;
 
 /** Extract event type strings for type-safe subscriptions */
 export type DomainEventType = DomainEvent['type'];

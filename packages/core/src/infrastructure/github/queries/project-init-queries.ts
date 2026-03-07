@@ -75,6 +75,20 @@ export interface ProjectFieldNode {
   }>;
 }
 
+export interface UpdateFieldSingleSelectResponse {
+  updateProjectV2Field: {
+    projectV2Field: {
+      id: string;
+      name: string;
+      options: Array<{
+        id: string;
+        name: string;
+        color: string;
+      }>;
+    };
+  };
+}
+
 export interface GetProjectWithFieldsResponse {
   node: {
     id: string;
@@ -161,6 +175,27 @@ export const CREATE_FIELD_SINGLE_SELECT = `
           id
           name
           dataType
+          options {
+            id
+            name
+            color
+          }
+        }
+      }
+    }
+  }
+`;
+
+export const UPDATE_FIELD_SINGLE_SELECT = `
+  mutation UpdateFieldSingleSelect($fieldId: ID!, $options: [ProjectV2SingleSelectFieldOptionInput!]!) {
+    updateProjectV2Field(input: {
+      fieldId: $fieldId,
+      singleSelectOptions: $options
+    }) {
+      projectV2Field {
+        ... on ProjectV2SingleSelectField {
+          id
+          name
           options {
             id
             name

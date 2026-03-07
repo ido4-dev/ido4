@@ -64,6 +64,101 @@ export interface GetPRReviewsResponse {
   };
 }
 
+export interface GetDefaultBranchResponse {
+  repository: {
+    id: string;
+    defaultBranchRef: {
+      name: string;
+      target: {
+        oid: string;
+      };
+    };
+  };
+}
+
+export interface CreateRefResponse {
+  createRef: {
+    ref: {
+      id: string;
+      name: string;
+    };
+  };
+}
+
+export interface CreatePullRequestResponse {
+  createPullRequest: {
+    pullRequest: {
+      id: string;
+      number: number;
+      url: string;
+    };
+  };
+}
+
+export interface ClosePullRequestResponse {
+  closePullRequest: {
+    pullRequest: {
+      id: string;
+      state: string;
+    };
+  };
+}
+
+export interface DeleteRefResponse {
+  deleteRef: {
+    clientMutationId: string | null;
+  };
+}
+
+export interface GetCommitStatusChecksResponse {
+  repository: {
+    pullRequest: {
+      commits: {
+        nodes: Array<{
+          commit: {
+            statusCheckRollup: {
+              contexts: {
+                nodes: Array<{
+                  __typename: string;
+                  name?: string;
+                  context?: string;
+                  state?: string;
+                  conclusion?: string;
+                  status?: string;
+                }>;
+              };
+            } | null;
+          };
+        }>;
+      };
+    } | null;
+  };
+}
+
+export interface CreateCommitOnBranchResponse {
+  createCommitOnBranch: {
+    commit: {
+      oid: string;
+      url: string;
+    };
+  };
+}
+
+export interface GetCodeScanningAlertsResponse {
+  repository: {
+    vulnerabilityAlerts: {
+      nodes: Array<{
+        securityVulnerability: {
+          severity: string;
+          advisory: {
+            summary: string;
+          };
+        };
+      }>;
+    };
+  };
+}
+
 // ─── Queries ───
 
 export const GET_PULL_REQUEST = `
@@ -157,6 +252,144 @@ export const GET_PR_REVIEWS = `
             state
             body
             submittedAt
+          }
+        }
+      }
+    }
+  }
+`;
+
+export const GET_DEFAULT_BRANCH = `
+  query GetDefaultBranch($owner: String!, $repo: String!) {
+    repository(owner: $owner, name: $repo) {
+      id
+      defaultBranchRef {
+        name
+        target {
+          oid
+        }
+      }
+    }
+  }
+`;
+
+export const CREATE_REF = `
+  mutation CreateRef($repositoryId: ID!, $name: String!, $oid: GitObjectID!) {
+    createRef(input: { repositoryId: $repositoryId, name: $name, oid: $oid }) {
+      ref {
+        id
+        name
+      }
+    }
+  }
+`;
+
+export const CREATE_PULL_REQUEST = `
+  mutation CreatePullRequest($repositoryId: ID!, $title: String!, $body: String!, $baseRefName: String!, $headRefName: String!) {
+    createPullRequest(input: {
+      repositoryId: $repositoryId
+      title: $title
+      body: $body
+      baseRefName: $baseRefName
+      headRefName: $headRefName
+    }) {
+      pullRequest {
+        id
+        number
+        url
+      }
+    }
+  }
+`;
+
+export const CLOSE_PULL_REQUEST = `
+  mutation ClosePullRequest($pullRequestId: ID!) {
+    closePullRequest(input: { pullRequestId: $pullRequestId }) {
+      pullRequest {
+        id
+        state
+      }
+    }
+  }
+`;
+
+export const DELETE_REF = `
+  mutation DeleteRef($refId: ID!) {
+    deleteRef(input: { refId: $refId }) {
+      clientMutationId
+    }
+  }
+`;
+
+export const GET_COMMIT_STATUS_CHECKS = `
+  query GetCommitStatusChecks($owner: String!, $repo: String!, $prNumber: Int!) {
+    repository(owner: $owner, name: $repo) {
+      pullRequest(number: $prNumber) {
+        commits(last: 1) {
+          nodes {
+            commit {
+              statusCheckRollup {
+                contexts(first: 100) {
+                  nodes {
+                    __typename
+                    ... on CheckRun {
+                      name
+                      conclusion
+                      status
+                    }
+                    ... on StatusContext {
+                      context
+                      state
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+export const CREATE_COMMIT_ON_BRANCH = `
+  mutation CreateCommitOnBranch(
+    $repositoryNameWithOwner: String!,
+    $branchName: String!,
+    $expectedHeadOid: GitObjectID!,
+    $headline: String!,
+    $fileContents: Base64String!,
+    $filePath: String!
+  ) {
+    createCommitOnBranch(input: {
+      branch: {
+        repositoryNameWithOwner: $repositoryNameWithOwner
+        branchName: $branchName
+      }
+      message: { headline: $headline }
+      expectedHeadOid: $expectedHeadOid
+      fileChanges: {
+        additions: [{ path: $filePath, contents: $fileContents }]
+      }
+    }) {
+      commit {
+        oid
+        url
+      }
+    }
+  }
+`;
+
+export const GET_VULNERABILITY_ALERTS = `
+  query GetVulnerabilityAlerts($owner: String!, $repo: String!) {
+    repository(owner: $owner, name: $repo) {
+      vulnerabilityAlerts(first: 100, states: [OPEN]) {
+        nodes {
+          securityVulnerability {
+            severity
+            advisory {
+              summary
+            }
           }
         }
       }
