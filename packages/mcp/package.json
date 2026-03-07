@@ -1,7 +1,7 @@
 {
   "name": "@ido4/mcp",
   "version": "0.1.0",
-  "description": "ido4 MCP server — development governance tools for Claude Code and MCP-compatible AI coding environments",
+  "description": "ido4 MCP server — 51 development governance tools for Claude Code and MCP-compatible AI coding environments",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
@@ -28,5 +28,29 @@
   "files": [
     "dist"
   ],
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "governance",
+    "development-governance",
+    "ai-agents",
+    "claude-code",
+    "business-rules",
+    "compliance",
+    "audit-trail",
+    "multi-agent",
+    "quality-gates",
+    "model-context-protocol"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/b-coman/ido4-MCP.git",
+    "directory": "packages/mcp"
+  },
+  "homepage": "https://github.com/b-coman/ido4-MCP/tree/main/packages/mcp",
+  "bugs": {
+    "url": "https://github.com/b-coman/ido4-MCP/issues"
+  },
+  "author": "Bogdan Ionut Coman",
   "license": "MIT"
 }

@@ -2,7 +2,7 @@
   "name": "ido4-mcp",
   "version": "0.1.0",
   "private": true,
-  "description": "ido4 Next — Development Governance Platform. MCP-native methodology enforcement for AI-augmented teams.",
+  "description": "ido4 — Development Governance Platform. Deterministic methodology enforcement for AI-augmented teams.",
   "workspaces": [
     "packages/*"
   ],
@@ -15,5 +15,14 @@
   "engines": {
     "node": ">=18.0.0"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/b-coman/ido4-MCP.git"
+  },
+  "homepage": "https://github.com/b-coman/ido4-MCP",
+  "bugs": {
+    "url": "https://github.com/b-coman/ido4-MCP/issues"
+  },
+  "author": "Bogdan Ionut Coman",
   "license": "MIT"
 }

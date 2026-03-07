@@ -22,5 +22,28 @@
   "files": [
     "dist"
   ],
+  "keywords": [
+    "governance",
+    "development-governance",
+    "mcp",
+    "ai-agents",
+    "business-rules",
+    "compliance",
+    "audit-trail",
+    "multi-agent",
+    "wave-based",
+    "methodology-enforcement",
+    "github-projects"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/b-coman/ido4-MCP.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/b-coman/ido4-MCP/tree/main/packages/core",
+  "bugs": {
+    "url": "https://github.com/b-coman/ido4-MCP/issues"
+  },
+  "author": "Bogdan Ionut Coman",
   "license": "MIT"
 }
