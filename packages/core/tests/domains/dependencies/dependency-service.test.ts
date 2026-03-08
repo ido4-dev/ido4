@@ -10,7 +10,7 @@ function createMockIssueRepository(): IIssueRepository {
     getTaskWithDetails: vi.fn(),
     updateTaskStatus: vi.fn(),
     updateTaskField: vi.fn(),
-    updateTaskWave: vi.fn(),
+    updateTaskContainer: vi.fn(),
     assignTask: vi.fn(),
     addComment: vi.fn(),
     closeIssue: vi.fn(),

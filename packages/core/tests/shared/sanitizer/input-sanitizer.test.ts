@@ -117,16 +117,16 @@ describe('InputSanitizer', () => {
     });
   });
 
-  describe('validateWaveFormat', () => {
+  describe('validateContainerFormat', () => {
     it('accepts valid wave formats', () => {
-      expect(InputSanitizer.validateWaveFormat('wave-001-auth-system').valid).toBe(true);
-      expect(InputSanitizer.validateWaveFormat('wave-042-simple').valid).toBe(true);
+      expect(InputSanitizer.validateContainerFormat('wave-001-auth-system').valid).toBe(true);
+      expect(InputSanitizer.validateContainerFormat('wave-042-simple').valid).toBe(true);
     });
 
     it('rejects invalid formats', () => {
-      expect(InputSanitizer.validateWaveFormat('wave-1-test').valid).toBe(false);
-      expect(InputSanitizer.validateWaveFormat('not-a-wave').valid).toBe(false);
-      expect(InputSanitizer.validateWaveFormat('wave-001-UPPERCASE').valid).toBe(false);
+      expect(InputSanitizer.validateContainerFormat('wave-1-test').valid).toBe(false);
+      expect(InputSanitizer.validateContainerFormat('not-a-wave').valid).toBe(false);
+      expect(InputSanitizer.validateContainerFormat('wave-001-UPPERCASE').valid).toBe(false);
     });
   });
 

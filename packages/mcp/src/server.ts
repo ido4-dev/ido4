@@ -5,7 +5,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { registerTaskTools } from './tools/index.js';
-import { registerWaveTools } from './tools/index.js';
+import { registerContainerTools } from './tools/index.js';
 import { registerDependencyTools } from './tools/index.js';
 import { registerProjectTools } from './tools/index.js';
 import { registerEpicTools } from './tools/index.js';
@@ -29,7 +29,7 @@ export function createServer(): McpServer {
 
   // Register all tool groups
   registerTaskTools(server);
-  registerWaveTools(server);
+  registerContainerTools(server);
   registerDependencyTools(server);
   registerProjectTools(server);
   registerEpicTools(server);

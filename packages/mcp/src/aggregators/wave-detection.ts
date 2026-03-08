@@ -1,27 +1,27 @@
 /**
- * Shared utility for resolving the active wave name.
+ * Shared utility for resolving the active container name.
  *
- * Used by all aggregators to auto-detect the active wave when
- * no explicit wave name is provided.
+ * Used by all aggregators to auto-detect the active container when
+ * no explicit container name is provided.
  */
 
 import type { ServiceContainer } from '@ido4/core';
 import { BusinessRuleError } from '@ido4/core';
 
-export async function resolveActiveWave(
+export async function resolveActiveContainer(
   container: ServiceContainer,
-  waveName?: string,
+  containerName?: string,
 ): Promise<string> {
-  if (waveName) return waveName;
+  if (containerName) return containerName;
 
-  const waves = await container.waveService.listWaves();
+  const waves = await container.containerService.listContainers();
   const active = waves.find((w) => w.status === 'active');
 
   if (!active) {
     throw new BusinessRuleError({
-      message: 'No active wave found. Provide a waveName parameter or activate a wave.',
-      rule: 'ACTIVE_WAVE_REQUIRED',
-      remediation: 'Use create_wave or assign_task_to_wave to set up an active wave.',
+      message: 'No active container found. Provide a containerName parameter or activate a container.',
+      rule: 'ACTIVE_CONTAINER_REQUIRED',
+      remediation: 'Use create_wave or assign_task_to_wave to set up an active container.',
     });
   }
 

@@ -9,11 +9,11 @@ import type { ServiceContainer } from '@ido4/core';
 
 function createMockContainer(overrides: Record<string, unknown> = {}) {
   const defaults = {
-    waveService: {
-      listWaves: vi.fn().mockResolvedValue([
+    containerService: {
+      listContainers: vi.fn().mockResolvedValue([
         { name: 'wave-001', status: 'active', taskCount: 5, completedCount: 2, completionPercentage: 40 },
       ]),
-      getWaveStatus: vi.fn().mockResolvedValue({
+      getContainerStatus: vi.fn().mockResolvedValue({
         name: 'wave-001',
         tasks: [],
         metrics: { total: 5, completed: 2, inProgress: 1, blocked: 1, ready: 1 },
@@ -38,7 +38,7 @@ function createMockContainer(overrides: Record<string, unknown> = {}) {
       queryEvents: vi.fn().mockResolvedValue({ events: [], total: 3, query: {} }),
     },
     analyticsService: {
-      getWaveAnalytics: vi.fn().mockResolvedValue({
+      getContainerAnalytics: vi.fn().mockResolvedValue({
         waveName: 'wave-001', velocity: 40, avgCycleTime: 2.1, throughput: 1.5,
         avgBlockingTime: 0.5, totalTransitions: 10, transitionBreakdown: {},
       }),
@@ -79,31 +79,31 @@ describe('aggregateStandupData', () => {
     container = createMockContainer();
   });
 
-  it('auto-detects active wave when no waveName provided', async () => {
+  it('auto-detects active container when no containerName provided', async () => {
     const result = await aggregateStandupData(container);
 
-    expect(container.waveService.listWaves).toHaveBeenCalled();
-    expect(container.waveService.getWaveStatus).toHaveBeenCalledWith('wave-001');
+    expect(container.containerService.listContainers).toHaveBeenCalled();
+    expect(container.containerService.getContainerStatus).toHaveBeenCalledWith('wave-001');
     expect(result.waveStatus.name).toBe('wave-001');
   });
 
-  it('uses provided waveName without listing waves', async () => {
-    const result = await aggregateStandupData(container, { waveName: 'wave-002' });
+  it('uses provided containerName without listing containers', async () => {
+    const result = await aggregateStandupData(container, { containerName: 'wave-002' });
 
-    expect(container.waveService.listWaves).not.toHaveBeenCalled();
-    expect(container.waveService.getWaveStatus).toHaveBeenCalledWith('wave-002');
+    expect(container.containerService.listContainers).not.toHaveBeenCalled();
+    expect(container.containerService.getContainerStatus).toHaveBeenCalledWith('wave-002');
     expect(result.summary).toContain('wave-002');
   });
 
   it('makes parallel calls for wave status, tasks, audit, analytics, agents, compliance', async () => {
     await aggregateStandupData(container);
 
-    expect(container.waveService.getWaveStatus).toHaveBeenCalled();
+    expect(container.containerService.getContainerStatus).toHaveBeenCalled();
     expect(container.taskService.listTasks).toHaveBeenCalledWith({ wave: 'wave-001' });
     expect(container.auditService.queryEvents).toHaveBeenCalledWith(
       expect.objectContaining({ since: expect.any(String) }),
     );
-    expect(container.analyticsService.getWaveAnalytics).toHaveBeenCalledWith('wave-001');
+    expect(container.analyticsService.getContainerAnalytics).toHaveBeenCalledWith('wave-001');
     expect(container.agentService.listAgents).toHaveBeenCalled();
     expect(container.complianceService.computeComplianceScore).toHaveBeenCalled();
   });
@@ -198,11 +198,11 @@ describe('aggregateStandupData', () => {
     expect(result.summary).toContain('85');
   });
 
-  it('throws BusinessRuleError when no active wave and no waveName', async () => {
-    (container.waveService.listWaves as ReturnType<typeof vi.fn>).mockResolvedValue([
+  it('throws BusinessRuleError when no active container and no containerName', async () => {
+    (container.containerService.listContainers as ReturnType<typeof vi.fn>).mockResolvedValue([
       { name: 'wave-001', status: 'completed', taskCount: 5, completedCount: 5, completionPercentage: 100 },
     ]);
 
-    await expect(aggregateStandupData(container)).rejects.toThrow('No active wave found');
+    await expect(aggregateStandupData(container)).rejects.toThrow('No active container found');
   });
 });

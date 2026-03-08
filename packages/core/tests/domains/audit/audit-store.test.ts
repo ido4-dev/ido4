@@ -142,7 +142,7 @@ describe('JsonlAuditStore', () => {
 
     it('filters by eventType', async () => {
       await store.appendEvent(makeEvent({ type: 'task.transition' }));
-      await store.appendEvent(makeEvent({ type: 'wave.assignment' }));
+      await store.appendEvent(makeEvent({ type: 'container.assignment' }));
 
       const { events } = await store.readEvents({ eventType: 'task.transition' });
       expect(events).toHaveLength(1);

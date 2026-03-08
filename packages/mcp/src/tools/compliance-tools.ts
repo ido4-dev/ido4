@@ -16,7 +16,7 @@ export function registerComplianceTools(server: McpServer): void {
       const result = await container.complianceService.computeComplianceScore({
         since: args.since,
         until: args.until,
-        waveName: args.waveName,
+        containerName: args.waveName,
         actorId: args.actorId,
       });
       return toCallToolResult({ success: true, data: result });

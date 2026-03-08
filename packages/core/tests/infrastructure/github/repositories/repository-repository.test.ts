@@ -150,7 +150,7 @@ describe('GitHubRepositoryRepository', () => {
     });
   });
 
-  describe('checkWaveBranchMerged', () => {
+  describe('checkContainerBranchMerged', () => {
     it('returns true when branch does not exist (merged + deleted)', async () => {
       client.query.mockResolvedValueOnce({
         repository: {
@@ -162,7 +162,7 @@ describe('GitHubRepositoryRepository', () => {
         },
       });
 
-      expect(await repo.checkWaveBranchMerged('wave-001')).toBe(true);
+      expect(await repo.checkContainerBranchMerged('wave-001')).toBe(true);
     });
 
     it('returns true when branch tip is in default branch history', async () => {
@@ -188,7 +188,7 @@ describe('GitHubRepositoryRepository', () => {
         },
       });
 
-      expect(await repo.checkWaveBranchMerged('wave-001')).toBe(true);
+      expect(await repo.checkContainerBranchMerged('wave-001')).toBe(true);
     });
 
     it('returns false when branch exists and not merged', async () => {
@@ -210,7 +210,7 @@ describe('GitHubRepositoryRepository', () => {
         },
       });
 
-      expect(await repo.checkWaveBranchMerged('wave-001')).toBe(false);
+      expect(await repo.checkContainerBranchMerged('wave-001')).toBe(false);
     });
   });
 

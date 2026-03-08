@@ -31,7 +31,7 @@ export interface WorkRecommendation {
   recommendation: TaskRecommendation | null;
   alternatives: TaskRecommendation[];
   context: {
-    activeWave: string;
+    activeContainer: string;
     agentId: string;
     lockedTasks: number[];
     totalCandidates: number;

@@ -58,7 +58,7 @@ describe('Quality Gates Integration', () => {
     const deps: StepDependencies = {
       issueRepository: {} as IIssueRepository,
       repositoryRepository: mockRepoRepo as IRepositoryRepository,
-      epicValidator: {} as any,
+      integrityValidator: {} as any,
       projectConfig: {} as any,
       workflowConfig: {} as any,
       gitWorkflowConfig: {} as any,
@@ -92,7 +92,7 @@ describe('Quality Gates Integration', () => {
     const deps: StepDependencies = {
       issueRepository: {} as IIssueRepository,
       repositoryRepository: mockRepoRepo as IRepositoryRepository,
-      epicValidator: {} as any,
+      integrityValidator: {} as any,
       projectConfig: {} as any,
       workflowConfig: {} as any,
       gitWorkflowConfig: {} as any,
@@ -126,7 +126,7 @@ describe('Quality Gates Integration', () => {
     const deps: StepDependencies = {
       issueRepository: {} as IIssueRepository,
       repositoryRepository: mockRepoRepo as IRepositoryRepository,
-      epicValidator: {} as any,
+      integrityValidator: {} as any,
       projectConfig: {} as any,
       workflowConfig: {} as any,
       gitWorkflowConfig: {} as any,
@@ -150,7 +150,7 @@ describe('Quality Gates Integration', () => {
     const deps: StepDependencies = {
       issueRepository: {} as IIssueRepository,
       repositoryRepository: mockRepoRepo as IRepositoryRepository,
-      epicValidator: {} as any,
+      integrityValidator: {} as any,
       projectConfig: {} as any,
       workflowConfig: {} as any,
       gitWorkflowConfig: {} as any,
@@ -176,7 +176,7 @@ describe('Quality Gates Integration', () => {
     const deps: StepDependencies = {
       issueRepository: {} as IIssueRepository,
       repositoryRepository: mockRepoRepo as IRepositoryRepository,
-      epicValidator: {} as any,
+      integrityValidator: {} as any,
       projectConfig: {} as any,
       workflowConfig: {} as any,
       gitWorkflowConfig: {} as any,

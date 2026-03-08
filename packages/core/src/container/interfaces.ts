@@ -22,7 +22,7 @@ export interface IIssueRepository {
   createIssue(title: string, body?: string): Promise<{ id: string; number: number; url: string }>;
   updateTaskStatus(issueNumber: number, statusKey: string): Promise<void>;
   updateTaskField(issueNumber: number, fieldKey: string, value: string, fieldType?: string): Promise<void>;
-  updateTaskWave(issueNumber: number, waveName: string): Promise<void>;
+  updateTaskContainer(issueNumber: number, containerName: string): Promise<void>;
   assignTask(issueNumber: number, assignee: string): Promise<void>;
   addComment(issueNumber: number, comment: string): Promise<void>;
   closeIssue(issueNumber: number): Promise<void>;
@@ -36,7 +36,7 @@ export interface IProjectRepository {
   addItemToProject(contentId: string): Promise<string>;
   updateItemField(itemId: string, fieldId: string, value: string, fieldType?: string): Promise<void>;
   deleteProject(): Promise<void>;
-  getWaveStatus(wave: string): Promise<WaveStatusData>;
+  getContainerStatus(containerName: string): Promise<ContainerStatusData>;
   getCurrentUser(): Promise<UserInfo>;
 }
 
@@ -49,7 +49,7 @@ export interface DefaultBranchInfo {
 export interface IRepositoryRepository {
   mergePullRequest(prNumber: number, mergeMethod?: string): Promise<void>;
   findPullRequestForIssue(issueNumber: number): Promise<PullRequestInfo | null>;
-  checkWaveBranchMerged(waveName: string): Promise<boolean>;
+  checkContainerBranchMerged(containerName: string): Promise<boolean>;
   getPullRequestReviews(prNumber: number): Promise<PullRequestReviewData[]>;
   getDefaultBranchInfo(): Promise<DefaultBranchInfo>;
   createBranch(repositoryId: string, branchName: string, fromOid: string): Promise<{ refId: string }>;
@@ -99,21 +99,21 @@ export interface ITaskTransitionValidator {
   validateAllTransitions(issueNumber: number): Promise<AllTransitionsResult>;
 }
 
-export interface IWaveService {
-  listWaves(): Promise<WaveSummary[]>;
-  getWaveStatus(waveName: string): Promise<WaveStatusData>;
-  createWave(name: string, description?: string): Promise<WaveCreateResult>;
-  assignTaskToWave(issueNumber: number, waveName: string): Promise<WaveAssignResult>;
-  validateWaveCompletion(waveName: string): Promise<WaveCompletionResult>;
+export interface IContainerService {
+  listContainers(): Promise<ContainerSummary[]>;
+  getContainerStatus(name: string): Promise<ContainerStatusData>;
+  createContainer(name: string, description?: string): Promise<ContainerCreateResult>;
+  assignTaskToContainer(issueNumber: number, containerName: string): Promise<ContainerAssignResult>;
+  validateContainerCompletion(name: string): Promise<ContainerCompletionResult>;
 }
 
 export interface IEpicService {
   getTasksInEpic(epicName: string): Promise<TaskData[]>;
-  validateEpicIntegrity(task: TaskData): Promise<EpicIntegrityResult>;
+  validateEpicIntegrity(task: TaskData): Promise<IntegrityResult>;
 }
 
-export interface IEpicValidator {
-  validateWaveAssignmentEpicIntegrity(issueNumber: number, waveName: string): Promise<EpicIntegrityResult>;
+export interface IIntegrityValidator {
+  validateAssignmentIntegrity(issueNumber: number, containerName: string): Promise<IntegrityResult>;
 }
 
 export interface IDependencyService {
@@ -229,7 +229,7 @@ export interface UserInfo {
   id: string;
 }
 
-export interface WaveSummary {
+export interface ContainerSummary {
   name: string;
   taskCount: number;
   completedCount: number;
@@ -237,7 +237,7 @@ export interface WaveSummary {
   status: 'not_started' | 'active' | 'completed';
 }
 
-export interface WaveStatusData {
+export interface ContainerStatusData {
   name: string;
   tasks: TaskData[];
   metrics: {
@@ -249,25 +249,25 @@ export interface WaveStatusData {
   };
 }
 
-export interface WaveCreateResult {
+export interface ContainerCreateResult {
   name: string;
   created: boolean;
 }
 
-export interface WaveAssignResult {
+export interface ContainerAssignResult {
   issueNumber: number;
-  wave: string;
-  epicIntegrity: EpicIntegrityResult;
+  container: string;
+  integrity: IntegrityResult;
 }
 
-export interface WaveCompletionResult {
-  wave: string;
+export interface ContainerCompletionResult {
+  container: string;
   canComplete: boolean;
   reasons: string[];
   tasks: { number: number; title: string; status: string }[];
 }
 
-export interface EpicIntegrityResult {
+export interface IntegrityResult {
   maintained: boolean;
   violations: string[];
 }
@@ -523,7 +523,7 @@ export type {
 export type {
   IAnalyticsService,
   AnalyticsOptions,
-  WaveAnalytics,
+  ContainerAnalytics,
   ProjectAnalytics,
   TaskCycleTime,
 } from '../domains/analytics/index.js';

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { EpicValidator } from '../../../src/domains/epics/epic-validator.js';
+import { IntegrityValidator } from '../../../src/domains/epics/integrity-validator.js';
 import type { IEpicService, IIssueRepository, TaskData } from '../../../src/container/interfaces.js';
 import { TestLogger } from '../../helpers/test-logger.js';
 import { createMockTaskData } from '../../helpers/mock-factories.js';
@@ -17,7 +17,7 @@ function createMockIssueRepository(): IIssueRepository {
     getTaskWithDetails: vi.fn(),
     updateTaskStatus: vi.fn(),
     updateTaskField: vi.fn(),
-    updateTaskWave: vi.fn(),
+    updateTaskContainer: vi.fn(),
     assignTask: vi.fn(),
     addComment: vi.fn(),
     closeIssue: vi.fn(),
@@ -26,8 +26,8 @@ function createMockIssueRepository(): IIssueRepository {
   };
 }
 
-describe('EpicValidator', () => {
-  let validator: EpicValidator;
+describe('IntegrityValidator', () => {
+  let validator: IntegrityValidator;
   let epicService: ReturnType<typeof createMockEpicService>;
   let issueRepo: ReturnType<typeof createMockIssueRepository>;
   let logger: TestLogger;
@@ -36,22 +36,22 @@ describe('EpicValidator', () => {
     epicService = createMockEpicService();
     issueRepo = createMockIssueRepository();
     logger = new TestLogger();
-    validator = new EpicValidator(epicService, issueRepo, logger);
+    validator = new IntegrityValidator(epicService, issueRepo, logger);
   });
 
-  describe('validateWaveAssignmentEpicIntegrity', () => {
+  describe('validateAssignmentIntegrity', () => {
     it('returns maintained when task has no epic', async () => {
       vi.mocked(issueRepo.getTask).mockResolvedValue(
         createMockTaskData({ number: 1, epic: undefined }),
       );
 
-      const result = await validator.validateWaveAssignmentEpicIntegrity(1, 'wave-001');
+      const result = await validator.validateAssignmentIntegrity(1, 'wave-001');
 
       expect(result.maintained).toBe(true);
       expect(result.violations).toHaveLength(0);
     });
 
-    it('returns maintained when all epic tasks would be in same wave', async () => {
+    it('returns maintained when all epic tasks would be in same container', async () => {
       vi.mocked(issueRepo.getTask).mockResolvedValue(
         createMockTaskData({ number: 1, epic: 'Auth Epic', wave: 'wave-001' }),
       );
@@ -60,12 +60,12 @@ describe('EpicValidator', () => {
         createMockTaskData({ number: 2, epic: 'Auth Epic', wave: 'wave-001' }),
       ]);
 
-      const result = await validator.validateWaveAssignmentEpicIntegrity(1, 'wave-001');
+      const result = await validator.validateAssignmentIntegrity(1, 'wave-001');
 
       expect(result.maintained).toBe(true);
     });
 
-    it('returns violated when assignment would split epic across waves', async () => {
+    it('returns violated when assignment would split epic across containers', async () => {
       vi.mocked(issueRepo.getTask).mockResolvedValue(
         createMockTaskData({ number: 1, epic: 'Auth Epic', wave: 'wave-001' }),
       );
@@ -75,7 +75,7 @@ describe('EpicValidator', () => {
       ]);
 
       // Assigning task 1 to wave-002 while task 2 stays in wave-001
-      const result = await validator.validateWaveAssignmentEpicIntegrity(1, 'wave-002');
+      const result = await validator.validateAssignmentIntegrity(1, 'wave-002');
 
       expect(result.maintained).toBe(false);
       expect(result.violations).toHaveLength(1);
@@ -83,7 +83,7 @@ describe('EpicValidator', () => {
       expect(result.violations[0]).toContain('wave-002');
     });
 
-    it('returns maintained when assigning first task to a wave (others have no wave)', async () => {
+    it('returns maintained when assigning first task to a container (others have no container)', async () => {
       vi.mocked(issueRepo.getTask).mockResolvedValue(
         createMockTaskData({ number: 1, epic: 'Auth Epic' }),
       );
@@ -92,12 +92,12 @@ describe('EpicValidator', () => {
         createMockTaskData({ number: 2, epic: 'Auth Epic' }),
       ]);
 
-      const result = await validator.validateWaveAssignmentEpicIntegrity(1, 'wave-001');
+      const result = await validator.validateAssignmentIntegrity(1, 'wave-001');
 
       expect(result.maintained).toBe(true);
     });
 
-    it('returns maintained when all other tasks already in proposed wave', async () => {
+    it('returns maintained when all other tasks already in proposed container', async () => {
       vi.mocked(issueRepo.getTask).mockResolvedValue(
         createMockTaskData({ number: 3, epic: 'Auth Epic' }),
       );
@@ -107,7 +107,7 @@ describe('EpicValidator', () => {
         createMockTaskData({ number: 3, epic: 'Auth Epic' }),
       ]);
 
-      const result = await validator.validateWaveAssignmentEpicIntegrity(3, 'wave-001');
+      const result = await validator.validateAssignmentIntegrity(3, 'wave-001');
 
       expect(result.maintained).toBe(true);
     });
@@ -120,7 +120,7 @@ describe('EpicValidator', () => {
         createMockTaskData({ number: 1, epic: 'Solo Epic' }),
       ]);
 
-      const result = await validator.validateWaveAssignmentEpicIntegrity(1, 'wave-001');
+      const result = await validator.validateAssignmentIntegrity(1, 'wave-001');
 
       expect(result.maintained).toBe(true);
     });
@@ -130,7 +130,7 @@ describe('EpicValidator', () => {
         createMockTaskData({ number: 42, epic: undefined }),
       );
 
-      await validator.validateWaveAssignmentEpicIntegrity(42, 'wave-001');
+      await validator.validateAssignmentIntegrity(42, 'wave-001');
 
       expect(issueRepo.getTask).toHaveBeenCalledWith(42);
     });
@@ -141,7 +141,7 @@ describe('EpicValidator', () => {
       );
       vi.mocked(epicService.getTasksInEpic).mockResolvedValue([]);
 
-      await validator.validateWaveAssignmentEpicIntegrity(1, 'wave-001');
+      await validator.validateAssignmentIntegrity(1, 'wave-001');
 
       expect(epicService.getTasksInEpic).toHaveBeenCalledWith('Auth Epic');
     });

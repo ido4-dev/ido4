@@ -29,8 +29,8 @@ export interface ComplianceScoreOptions {
   since?: string;
   /** ISO-8601 end of compliance period */
   until?: string;
-  /** Scope compliance to a specific wave */
-  waveName?: string;
+  /** Scope compliance to a specific container */
+  containerName?: string;
   /** Scope compliance to a specific actor */
   actorId?: string;
 }
@@ -125,16 +125,16 @@ export class ComplianceService implements IComplianceService {
     const since = options?.since ?? new Date(0).toISOString();
     const until = options?.until ?? new Date().toISOString();
 
-    const cacheKey = `compliance:${since}:${until}:${options?.waveName ?? ''}:${options?.actorId ?? ''}`;
+    const cacheKey = `compliance:${since}:${until}:${options?.containerName ?? ''}:${options?.actorId ?? ''}`;
     const cached = this.getCached<ComplianceScore>(cacheKey);
     if (cached) return cached;
 
     // 1. Fetch events
     const transitionEvents = await this.fetchTransitionEvents(since, until, options);
-    const waveAssignmentEvents = await this.fetchWaveAssignmentEvents(since, until, options);
+    const containerAssignmentEvents = await this.fetchContainerAssignmentEvents(since, until, options);
 
     // 2. Empty period → clean baseline
-    if (transitionEvents.length === 0 && waveAssignmentEvents.length === 0) {
+    if (transitionEvents.length === 0 && containerAssignmentEvents.length === 0) {
       const emptyResult = this.buildEmptyReport(since, until);
       this.setCache(cacheKey, emptyResult);
       return emptyResult;
@@ -144,7 +144,7 @@ export class ComplianceService implements IComplianceService {
     const brePassRate = this.computeBrePassRate(transitionEvents);
     const qualityGates = this.computeQualityGates(transitionEvents);
     const processAdherence = this.computeProcessAdherence(transitionEvents);
-    const epicIntegrity = this.computeEpicIntegrity(waveAssignmentEvents);
+    const epicIntegrity = this.computeEpicIntegrity(containerAssignmentEvents);
     const flowEfficiency = await this.computeFlowEfficiency(transitionEvents);
 
     // 4. Weighted total
@@ -320,31 +320,31 @@ export class ComplianceService implements IComplianceService {
     };
   }
 
-  private computeEpicIntegrity(waveAssignmentEvents: PersistedAuditEvent[]): CategoryScore {
-    if (waveAssignmentEvents.length === 0) {
+  private computeEpicIntegrity(containerAssignmentEvents: PersistedAuditEvent[]): CategoryScore {
+    if (containerAssignmentEvents.length === 0) {
       return {
         score: 100,
         weight: WEIGHTS.epicIntegrity,
         contribution: round2(100 * WEIGHTS.epicIntegrity),
-        detail: 'No wave assignments in period',
+        detail: 'No container assignments in period',
       };
     }
 
     let maintained = 0;
-    for (const entry of waveAssignmentEvents) {
-      if ((entry.event as Record<string, unknown>).epicIntegrityMaintained === true) {
+    for (const entry of containerAssignmentEvents) {
+      if ((entry.event as Record<string, unknown>).integrityMaintained === true) {
         maintained++;
       }
     }
 
-    const rawScore = (maintained / waveAssignmentEvents.length) * 100;
+    const rawScore = (maintained / containerAssignmentEvents.length) * 100;
     const score = round2(rawScore);
 
     return {
       score,
       weight: WEIGHTS.epicIntegrity,
       contribution: round2(score * WEIGHTS.epicIntegrity),
-      detail: `${maintained}/${waveAssignmentEvents.length} wave assignments maintained epic integrity`,
+      detail: `${maintained}/${containerAssignmentEvents.length} container assignments maintained integrity`,
     };
   }
 
@@ -414,59 +414,59 @@ export class ComplianceService implements IComplianceService {
       limit: 10000,
     });
 
-    if (options?.waveName) {
-      return this.filterByWave(events, since, until, options.waveName);
+    if (options?.containerName) {
+      return this.filterByContainer(events, since, until, options.containerName);
     }
 
     return events;
   }
 
-  private async fetchWaveAssignmentEvents(
+  private async fetchContainerAssignmentEvents(
     since: string,
     until: string,
     options?: ComplianceScoreOptions,
   ): Promise<PersistedAuditEvent[]> {
     const { events } = await this.auditService.queryEvents({
-      eventType: 'wave.assignment',
+      eventType: 'container.assignment',
       since,
       until,
       actorId: options?.actorId,
       limit: 10000,
     });
 
-    if (options?.waveName) {
+    if (options?.containerName) {
       return events.filter((e) => {
-        return (e.event as Record<string, unknown>).waveName === options.waveName;
+        return (e.event as Record<string, unknown>).containerName === options.containerName;
       });
     }
 
     return events;
   }
 
-  private async filterByWave(
+  private async filterByContainer(
     events: PersistedAuditEvent[],
     since: string,
     until: string,
-    waveName: string,
+    containerName: string,
   ): Promise<PersistedAuditEvent[]> {
-    const { events: waveEvents } = await this.auditService.queryEvents({
-      eventType: 'wave.assignment',
+    const { events: containerEvents } = await this.auditService.queryEvents({
+      eventType: 'container.assignment',
       since,
       until,
       limit: 10000,
     });
 
-    const waveTaskNumbers = new Set<number>();
-    for (const entry of waveEvents) {
+    const containerTaskNumbers = new Set<number>();
+    for (const entry of containerEvents) {
       const ev = entry.event as Record<string, unknown>;
-      if (ev.waveName === waveName && typeof ev.issueNumber === 'number') {
-        waveTaskNumbers.add(ev.issueNumber);
+      if (ev.containerName === containerName && typeof ev.issueNumber === 'number') {
+        containerTaskNumbers.add(ev.issueNumber);
       }
     }
 
     return events.filter((e) => {
       const issueNumber = (e.event as Record<string, unknown>).issueNumber;
-      return typeof issueNumber === 'number' && waveTaskNumbers.has(issueNumber);
+      return typeof issueNumber === 'number' && containerTaskNumbers.has(issueNumber);
     });
   }
 

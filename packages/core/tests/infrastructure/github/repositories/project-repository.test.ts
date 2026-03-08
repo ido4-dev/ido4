@@ -126,7 +126,7 @@ describe('GitHubProjectRepository', () => {
     });
   });
 
-  describe('getWaveStatus', () => {
+  describe('getContainerStatus', () => {
     it('filters items by wave and computes metrics', async () => {
       client.queryAllPages.mockResolvedValueOnce([
         {
@@ -155,7 +155,7 @@ describe('GitHubProjectRepository', () => {
         },
       ]);
 
-      const status = await repo.getWaveStatus('wave-001-test');
+      const status = await repo.getContainerStatus('wave-001-test');
 
       expect(status.name).toBe('wave-001-test');
       expect(status.tasks).toHaveLength(2);
@@ -168,7 +168,7 @@ describe('GitHubProjectRepository', () => {
     it('returns empty metrics for unknown wave', async () => {
       client.queryAllPages.mockResolvedValueOnce([]);
 
-      const status = await repo.getWaveStatus('wave-999-nonexistent');
+      const status = await repo.getContainerStatus('wave-999-nonexistent');
       expect(status.metrics.total).toBe(0);
       expect(status.tasks).toEqual([]);
     });

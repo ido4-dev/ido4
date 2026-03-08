@@ -24,7 +24,7 @@ export function registerSkillDataTools(server: McpServer): void {
     async (args) => handleErrors(async () => {
       const container = await getContainer();
       const result = await aggregateStandupData(container, {
-        waveName: args.waveName,
+        containerName: args.waveName,
         auditHoursBack: args.auditHoursBack,
       });
       return toCallToolResult({ success: true, data: result });
@@ -38,7 +38,7 @@ export function registerSkillDataTools(server: McpServer): void {
     async (args) => handleErrors(async () => {
       const container = await getContainer();
       const result = await aggregateBoardData(container, {
-        waveName: args.waveName,
+        containerName: args.waveName,
       });
       return toCallToolResult({ success: true, data: result });
     }),
@@ -54,7 +54,7 @@ export function registerSkillDataTools(server: McpServer): void {
         since: args.since,
         until: args.until,
         actorId: args.actorId,
-        waveName: args.waveName,
+        containerName: args.waveName,
       });
       return toCallToolResult({ success: true, data: result });
     }),
@@ -67,7 +67,7 @@ export function registerSkillDataTools(server: McpServer): void {
     async (args) => handleErrors(async () => {
       const container = await getContainer();
       const result = await aggregateHealthData(container, {
-        waveName: args.waveName,
+        containerName: args.waveName,
       });
       return toCallToolResult({ success: true, data: result });
     }),

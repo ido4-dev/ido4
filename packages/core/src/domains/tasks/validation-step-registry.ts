@@ -8,7 +8,7 @@
 import type { ValidationStep } from './types.js';
 import type {
   IIssueRepository,
-  IEpicValidator,
+  IIntegrityValidator,
   IRepositoryRepository,
   IProjectConfig,
   IWorkflowConfig,
@@ -19,7 +19,7 @@ import { NotFoundError } from '../../shared/errors/index.js';
 
 export interface StepDependencies {
   issueRepository: IIssueRepository;
-  epicValidator: IEpicValidator;
+  integrityValidator: IIntegrityValidator;
   repositoryRepository: IRepositoryRepository;
   projectConfig: IProjectConfig;
   workflowConfig: IWorkflowConfig;

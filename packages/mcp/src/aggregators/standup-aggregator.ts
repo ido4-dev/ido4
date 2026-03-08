@@ -5,10 +5,10 @@
 
 import type { ServiceContainer } from '@ido4/core';
 import type { StandupData, TaskReviewStatus, TaskBlockerAnalysis } from './types.js';
-import { resolveActiveWave } from './wave-detection.js';
+import { resolveActiveContainer } from './wave-detection.js';
 
 export interface StandupAggregatorOptions {
-  waveName?: string;
+  containerName?: string;
   auditHoursBack?: number;
 }
 
@@ -16,16 +16,16 @@ export async function aggregateStandupData(
   container: ServiceContainer,
   options?: StandupAggregatorOptions,
 ): Promise<StandupData> {
-  const waveName = await resolveActiveWave(container, options?.waveName);
+  const containerName = await resolveActiveContainer(container, options?.containerName);
   const hoursBack = options?.auditHoursBack ?? 24;
   const since = new Date(Date.now() - hoursBack * 60 * 60 * 1000).toISOString();
 
   // Step 1: Parallel batch — all independent calls at once
   const [waveStatus, taskResult, auditTrail, analytics, agents, compliance] = await Promise.all([
-    container.waveService.getWaveStatus(waveName),
-    container.taskService.listTasks({ wave: waveName }),
+    container.containerService.getContainerStatus(containerName),
+    container.taskService.listTasks({ wave: containerName }),
     container.auditService.queryEvents({ since }),
-    container.analyticsService.getWaveAnalytics(waveName),
+    container.analyticsService.getContainerAnalytics(containerName),
     container.agentService.listAgents(),
     container.complianceService.computeComplianceScore({}),
   ]);
@@ -72,7 +72,7 @@ export async function aggregateStandupData(
     return acc;
   }, {});
   const statusParts = Object.entries(statusCounts).map(([s, c]) => `${c} ${s.toLowerCase()}`);
-  const summary = `${waveName}: ${tasks.length} tasks (${statusParts.join(', ')}), ${auditTrail.total} audit events (${hoursBack}h), ${agents.length} agents, compliance ${compliance.score}/${compliance.grade}`;
+  const summary = `${containerName}: ${tasks.length} tasks (${statusParts.join(', ')}), ${auditTrail.total} audit events (${hoursBack}h), ${agents.length} agents, compliance ${compliance.score}/${compliance.grade}`;
 
   return {
     waveStatus,

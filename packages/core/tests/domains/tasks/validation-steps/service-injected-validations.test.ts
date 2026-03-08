@@ -4,13 +4,13 @@ import { DependencyValidation } from '../../../../src/domains/tasks/validation-s
 import { ImplementationReadinessValidation } from '../../../../src/domains/tasks/validation-steps/implementation-readiness-validation.js';
 import { SubtaskCompletionValidation } from '../../../../src/domains/tasks/validation-steps/subtask-completion-validation.js';
 import type { ValidationContext } from '../../../../src/domains/tasks/types.js';
-import type { IEpicValidator, IIssueRepository, IRepositoryRepository, IGitWorkflowConfig } from '../../../../src/container/interfaces.js';
+import type { IIntegrityValidator, IIssueRepository, IRepositoryRepository, IGitWorkflowConfig } from '../../../../src/container/interfaces.js';
 import { createMockTaskData, createMockWorkflowConfig, createMockProjectConfig, createMockGitWorkflowConfig } from '../../../helpers/mock-factories.js';
 
 function createMockIssueRepo(): IIssueRepository {
   return {
     getTask: vi.fn(), getTaskWithDetails: vi.fn(), updateTaskStatus: vi.fn(),
-    updateTaskField: vi.fn(), updateTaskWave: vi.fn(), assignTask: vi.fn(),
+    updateTaskField: vi.fn(), updateTaskContainer: vi.fn(), assignTask: vi.fn(),
     addComment: vi.fn(), closeIssue: vi.fn(), findPullRequestForIssue: vi.fn(),
     getSubIssues: vi.fn(),
   };
@@ -19,7 +19,7 @@ function createMockIssueRepo(): IIssueRepository {
 function createMockRepoRepo(): IRepositoryRepository {
   return {
     mergePullRequest: vi.fn(), findPullRequestForIssue: vi.fn(),
-    checkWaveBranchMerged: vi.fn(), getPullRequestReviews: vi.fn(),
+    checkContainerBranchMerged: vi.fn(), getPullRequestReviews: vi.fn(),
   };
 }
 
@@ -35,12 +35,12 @@ function makeContext(taskOverrides: Record<string, unknown> = {}, gitConfig?: IG
 }
 
 describe('EpicIntegrityValidation', () => {
-  let epicValidator: IEpicValidator;
+  let integrityValidator: IIntegrityValidator;
   let step: EpicIntegrityValidation;
 
   beforeEach(() => {
-    epicValidator = { validateWaveAssignmentEpicIntegrity: vi.fn() };
-    step = new EpicIntegrityValidation(epicValidator);
+    integrityValidator = { validateAssignmentIntegrity: vi.fn() };
+    step = new EpicIntegrityValidation(integrityValidator);
   });
 
   it('passes when task has no epic', async () => {
@@ -48,13 +48,13 @@ describe('EpicIntegrityValidation', () => {
     expect(result.passed).toBe(true);
   });
 
-  it('passes when task has no wave', async () => {
+  it('passes when task has no container', async () => {
     const result = await step.validate(makeContext({ epic: 'Auth Epic', wave: undefined }));
     expect(result.passed).toBe(true);
   });
 
   it('passes when epic integrity is maintained', async () => {
-    vi.mocked(epicValidator.validateWaveAssignmentEpicIntegrity).mockResolvedValue({
+    vi.mocked(integrityValidator.validateAssignmentIntegrity).mockResolvedValue({
       maintained: true, violations: [],
     });
     const result = await step.validate(makeContext({ epic: 'Auth Epic', wave: 'wave-001' }));
@@ -62,7 +62,7 @@ describe('EpicIntegrityValidation', () => {
   });
 
   it('fails when epic integrity is violated', async () => {
-    vi.mocked(epicValidator.validateWaveAssignmentEpicIntegrity).mockResolvedValue({
+    vi.mocked(integrityValidator.validateAssignmentIntegrity).mockResolvedValue({
       maintained: false, violations: ['Epic split across wave-001, wave-002'],
     });
     const result = await step.validate(makeContext({ epic: 'Auth Epic', wave: 'wave-001' }));

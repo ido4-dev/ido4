@@ -12,7 +12,7 @@
  */
 
 import type {
-  IWaveService,
+  IContainerService,
   IAgentService,
   ITaskService,
   IAuditService,
@@ -40,13 +40,13 @@ const MAX_FRESHNESS = 15;
 const FRESHNESS_HOURS = 24;
 
 export interface IWorkDistributionService {
-  getNextTask(agentId: string, waveName?: string): Promise<WorkRecommendation>;
+  getNextTask(agentId: string, containerName?: string): Promise<WorkRecommendation>;
   completeAndHandoff(issueNumber: number, agentId: string, actor: ActorIdentity): Promise<HandoffResult>;
 }
 
 export class WorkDistributionService implements IWorkDistributionService {
   constructor(
-    private readonly waveService: IWaveService,
+    private readonly containerService: IContainerService,
     private readonly agentService: IAgentService,
     private readonly taskService: ITaskService,
     private readonly auditService: IAuditService,
@@ -55,10 +55,10 @@ export class WorkDistributionService implements IWorkDistributionService {
     private readonly logger: ILogger,
   ) {}
 
-  async getNextTask(agentId: string, waveName?: string): Promise<WorkRecommendation> {
-    const activeWave = await this.resolveActiveWave(waveName);
-    const waveStatus = await this.waveService.getWaveStatus(activeWave);
-    const allTasks = waveStatus.tasks;
+  async getNextTask(agentId: string, containerName?: string): Promise<WorkRecommendation> {
+    const activeContainer = await this.resolveActiveContainer(containerName);
+    const containerStatus = await this.containerService.getContainerStatus(activeContainer);
+    const allTasks = containerStatus.tasks;
 
     // Build reverse dependency map (what depends on each task)
     const reverseDeps = this.buildReverseDependencyMap(allTasks);
@@ -87,9 +87,9 @@ export class WorkDistributionService implements IWorkDistributionService {
       const result: WorkRecommendation = {
         recommendation: null,
         alternatives: [],
-        context: { activeWave, agentId, lockedTasks, totalCandidates: 0 },
+        context: { activeContainer, agentId, lockedTasks, totalCandidates: 0 },
       };
-      this.emitRecommendationEvent(agentId, null, activeWave, 0);
+      this.emitRecommendationEvent(agentId, null, activeContainer, 0);
       return result;
     }
 
@@ -131,10 +131,10 @@ export class WorkDistributionService implements IWorkDistributionService {
     const result: WorkRecommendation = {
       recommendation,
       alternatives,
-      context: { activeWave, agentId, lockedTasks, totalCandidates: candidates.length },
+      context: { activeContainer, agentId, lockedTasks, totalCandidates: candidates.length },
     };
 
-    this.emitRecommendationEvent(agentId, recommendation, activeWave, candidates.length);
+    this.emitRecommendationEvent(agentId, recommendation, activeContainer, candidates.length);
     return result;
   }
 
@@ -154,9 +154,9 @@ export class WorkDistributionService implements IWorkDistributionService {
     }
 
     // Step 3: Find newly unblocked tasks
-    const activeWave = await this.resolveActiveWave();
-    const waveStatus = await this.waveService.getWaveStatus(activeWave);
-    const allTasks = waveStatus.tasks;
+    const activeContainer = await this.resolveActiveContainer();
+    const containerStatus = await this.containerService.getContainerStatus(activeContainer);
+    const allTasks = containerStatus.tasks;
     const reverseDeps = this.buildReverseDependencyMap(allTasks);
 
     const dependents = reverseDeps.get(issueNumber) ?? [];
@@ -415,17 +415,17 @@ export class WorkDistributionService implements IWorkDistributionService {
     return { agent: bestAgent.agentId, reasoning };
   }
 
-  private async resolveActiveWave(waveName?: string): Promise<string> {
-    if (waveName) return waveName;
+  private async resolveActiveContainer(containerName?: string): Promise<string> {
+    if (containerName) return containerName;
 
-    const waves = await this.waveService.listWaves();
-    const active = waves.find((w) => w.status === 'active');
+    const containers = await this.containerService.listContainers();
+    const active = containers.find((c) => c.status === 'active');
 
     if (!active) {
       throw new BusinessRuleError({
-        message: 'No active wave found. Provide a waveName parameter or activate a wave.',
-        rule: 'ACTIVE_WAVE_REQUIRED',
-        remediation: 'Use create_wave or assign_task_to_wave to set up an active wave.',
+        message: 'No active container found. Provide a containerName parameter or activate a container.',
+        rule: 'ACTIVE_CONTAINER_REQUIRED',
+        remediation: 'Use create_container or assign_task_to_container to set up an active container.',
       });
     }
 
@@ -435,7 +435,7 @@ export class WorkDistributionService implements IWorkDistributionService {
   private emitRecommendationEvent(
     agentId: string,
     recommendation: TaskRecommendation | null,
-    waveName: string,
+    containerName: string,
     totalCandidates: number,
   ): void {
     this.eventBus.emit({
@@ -446,7 +446,7 @@ export class WorkDistributionService implements IWorkDistributionService {
       agentId,
       recommendedIssue: recommendation?.issueNumber ?? null,
       score: recommendation?.score ?? null,
-      waveName,
+      containerName,
       totalCandidates,
     });
   }

@@ -9,11 +9,11 @@ import type { ServiceContainer } from '@ido4/core';
 
 function createMockContainer() {
   return {
-    waveService: {
-      listWaves: vi.fn().mockResolvedValue([
+    containerService: {
+      listContainers: vi.fn().mockResolvedValue([
         { name: 'wave-001', status: 'active', taskCount: 8, completedCount: 6, completionPercentage: 75 },
       ]),
-      getWaveStatus: vi.fn().mockResolvedValue({
+      getContainerStatus: vi.fn().mockResolvedValue({
         name: 'wave-001',
         tasks: [],
         metrics: { total: 8, completed: 6, inProgress: 1, blocked: 0, ready: 1 },
@@ -25,7 +25,7 @@ function createMockContainer() {
       }),
     },
     analyticsService: {
-      getWaveAnalytics: vi.fn().mockResolvedValue({
+      getContainerAnalytics: vi.fn().mockResolvedValue({
         waveName: 'wave-001', velocity: 75, avgCycleTime: 1.8, throughput: 1.6,
         avgBlockingTime: 0.1, totalTransitions: 20, transitionBreakdown: {},
       }),
@@ -48,22 +48,22 @@ describe('aggregateHealthData', () => {
 
   it('auto-detects active wave', async () => {
     const result = await aggregateHealthData(container);
-    expect(container.waveService.listWaves).toHaveBeenCalled();
-    expect(container.waveService.getWaveStatus).toHaveBeenCalledWith('wave-001');
+    expect(container.containerService.listContainers).toHaveBeenCalled();
+    expect(container.containerService.getContainerStatus).toHaveBeenCalledWith('wave-001');
     expect(result.waveStatus.name).toBe('wave-001');
   });
 
   it('uses provided waveName', async () => {
-    await aggregateHealthData(container, { waveName: 'wave-003' });
-    expect(container.waveService.listWaves).not.toHaveBeenCalled();
-    expect(container.waveService.getWaveStatus).toHaveBeenCalledWith('wave-003');
+    await aggregateHealthData(container, { containerName: 'wave-003' });
+    expect(container.containerService.listContainers).not.toHaveBeenCalled();
+    expect(container.containerService.getContainerStatus).toHaveBeenCalledWith('wave-003');
   });
 
   it('makes all 4 calls in parallel', async () => {
     await aggregateHealthData(container);
-    expect(container.waveService.getWaveStatus).toHaveBeenCalled();
+    expect(container.containerService.getContainerStatus).toHaveBeenCalled();
     expect(container.complianceService.computeComplianceScore).toHaveBeenCalled();
-    expect(container.analyticsService.getWaveAnalytics).toHaveBeenCalled();
+    expect(container.analyticsService.getContainerAnalytics).toHaveBeenCalled();
     expect(container.agentService.listAgents).toHaveBeenCalled();
   });
 
@@ -87,19 +87,19 @@ describe('aggregateHealthData', () => {
   });
 
   it('computes 0% when no tasks exist', async () => {
-    (container.waveService.getWaveStatus as ReturnType<typeof vi.fn>).mockResolvedValue({
+    (container.containerService.getContainerStatus as ReturnType<typeof vi.fn>).mockResolvedValue({
       name: 'wave-empty',
       tasks: [],
       metrics: { total: 0, completed: 0, inProgress: 0, blocked: 0, ready: 0 },
     });
 
-    const result = await aggregateHealthData(container, { waveName: 'wave-empty' });
+    const result = await aggregateHealthData(container, { containerName: 'wave-empty' });
     expect(result.summary).toContain('0%');
   });
 
   it('throws when no active wave and no waveName', async () => {
-    (container.waveService.listWaves as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (container.containerService.listContainers as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 
-    await expect(aggregateHealthData(container)).rejects.toThrow('No active wave found');
+    await expect(aggregateHealthData(container)).rejects.toThrow('No active container found');
   });
 });

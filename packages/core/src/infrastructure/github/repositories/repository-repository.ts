@@ -149,7 +149,7 @@ export class GitHubRepositoryRepository implements IRepositoryRepository {
     return null;
   }
 
-  async checkWaveBranchMerged(waveName: string): Promise<boolean> {
+  async checkContainerBranchMerged(waveName: string): Promise<boolean> {
     const branchName = `refs/heads/${waveName}`;
 
     const data = await this.client.query<GetBranchMergeStatusResponse>(

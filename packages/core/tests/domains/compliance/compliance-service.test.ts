@@ -22,7 +22,7 @@ function createMockAuditService(): IAuditService {
 
 function createMockAnalyticsService(): IAnalyticsService {
   return {
-    getWaveAnalytics: vi.fn().mockResolvedValue({}),
+    getContainerAnalytics: vi.fn().mockResolvedValue({}),
     getProjectAnalytics: vi.fn().mockResolvedValue({}),
     getTaskCycleTime: vi.fn().mockResolvedValue(null),
   };
@@ -66,22 +66,22 @@ function makeTransitionEvent(overrides: {
   };
 }
 
-function makeWaveAssignmentEvent(overrides: {
+function makeContainerAssignmentEvent(overrides: {
   issueNumber?: number;
-  waveName?: string;
-  epicIntegrityMaintained?: boolean;
+  containerName?: string;
+  integrityMaintained?: boolean;
   timestamp?: string;
 }): PersistedAuditEvent {
   return {
     id: 1,
     event: {
-      type: 'wave.assignment',
+      type: 'container.assignment',
       timestamp: overrides.timestamp ?? '2024-06-01T10:00:00Z',
       sessionId: 'test-session',
       actor: { type: 'ai-agent', id: 'mcp-session' },
       issueNumber: overrides.issueNumber ?? 42,
-      waveName: overrides.waveName ?? 'wave-001',
-      epicIntegrityMaintained: overrides.epicIntegrityMaintained ?? true,
+      containerName: overrides.containerName ?? 'wave-001',
+      integrityMaintained: overrides.integrityMaintained ?? true,
     },
     persistedAt: '2024-06-01T10:00:00Z',
   };
@@ -346,45 +346,45 @@ describe('ComplianceService', () => {
 
   describe('epic integrity (10%)', () => {
     it('scores 100 when all assignments maintain integrity', async () => {
-      const waveEvents = [
-        makeWaveAssignmentEvent({ issueNumber: 42, epicIntegrityMaintained: true }),
-        makeWaveAssignmentEvent({ issueNumber: 43, epicIntegrityMaintained: true }),
+      const containerEvents = [
+        makeContainerAssignmentEvent({ issueNumber: 42, integrityMaintained: true }),
+        makeContainerAssignmentEvent({ issueNumber: 43, integrityMaintained: true }),
       ];
 
       vi.mocked(auditService.queryEvents)
         .mockResolvedValueOnce({ events: [], total: 0, query: {} }) // transitions
-        .mockResolvedValueOnce({ events: waveEvents, total: 2, query: {} }); // wave assignments
+        .mockResolvedValueOnce({ events: containerEvents, total: 2, query: {} }); // container assignments
 
       const result = await service.computeComplianceScore();
       expect(result.categories.epicIntegrity.score).toBe(100);
     });
 
     it('computes proportional score for mixed integrity', async () => {
-      const waveEvents = Array.from({ length: 10 }, (_, i) =>
-        makeWaveAssignmentEvent({
+      const containerEvents = Array.from({ length: 10 }, (_, i) =>
+        makeContainerAssignmentEvent({
           issueNumber: 40 + i,
-          epicIntegrityMaintained: i < 8, // 8/10 maintained
+          integrityMaintained: i < 8, // 8/10 maintained
         }),
       );
 
       vi.mocked(auditService.queryEvents)
         .mockResolvedValueOnce({ events: [], total: 0, query: {} })
-        .mockResolvedValueOnce({ events: waveEvents, total: 10, query: {} });
+        .mockResolvedValueOnce({ events: containerEvents, total: 10, query: {} });
 
       const result = await service.computeComplianceScore();
       expect(result.categories.epicIntegrity.score).toBe(80);
     });
 
-    it('scores 100 when no wave assignments exist', async () => {
+    it('scores 100 when no container assignments exist', async () => {
       // Provide some transition events so we don't get the empty report
       const events = [makeTransitionEvent({ issueNumber: 42, transition: 'start' })];
       vi.mocked(auditService.queryEvents)
         .mockResolvedValueOnce({ events, total: 1, query: {} }) // transitions
-        .mockResolvedValueOnce({ events: [], total: 0, query: {} }); // wave assignments
+        .mockResolvedValueOnce({ events: [], total: 0, query: {} }); // container assignments
 
       const result = await service.computeComplianceScore();
       expect(result.categories.epicIntegrity.score).toBe(100);
-      expect(result.categories.epicIntegrity.detail).toContain('No wave assignments');
+      expect(result.categories.epicIntegrity.detail).toContain('No container assignments');
     });
   });
 
@@ -471,7 +471,7 @@ describe('ComplianceService', () => {
   describe('grade boundaries', () => {
     function mockScoreScenario(breScore: number) {
       // Only manipulate BRE pass rate to control the score.
-      // Other categories return 100 by default (no wave assignment events).
+      // Other categories return 100 by default (no container assignment events).
       // BRE is 40% of total. To get a specific overall score:
       //   score = breScore × 0.4 + 100 × 0.6
       const passing = {
@@ -493,7 +493,7 @@ describe('ComplianceService', () => {
         }));
       }
 
-      // Use mockResolvedValueOnce: first call returns transitions, second returns empty wave assignments
+      // Use mockResolvedValueOnce: first call returns transitions, second returns empty container assignments
       vi.mocked(auditService.queryEvents)
         .mockResolvedValueOnce({ events, total: events.length, query: {} })
         .mockResolvedValueOnce({ events: [], total: 0, query: {} });
@@ -537,13 +537,13 @@ describe('ComplianceService', () => {
       const transitionEvents = Array.from({ length: 10 }, (_, i) =>
         makeTransitionEvent({ issueNumber: i, validationResult: failing }),
       );
-      const waveEvents = Array.from({ length: 10 }, (_, i) =>
-        makeWaveAssignmentEvent({ issueNumber: i, epicIntegrityMaintained: false }),
+      const containerEvents = Array.from({ length: 10 }, (_, i) =>
+        makeContainerAssignmentEvent({ issueNumber: i, integrityMaintained: false }),
       );
 
       vi.mocked(auditService.queryEvents)
         .mockResolvedValueOnce({ events: transitionEvents, total: 10, query: {} })
-        .mockResolvedValueOnce({ events: waveEvents, total: 10, query: {} });
+        .mockResolvedValueOnce({ events: containerEvents, total: 10, query: {} });
 
       const result = await service.computeComplianceScore();
       expect(result.score).toBeLessThan(60);
@@ -578,7 +578,7 @@ describe('ComplianceService', () => {
       await service.computeComplianceScore({ since: '2024-01-01T00:00:00Z', until: '2024-12-31T23:59:59Z' });
       await service.computeComplianceScore({ since: '2024-01-01T00:00:00Z', until: '2024-12-31T23:59:59Z' });
 
-      // queryEvents should only be called once (2 calls for first invocation: transitions + wave assignments)
+      // queryEvents should only be called once (2 calls for first invocation: transitions + container assignments)
       expect(auditService.queryEvents).toHaveBeenCalledTimes(2);
     });
 
@@ -604,25 +604,25 @@ describe('ComplianceService', () => {
       );
     });
 
-    it('filters by waveName using wave.assignment correlation', async () => {
+    it('filters by containerName using container.assignment correlation', async () => {
       const transitionEvents = [
         makeTransitionEvent({ issueNumber: 42 }),
         makeTransitionEvent({ issueNumber: 43 }),
-        makeTransitionEvent({ issueNumber: 99 }), // Not in wave
+        makeTransitionEvent({ issueNumber: 99 }), // Not in container
       ];
-      const waveAssignmentEvents = [
-        makeWaveAssignmentEvent({ issueNumber: 42, waveName: 'wave-001' }),
-        makeWaveAssignmentEvent({ issueNumber: 43, waveName: 'wave-001' }),
+      const containerAssignmentEvents = [
+        makeContainerAssignmentEvent({ issueNumber: 42, containerName: 'wave-001' }),
+        makeContainerAssignmentEvent({ issueNumber: 43, containerName: 'wave-001' }),
       ];
 
-      // First call: transitions, Second: wave assignments for scope, Third: wave assignments for epic integrity
-      // The filterByWave also queries wave assignments
+      // First call: transitions, Second: container assignments for scope, Third: container assignments for epic integrity
+      // The filterByContainer also queries container assignments
       vi.mocked(auditService.queryEvents)
         .mockResolvedValueOnce({ events: transitionEvents, total: 3, query: {} })  // transitions
-        .mockResolvedValueOnce({ events: waveAssignmentEvents, total: 2, query: {} }) // wave assignments for filtering transitions
-        .mockResolvedValueOnce({ events: waveAssignmentEvents, total: 2, query: {} }); // wave assignments for epic integrity
+        .mockResolvedValueOnce({ events: containerAssignmentEvents, total: 2, query: {} }) // container assignments for scope
+        .mockResolvedValueOnce({ events: containerAssignmentEvents, total: 2, query: {} }); // container assignments for epic integrity
 
-      const result = await service.computeComplianceScore({ waveName: 'wave-001' });
+      const result = await service.computeComplianceScore({ containerName: 'wave-001' });
       expect(result.metadata.totalTasks).toBe(2); // Only 42 and 43
     });
   });
@@ -698,13 +698,13 @@ describe('ComplianceService', () => {
       const transitionEvents = Array.from({ length: 10 }, (_, i) =>
         makeTransitionEvent({ issueNumber: i, validationResult: failing }),
       );
-      const waveEvents = Array.from({ length: 10 }, (_, i) =>
-        makeWaveAssignmentEvent({ issueNumber: i, epicIntegrityMaintained: false }),
+      const containerEvents = Array.from({ length: 10 }, (_, i) =>
+        makeContainerAssignmentEvent({ issueNumber: i, integrityMaintained: false }),
       );
 
       vi.mocked(auditService.queryEvents)
         .mockResolvedValueOnce({ events: transitionEvents, total: 10, query: {} })
-        .mockResolvedValueOnce({ events: waveEvents, total: 10, query: {} });
+        .mockResolvedValueOnce({ events: containerEvents, total: 10, query: {} });
 
       const result = await service.computeComplianceScore();
       expect(result.summary).toContain('needs attention');

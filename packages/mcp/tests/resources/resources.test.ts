@@ -6,9 +6,9 @@ import {
   hasRegisteredResourceTemplate,
 } from '../helpers/test-utils.js';
 
-const mockWaveService = {
-  listWaves: vi.fn(),
-  getWaveStatus: vi.fn(),
+const mockContainerService = {
+  listContainers: vi.fn(),
+  getContainerStatus: vi.fn(),
 };
 
 const mockWorkflowConfig = {
@@ -16,7 +16,7 @@ const mockWorkflowConfig = {
 };
 
 const mockContainer = {
-  waveService: mockWaveService,
+  containerService: mockContainerService,
   workflowConfig: mockWorkflowConfig,
 };
 
@@ -84,7 +84,7 @@ describe('Resources', () => {
 
     it('project-status lists waves', async () => {
       const waves = [{ name: 'Wave 1', taskCount: 3 }];
-      mockWaveService.listWaves.mockResolvedValue(waves);
+      mockContainerService.listContainers.mockResolvedValue(waves);
 
       const result = await readResource(server, 'ido4://project/status') as {
         contents: Array<{ text: string }>;
@@ -110,7 +110,7 @@ describe('Resources', () => {
 
     it('wave-status fetches wave data', async () => {
       const status = { name: 'Wave 1', tasks: [], metrics: { total: 5 } };
-      mockWaveService.getWaveStatus.mockResolvedValue(status);
+      mockContainerService.getContainerStatus.mockResolvedValue(status);
 
       const result = await readResourceTemplate(
         server,
@@ -119,7 +119,7 @@ describe('Resources', () => {
         { waveName: 'Wave 1' },
       ) as { contents: Array<{ text: string }> };
 
-      expect(mockWaveService.getWaveStatus).toHaveBeenCalledWith('Wave 1');
+      expect(mockContainerService.getContainerStatus).toHaveBeenCalledWith('Wave 1');
       const parsed = JSON.parse(result.contents[0]!.text);
       expect(parsed.name).toBe('Wave 1');
     });

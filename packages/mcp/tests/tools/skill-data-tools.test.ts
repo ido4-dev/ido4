@@ -69,7 +69,7 @@ describe('Skill Data Tools', () => {
     }) as { content: Array<{ text: string }> };
 
     expect(mockAggregateStandup).toHaveBeenCalledWith(mockContainer, {
-      waveName: 'wave-002',
+      containerName: 'wave-002',
       auditHoursBack: 48,
     });
     const parsed = JSON.parse(result.content[0]!.text);
@@ -83,7 +83,7 @@ describe('Skill Data Tools', () => {
     await callTool(server, 'get_board_data', { waveName: 'wave-001' });
 
     expect(mockAggregateBoard).toHaveBeenCalledWith(mockContainer, {
-      waveName: 'wave-001',
+      containerName: 'wave-001',
     });
   });
 
@@ -101,7 +101,7 @@ describe('Skill Data Tools', () => {
       since: '2026-03-01T00:00:00Z',
       until: '2026-03-07T00:00:00Z',
       actorId: 'agent-beta',
-      waveName: 'wave-001',
+      containerName: 'wave-001',
     });
   });
 
@@ -111,7 +111,7 @@ describe('Skill Data Tools', () => {
     await callTool(server, 'get_health_data', { waveName: 'wave-003' });
 
     expect(mockAggregateHealth).toHaveBeenCalledWith(mockContainer, {
-      waveName: 'wave-003',
+      containerName: 'wave-003',
     });
   });
 });

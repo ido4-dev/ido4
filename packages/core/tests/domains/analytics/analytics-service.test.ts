@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AnalyticsService } from '../../../src/domains/analytics/analytics-service.js';
 import type { IAuditService } from '../../../src/domains/audit/audit-service.js';
 import type { PersistedAuditEvent } from '../../../src/domains/audit/audit-store.js';
-import type { IWaveService, WaveStatusData, WaveSummary, WaveCreateResult, WaveAssignResult, WaveCompletionResult } from '../../../src/container/interfaces.js';
+import type { IContainerService, ContainerStatusData, ContainerSummary, ContainerCreateResult, ContainerAssignResult, ContainerCompletionResult } from '../../../src/container/interfaces.js';
 import { InMemoryEventBus } from '../../../src/shared/events/in-memory-event-bus.js';
 import { TestLogger } from '../../helpers/test-logger.js';
 
@@ -15,17 +15,17 @@ function createMockAuditService(): IAuditService {
   };
 }
 
-function createMockWaveService(): IWaveService {
+function createMockContainerService(): IContainerService {
   return {
-    listWaves: vi.fn().mockResolvedValue([]),
-    getWaveStatus: vi.fn().mockResolvedValue({
+    listContainers: vi.fn().mockResolvedValue([]),
+    getContainerStatus: vi.fn().mockResolvedValue({
       name: 'wave-001',
       tasks: [],
       metrics: { total: 0, completed: 0, inProgress: 0, blocked: 0, ready: 0 },
     }),
-    createWave: vi.fn(),
-    assignTaskToWave: vi.fn(),
-    validateWaveCompletion: vi.fn(),
+    createContainer: vi.fn(),
+    assignTaskToContainer: vi.fn(),
+    validateContainerCompletion: vi.fn(),
   };
 }
 
@@ -46,17 +46,17 @@ function makeAuditEvent(overrides: Partial<{ issueNumber: number; transition: st
 
 describe('AnalyticsService', () => {
   let auditService: ReturnType<typeof createMockAuditService>;
-  let waveService: ReturnType<typeof createMockWaveService>;
+  let containerService: ReturnType<typeof createMockContainerService>;
   let eventBus: InMemoryEventBus;
   let logger: TestLogger;
   let service: AnalyticsService;
 
   beforeEach(() => {
     auditService = createMockAuditService();
-    waveService = createMockWaveService();
+    containerService = createMockContainerService();
     eventBus = new InMemoryEventBus();
     logger = new TestLogger();
-    service = new AnalyticsService(auditService, waveService, eventBus, logger);
+    service = new AnalyticsService(auditService, containerService, eventBus, logger);
   });
 
   describe('getTaskCycleTime', () => {
@@ -127,16 +127,16 @@ describe('AnalyticsService', () => {
     });
   });
 
-  describe('getWaveAnalytics', () => {
-    it('returns zero velocity for wave with no completed tasks', async () => {
-      vi.mocked(waveService.getWaveStatus).mockResolvedValue({
+  describe('getContainerAnalytics', () => {
+    it('returns zero velocity for container with no completed tasks', async () => {
+      vi.mocked(containerService.getContainerStatus).mockResolvedValue({
         name: 'wave-001',
         tasks: [{ number: 1, title: 'T1', status: 'In Progress', id: '1', itemId: 'I1', body: '' }],
         metrics: { total: 1, completed: 0, inProgress: 1, blocked: 0, ready: 0 },
       });
       vi.mocked(auditService.queryEvents).mockResolvedValue({ events: [], total: 0, query: {} });
 
-      const result = await service.getWaveAnalytics('wave-001');
+      const result = await service.getContainerAnalytics('wave-001');
 
       expect(result.velocity).toBe(0);
       expect(result.avgCycleTime).toBeNull();
@@ -144,7 +144,7 @@ describe('AnalyticsService', () => {
     });
 
     it('computes velocity as count of approved tasks', async () => {
-      vi.mocked(waveService.getWaveStatus).mockResolvedValue({
+      vi.mocked(containerService.getContainerStatus).mockResolvedValue({
         name: 'wave-001',
         tasks: [
           { number: 1, title: 'T1', status: 'Done', id: '1', itemId: 'I1', body: '' },
@@ -161,14 +161,14 @@ describe('AnalyticsService', () => {
       ];
       vi.mocked(auditService.queryEvents).mockResolvedValue({ events, total: 4, query: {} });
 
-      const result = await service.getWaveAnalytics('wave-001');
+      const result = await service.getContainerAnalytics('wave-001');
 
       expect(result.velocity).toBe(2);
       expect(result.avgCycleTime).toBe(9); // (10 + 8) / 2
     });
 
     it('tracks transition breakdown', async () => {
-      vi.mocked(waveService.getWaveStatus).mockResolvedValue({
+      vi.mocked(containerService.getContainerStatus).mockResolvedValue({
         name: 'wave-001',
         tasks: [{ number: 1, title: 'T1', status: 'Done', id: '1', itemId: 'I1', body: '' }],
         metrics: { total: 1, completed: 1, inProgress: 0, blocked: 0, ready: 0 },
@@ -181,7 +181,7 @@ describe('AnalyticsService', () => {
       ];
       vi.mocked(auditService.queryEvents).mockResolvedValue({ events, total: 3, query: {} });
 
-      const result = await service.getWaveAnalytics('wave-001');
+      const result = await service.getContainerAnalytics('wave-001');
 
       expect(result.transitionBreakdown).toEqual({ start: 1, review: 1, approve: 1 });
     });
@@ -219,18 +219,18 @@ describe('AnalyticsService', () => {
 
   describe('cache invalidation', () => {
     it('clears cache when event bus emits', async () => {
-      vi.mocked(waveService.getWaveStatus).mockResolvedValue({
+      vi.mocked(containerService.getContainerStatus).mockResolvedValue({
         name: 'wave-001',
         tasks: [],
         metrics: { total: 0, completed: 0, inProgress: 0, blocked: 0, ready: 0 },
       });
 
       // First call populates cache
-      await service.getWaveAnalytics('wave-001');
+      await service.getContainerAnalytics('wave-001');
       const firstCallCount = vi.mocked(auditService.queryEvents).mock.calls.length;
 
       // Second call should use cache
-      await service.getWaveAnalytics('wave-001');
+      await service.getContainerAnalytics('wave-001');
       expect(vi.mocked(auditService.queryEvents).mock.calls.length).toBe(firstCallCount);
 
       // Emit event to invalidate cache
@@ -247,7 +247,7 @@ describe('AnalyticsService', () => {
       });
 
       // Third call should re-query
-      await service.getWaveAnalytics('wave-001');
+      await service.getContainerAnalytics('wave-001');
       expect(vi.mocked(auditService.queryEvents).mock.calls.length).toBe(firstCallCount + 1);
     });
   });

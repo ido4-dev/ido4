@@ -6,16 +6,16 @@
  */
 
 import type {
-  WaveStatusData,
+  ContainerStatusData,
   TaskData,
   PullRequestInfo,
   PullRequestReviewData,
   DependencyAnalysisResult,
-  EpicIntegrityResult,
-  WaveSummary,
+  IntegrityResult,
+  ContainerSummary,
   RegisteredAgent,
   TaskLock,
-  WaveAnalytics,
+  ContainerAnalytics,
   ComplianceScore,
   AuditQueryResult,
 } from '@ido4/core';
@@ -36,12 +36,12 @@ export interface TaskBlockerAnalysis {
 }
 
 export interface StandupData {
-  waveStatus: WaveStatusData;
+  waveStatus: ContainerStatusData;
   tasks: TaskData[];
   reviewStatuses: TaskReviewStatus[];
   blockerAnalyses: TaskBlockerAnalysis[];
   auditTrail: AuditQueryResult;
-  analytics: WaveAnalytics;
+  analytics: ContainerAnalytics;
   agents: RegisteredAgent[];
   compliance: ComplianceScore;
   summary: string;
@@ -56,10 +56,10 @@ export interface TaskAnnotation {
 }
 
 export interface BoardData {
-  waveStatus: WaveStatusData;
+  waveStatus: ContainerStatusData;
   tasks: TaskData[];
   annotations: TaskAnnotation[];
-  analytics: WaveAnalytics;
+  analytics: ContainerAnalytics;
   agents: RegisteredAgent[];
   projectUrl: string | null;
   summary: string;
@@ -70,14 +70,14 @@ export interface BoardData {
 export interface EpicIntegrityCheck {
   epicName: string;
   issueNumber: number;
-  result: EpicIntegrityResult;
+  result: IntegrityResult;
 }
 
 export interface ComplianceData {
   compliance: ComplianceScore;
   auditTrail: AuditQueryResult;
-  analytics: WaveAnalytics;
-  waves: WaveSummary[];
+  analytics: ContainerAnalytics;
+  waves: ContainerSummary[];
   tasks: TaskData[];
   blockerAnalyses: TaskBlockerAnalysis[];
   epicIntegrityChecks: EpicIntegrityCheck[];
@@ -87,9 +87,9 @@ export interface ComplianceData {
 // ─── Health Data ───
 
 export interface HealthData {
-  waveStatus: WaveStatusData;
+  waveStatus: ContainerStatusData;
   compliance: ComplianceScore;
-  analytics: WaveAnalytics;
+  analytics: ContainerAnalytics;
   agents: RegisteredAgent[];
   summary: string;
 }

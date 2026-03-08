@@ -10,7 +10,7 @@
  *   - Partial lifecycle (skipped steps) for others → process adherence impact
  *   - Block/unblock cycles → blocking time + flow efficiency impact
  *   - BRE validation failures → BRE pass rate impact
- *   - Wave assignments with epic integrity → epic integrity impact
+ *   - Container assignments with integrity → epic integrity impact
  *
  * Each test validates data shapes that skills will consume:
  *   - /standup reads: audit trail (24h), analytics (cycle time, throughput), agents, compliance
@@ -31,8 +31,8 @@ import { AnalyticsService } from '../../src/domains/analytics/analytics-service.
 import { ComplianceService } from '../../src/domains/compliance/compliance-service.js';
 import { AgentService } from '../../src/domains/agents/agent-service.js';
 import { FileAgentStore } from '../../src/domains/agents/agent-store.js';
-import type { TaskTransitionEvent, WaveAssignmentEvent } from '../../src/shared/events/types.js';
-import type { IWaveService } from '../../src/container/interfaces.js';
+import type { TaskTransitionEvent, ContainerAssignmentEvent } from '../../src/shared/events/types.js';
+import type { IContainerService } from '../../src/container/interfaces.js';
 import type { AuditValidationResult } from '../../src/container/interfaces.js';
 import { TestLogger } from '../helpers/test-logger.js';
 
@@ -68,18 +68,18 @@ function transitionEvent(
   };
 }
 
-function waveAssignment(
+function containerAssignment(
   issueNumber: number,
-  waveName: string,
-  epicIntegrityMaintained: boolean,
+  containerName: string,
+  integrityMaintained: boolean,
   ts: string,
   actorId: string,
-): WaveAssignmentEvent {
+): ContainerAssignmentEvent {
   return {
-    type: 'wave.assignment',
+    type: 'container.assignment',
     issueNumber,
-    waveName,
-    epicIntegrityMaintained,
+    containerName,
+    integrityMaintained,
     timestamp: ts,
     sessionId: 'session-lifecycle',
     actor: { type: 'ai-agent', id: actorId, name: `Agent ${actorId}` },
@@ -167,8 +167,8 @@ describe('Full Lifecycle Integration', () => {
     const auditStore = new JsonlAuditStore(tmpDir, logger);
     auditService = new AuditService(auditStore, eventBus, logger);
 
-    const waveService = createMockWaveService([40, 41, 42, 43, 44, 45]);
-    analyticsService = new AnalyticsService(auditService, waveService, eventBus, logger);
+    const containerService = createMockContainerService([40, 41, 42, 43, 44, 45]);
+    analyticsService = new AnalyticsService(auditService, containerService, eventBus, logger);
 
     complianceService = new ComplianceService(auditService, analyticsService, eventBus, logger);
 
@@ -353,12 +353,12 @@ describe('Full Lifecycle Integration', () => {
 
   // ─── Test 6: Epic Integrity via Wave Assignments ───
 
-  it('wave assignments with epic integrity violations reduce epic integrity score', async () => {
+  it('container assignments with integrity violations reduce epic integrity score', async () => {
     // 3 wave assignments: 2 maintain epic integrity, 1 violates
     const events = [
-      waveAssignment(40, 'wave-1', true, timestamp(DAY_0, 0), 'agent-alpha'),
-      waveAssignment(41, 'wave-1', true, timestamp(DAY_0, 1 * HOUR), 'agent-alpha'),
-      waveAssignment(42, 'wave-2', false, timestamp(DAY_0, 2 * HOUR), 'agent-beta'), // violation
+      containerAssignment(40, 'wave-1', true, timestamp(DAY_0, 0), 'agent-alpha'),
+      containerAssignment(41, 'wave-1', true, timestamp(DAY_0, 1 * HOUR), 'agent-alpha'),
+      containerAssignment(42, 'wave-2', false, timestamp(DAY_0, 2 * HOUR), 'agent-beta'), // violation
     ];
 
     for (const event of events) {
@@ -430,11 +430,11 @@ describe('Full Lifecycle Integration', () => {
   it('multi-day workflow produces coherent data across all services', async () => {
     await agentService.registerAgent({ agentId: 'agent-alpha', name: 'Alpha', role: 'coding' });
 
-    // Day 0: Wave setup + start work
+    // Day 0: Container setup + start work
     const setupEvents = [
-      waveAssignment(40, 'wave-1', true, timestamp(DAY_0, 0), 'agent-alpha'),
-      waveAssignment(41, 'wave-1', true, timestamp(DAY_0, 0), 'agent-alpha'),
-      waveAssignment(42, 'wave-1', true, timestamp(DAY_0, 0), 'agent-alpha'),
+      containerAssignment(40, 'wave-1', true, timestamp(DAY_0, 0), 'agent-alpha'),
+      containerAssignment(41, 'wave-1', true, timestamp(DAY_0, 0), 'agent-alpha'),
+      containerAssignment(42, 'wave-1', true, timestamp(DAY_0, 0), 'agent-alpha'),
     ];
 
     // Day 0-1: Task 40 full lifecycle (2 days)
@@ -641,15 +641,15 @@ describe('Full Lifecycle Integration', () => {
     expect(ctBlocked!.blockingTimeHours).toBe(4); // 4h blocked
     expect(ctBlocked!.cycleTimeHours).toBe(14); // 14h total
 
-    // WaveAnalytics shape (used by /retro for throughput, /plan-wave for capacity)
-    const waveAnalytics = await analyticsService.getWaveAnalytics('wave-1');
-    expect(typeof waveAnalytics.waveName).toBe('string');
-    expect(typeof waveAnalytics.velocity).toBe('number');
-    expect(typeof waveAnalytics.totalTransitions).toBe('number');
-    expect(typeof waveAnalytics.blockedTaskCount).toBe('number');
-    // avgCycleTime, avgLeadTime, throughput can be null if no completed tasks match wave
+    // ContainerAnalytics shape (used by /retro for throughput, /plan-wave for capacity)
+    const containerAnalytics = await analyticsService.getContainerAnalytics('wave-1');
+    expect(typeof containerAnalytics.waveName).toBe('string');
+    expect(typeof containerAnalytics.velocity).toBe('number');
+    expect(typeof containerAnalytics.totalTransitions).toBe('number');
+    expect(typeof containerAnalytics.blockedTaskCount).toBe('number');
+    // avgCycleTime, avgLeadTime, throughput can be null if no completed tasks match container
     // but transitionBreakdown should always be an object
-    expect(typeof waveAnalytics.transitionBreakdown).toBe('object');
+    expect(typeof containerAnalytics.transitionBreakdown).toBe('object');
   });
 
   // ─── Test 12: Dry-Run Events Don't Pollute Pipeline ───
@@ -722,9 +722,9 @@ describe('Full Lifecycle Integration', () => {
 
 // ─── Mock ───
 
-function createMockWaveService(taskNumbers: number[]): IWaveService {
+function createMockContainerService(taskNumbers: number[]): IContainerService {
   return {
-    getWaveStatus: async () => ({
+    getContainerStatus: async () => ({
       name: 'wave-1',
       status: 'active',
       tasks: taskNumbers.map((n) => ({ number: n, title: `Task ${n}`, status: 'IN_PROGRESS' })),
@@ -732,9 +732,9 @@ function createMockWaveService(taskNumbers: number[]): IWaveService {
       completedTasks: 0,
       progress: 0,
     }),
-    listWaves: async () => [],
-    createWave: async () => ({ success: true }),
-    assignTaskToWave: async () => ({ success: true }),
-    validateWaveCompletion: async () => ({ complete: false, blockers: [] }),
-  } as unknown as IWaveService;
+    listContainers: async () => [],
+    createContainer: async () => ({ success: true }),
+    assignTaskToContainer: async () => ({ success: true }),
+    validateContainerCompletion: async () => ({ complete: false, blockers: [] }),
+  } as unknown as IContainerService;
 }

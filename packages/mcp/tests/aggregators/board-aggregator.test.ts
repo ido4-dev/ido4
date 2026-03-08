@@ -9,11 +9,11 @@ import type { ServiceContainer } from '@ido4/core';
 
 function createMockContainer() {
   return {
-    waveService: {
-      listWaves: vi.fn().mockResolvedValue([
+    containerService: {
+      listContainers: vi.fn().mockResolvedValue([
         { name: 'wave-001', status: 'active', taskCount: 4, completedCount: 1, completionPercentage: 25 },
       ]),
-      getWaveStatus: vi.fn().mockResolvedValue({
+      getContainerStatus: vi.fn().mockResolvedValue({
         name: 'wave-001',
         tasks: [],
         metrics: { total: 4, completed: 1, inProgress: 1, blocked: 1, ready: 1 },
@@ -34,7 +34,7 @@ function createMockContainer() {
       }),
     },
     analyticsService: {
-      getWaveAnalytics: vi.fn().mockResolvedValue({
+      getContainerAnalytics: vi.fn().mockResolvedValue({
         waveName: 'wave-001', velocity: 25, avgCycleTime: 1.5, throughput: 1.0,
         avgBlockingTime: 0.2, totalTransitions: 6, transitionBreakdown: {},
       }),
@@ -66,21 +66,21 @@ describe('aggregateBoardData', () => {
 
   it('auto-detects active wave', async () => {
     const result = await aggregateBoardData(container);
-    expect(container.waveService.getWaveStatus).toHaveBeenCalledWith('wave-001');
+    expect(container.containerService.getContainerStatus).toHaveBeenCalledWith('wave-001');
     expect(result.waveStatus.name).toBe('wave-001');
   });
 
   it('uses provided waveName', async () => {
-    await aggregateBoardData(container, { waveName: 'wave-002' });
-    expect(container.waveService.listWaves).not.toHaveBeenCalled();
-    expect(container.waveService.getWaveStatus).toHaveBeenCalledWith('wave-002');
+    await aggregateBoardData(container, { containerName: 'wave-002' });
+    expect(container.containerService.listContainers).not.toHaveBeenCalled();
+    expect(container.containerService.getContainerStatus).toHaveBeenCalledWith('wave-002');
   });
 
   it('makes parallel calls for wave status, tasks, analytics, agents', async () => {
     await aggregateBoardData(container);
-    expect(container.waveService.getWaveStatus).toHaveBeenCalled();
+    expect(container.containerService.getContainerStatus).toHaveBeenCalled();
     expect(container.taskService.listTasks).toHaveBeenCalled();
-    expect(container.analyticsService.getWaveAnalytics).toHaveBeenCalled();
+    expect(container.analyticsService.getContainerAnalytics).toHaveBeenCalled();
     expect(container.agentService.listAgents).toHaveBeenCalled();
   });
 

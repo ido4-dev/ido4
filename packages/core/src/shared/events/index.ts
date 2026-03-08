@@ -1,7 +1,7 @@
 export type {
   GovernanceEvent,
   TaskTransitionEvent,
-  WaveAssignmentEvent,
+  ContainerAssignmentEvent,
   ValidationEvent,
   WorkRecommendationEvent,
   TaskHandoffEvent,

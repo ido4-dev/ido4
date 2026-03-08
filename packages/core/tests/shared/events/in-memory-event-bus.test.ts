@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { InMemoryEventBus } from '../../../src/shared/events/in-memory-event-bus.js';
-import type { TaskTransitionEvent, WaveAssignmentEvent, DomainEvent } from '../../../src/shared/events/types.js';
+import type { TaskTransitionEvent, ContainerAssignmentEvent, DomainEvent } from '../../../src/shared/events/types.js';
 
 function createTransitionEvent(overrides: Partial<TaskTransitionEvent> = {}): TaskTransitionEvent {
   return {
@@ -17,15 +17,15 @@ function createTransitionEvent(overrides: Partial<TaskTransitionEvent> = {}): Ta
   };
 }
 
-function createWaveEvent(overrides: Partial<WaveAssignmentEvent> = {}): WaveAssignmentEvent {
+function createContainerEvent(overrides: Partial<ContainerAssignmentEvent> = {}): ContainerAssignmentEvent {
   return {
-    type: 'wave.assignment',
+    type: 'container.assignment',
     timestamp: new Date().toISOString(),
     sessionId: 'session-1',
     actor: { type: 'human', id: 'jdoe' },
     issueNumber: 42,
-    waveName: 'wave-001',
-    epicIntegrityMaintained: true,
+    containerName: 'wave-001',
+    integrityMaintained: true,
     ...overrides,
   };
 }
@@ -50,15 +50,15 @@ describe('InMemoryEventBus', () => {
 
   it('does not dispatch to wrong type handlers', () => {
     const transitionHandler = vi.fn();
-    const waveHandler = vi.fn();
+    const containerHandler = vi.fn();
 
     bus.on('task.transition', transitionHandler);
-    bus.on('wave.assignment', waveHandler);
+    bus.on('container.assignment', containerHandler);
 
     bus.emit(createTransitionEvent());
 
     expect(transitionHandler).toHaveBeenCalledOnce();
-    expect(waveHandler).not.toHaveBeenCalled();
+    expect(containerHandler).not.toHaveBeenCalled();
   });
 
   it('dispatches to wildcard handlers for all events', () => {
@@ -66,7 +66,7 @@ describe('InMemoryEventBus', () => {
     bus.on('*', handler);
 
     bus.emit(createTransitionEvent());
-    bus.emit(createWaveEvent());
+    bus.emit(createContainerEvent());
 
     expect(handler).toHaveBeenCalledTimes(2);
   });

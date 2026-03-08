@@ -10,7 +10,7 @@ export interface ComplianceAggregatorOptions {
   since?: string;
   until?: string;
   actorId?: string;
-  waveName?: string;
+  containerName?: string;
 }
 
 export async function aggregateComplianceData(
@@ -23,23 +23,23 @@ export async function aggregateComplianceData(
       since: options?.since,
       until: options?.until,
       actorId: options?.actorId,
-      waveName: options?.waveName,
+      containerName: options?.containerName,
     }),
     container.auditService.queryEvents({
       since: options?.since,
       until: options?.until,
       actorId: options?.actorId,
     }),
-    container.waveService.listWaves(),
+    container.containerService.listContainers(),
     container.taskService.listTasks({}),
   ]);
 
   const tasks = taskResult.data.tasks;
 
   // Determine active wave for analytics
-  const activeWave = waves.find((w) => w.status === 'active');
-  const analyticsWave = options?.waveName ?? activeWave?.name ?? waves[0]?.name ?? 'unknown';
-  const analytics = await container.analyticsService.getWaveAnalytics(analyticsWave);
+  const activeContainer = waves.find((w) => w.status === 'active');
+  const analyticsContainer = options?.containerName ?? activeContainer?.name ?? waves[0]?.name ?? 'unknown';
+  const analytics = await container.analyticsService.getContainerAnalytics(analyticsContainer);
 
   // Per-task: dependency analysis for blocked tasks
   const blockedTasks = tasks.filter((t) => t.status === 'Blocked');

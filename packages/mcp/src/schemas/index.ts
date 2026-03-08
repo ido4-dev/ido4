@@ -21,10 +21,10 @@ export {
 } from './epic-schemas.js';
 
 export {
-  WaveNameSchema,
-  CreateWaveSchema,
-  AssignTaskToWaveSchema,
-} from './wave-schemas.js';
+  ContainerNameSchema,
+  CreateContainerSchema,
+  AssignTaskToContainerSchema,
+} from './container-schemas.js';
 
 export {
   DependencySchema,

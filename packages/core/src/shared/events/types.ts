@@ -34,13 +34,13 @@ export interface TaskTransitionEvent extends GovernanceEvent {
   readonly dryRun: boolean;
 }
 
-/** Emitted when a task is assigned to a wave */
-export interface WaveAssignmentEvent extends GovernanceEvent {
-  readonly type: 'wave.assignment';
+/** Emitted when a task is assigned to a container */
+export interface ContainerAssignmentEvent extends GovernanceEvent {
+  readonly type: 'container.assignment';
   readonly issueNumber: number;
-  readonly waveName: string;
-  readonly previousWave?: string;
-  readonly epicIntegrityMaintained: boolean;
+  readonly containerName: string;
+  readonly previousContainer?: string;
+  readonly integrityMaintained: boolean;
 }
 
 /** Emitted when a validation pipeline completes */
@@ -58,7 +58,7 @@ export interface WorkRecommendationEvent extends GovernanceEvent {
   readonly agentId: string;
   readonly recommendedIssue: number | null;
   readonly score: number | null;
-  readonly waveName: string;
+  readonly containerName: string;
   readonly totalCandidates: number;
 }
 
@@ -74,7 +74,7 @@ export interface TaskHandoffEvent extends GovernanceEvent {
 /** Union of all domain events — use for exhaustive handling */
 export type DomainEvent =
   | TaskTransitionEvent
-  | WaveAssignmentEvent
+  | ContainerAssignmentEvent
   | ValidationEvent
   | WorkRecommendationEvent
   | TaskHandoffEvent;

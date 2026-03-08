@@ -15,7 +15,7 @@ class MockStep implements ValidationStep {
 function createMockDeps(): StepDependencies {
   return {
     issueRepository: {} as StepDependencies['issueRepository'],
-    epicValidator: {} as StepDependencies['epicValidator'],
+    integrityValidator: {} as StepDependencies['integrityValidator'],
     repositoryRepository: {} as StepDependencies['repositoryRepository'],
     projectConfig: {} as StepDependencies['projectConfig'],
     workflowConfig: {} as StepDependencies['workflowConfig'],

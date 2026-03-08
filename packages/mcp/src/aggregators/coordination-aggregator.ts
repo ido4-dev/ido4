@@ -60,10 +60,10 @@ export async function aggregateCoordinationData(
   // Get active wave tasks for lock→title mapping
   let waveTasks: TaskData[] = [];
   try {
-    const waves = await container.waveService.listWaves();
+    const waves = await container.containerService.listContainers();
     const active = waves.find((w) => w.status === 'active');
     if (active) {
-      const waveStatus = await container.waveService.getWaveStatus(active.name);
+      const waveStatus = await container.containerService.getContainerStatus(active.name);
       waveTasks = waveStatus.tasks;
     }
   } catch {

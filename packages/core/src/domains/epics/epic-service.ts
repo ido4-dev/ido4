@@ -2,7 +2,7 @@
  * EpicService — Implements IEpicService for epic management and integrity validation.
  *
  * Key design decisions:
- * - Returns EpicIntegrityResult (never throws for integrity violations)
+ * - Returns IntegrityResult (never throws for integrity violations)
  * - Uses ProjectRepository for task listing (avoids N+1 issue queries)
  * - Maps ProjectItem → TaskData for interface compliance
  */
@@ -12,7 +12,7 @@ import type {
   IProjectRepository,
   TaskData,
   ProjectItem,
-  EpicIntegrityResult,
+  IntegrityResult,
 } from '../../container/interfaces.js';
 import type { ILogger } from '../../shared/logger.js';
 import { EpicUtils } from '../../shared/utils/index.js';
@@ -44,7 +44,7 @@ export class EpicService implements IEpicService {
     return matched.map((item) => this.mapProjectItemToTaskData(item));
   }
 
-  async validateEpicIntegrity(task: TaskData): Promise<EpicIntegrityResult> {
+  async validateEpicIntegrity(task: TaskData): Promise<IntegrityResult> {
     if (!task.epic) {
       return { maintained: true, violations: [] };
     }

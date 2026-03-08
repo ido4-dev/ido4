@@ -9,7 +9,7 @@ import type {
   IProjectRepository,
   ProjectItem,
   PaginationOptions,
-  WaveStatusData,
+  ContainerStatusData,
   UserInfo,
   TaskData,
   IProjectConfig,
@@ -86,7 +86,7 @@ export class GitHubProjectRepository implements IProjectRepository {
     this.logger.debug('Item field updated', { itemId, fieldId, fieldType });
   }
 
-  async getWaveStatus(wave: string): Promise<WaveStatusData> {
+  async getContainerStatus(wave: string): Promise<ContainerStatusData> {
     const items = await this.getProjectItems();
 
     const waveTasks: TaskData[] = [];

@@ -105,7 +105,7 @@ export function registerResources(server: McpServer): void {
     { description: 'Status and task breakdown for a specific wave', mimeType: 'application/json' },
     async (uri, params) => {
       const container = await getContainer();
-      const status = await container.waveService.getWaveStatus(params.waveName as string);
+      const status = await container.containerService.getContainerStatus(params.waveName as string);
       return {
         contents: [{
           uri: uri.href,
@@ -141,7 +141,7 @@ export function registerResources(server: McpServer): void {
     { description: 'Analytics for a specific wave (velocity, cycle time, throughput)', mimeType: 'application/json' },
     async (uri, params) => {
       const container = await getContainer();
-      const analytics = await container.analyticsService.getWaveAnalytics(params.waveName as string);
+      const analytics = await container.analyticsService.getContainerAnalytics(params.waveName as string);
       return {
         contents: [{
           uri: uri.href,
@@ -159,7 +159,7 @@ export function registerResources(server: McpServer): void {
     { description: 'Current project overview with all waves', mimeType: 'application/json' },
     async (uri) => {
       const container = await getContainer();
-      const waves = await container.waveService.listWaves();
+      const waves = await container.containerService.listContainers();
       return {
         contents: [{
           uri: uri.href,

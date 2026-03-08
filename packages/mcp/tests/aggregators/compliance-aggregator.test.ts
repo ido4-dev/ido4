@@ -17,8 +17,8 @@ function createMockContainer() {
     auditService: {
       queryEvents: vi.fn().mockResolvedValue({ events: [], total: 12, query: {} }),
     },
-    waveService: {
-      listWaves: vi.fn().mockResolvedValue([
+    containerService: {
+      listContainers: vi.fn().mockResolvedValue([
         { name: 'wave-001', status: 'active', taskCount: 6, completedCount: 2, completionPercentage: 33 },
         { name: 'wave-002', status: 'not_started', taskCount: 0, completedCount: 0, completionPercentage: 0 },
       ]),
@@ -38,7 +38,7 @@ function createMockContainer() {
       }),
     },
     analyticsService: {
-      getWaveAnalytics: vi.fn().mockResolvedValue({
+      getContainerAnalytics: vi.fn().mockResolvedValue({
         waveName: 'wave-001', velocity: 33, avgCycleTime: 2.0, throughput: 1.2,
         avgBlockingTime: 0.8, totalTransitions: 15, transitionBreakdown: {},
       }),
@@ -66,7 +66,7 @@ describe('aggregateComplianceData', () => {
     await aggregateComplianceData(container);
     expect(container.complianceService.computeComplianceScore).toHaveBeenCalled();
     expect(container.auditService.queryEvents).toHaveBeenCalled();
-    expect(container.waveService.listWaves).toHaveBeenCalled();
+    expect(container.containerService.listContainers).toHaveBeenCalled();
     expect(container.taskService.listTasks).toHaveBeenCalled();
   });
 
@@ -75,14 +75,14 @@ describe('aggregateComplianceData', () => {
       since: '2026-03-01T00:00:00Z',
       until: '2026-03-07T00:00:00Z',
       actorId: 'agent-beta',
-      waveName: 'wave-001',
+      containerName: 'wave-001',
     });
 
     expect(container.complianceService.computeComplianceScore).toHaveBeenCalledWith({
       since: '2026-03-01T00:00:00Z',
       until: '2026-03-07T00:00:00Z',
       actorId: 'agent-beta',
-      waveName: 'wave-001',
+      containerName: 'wave-001',
     });
     expect(container.auditService.queryEvents).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -135,12 +135,12 @@ describe('aggregateComplianceData', () => {
 
   it('uses active wave for analytics when no waveName specified', async () => {
     await aggregateComplianceData(container);
-    expect(container.analyticsService.getWaveAnalytics).toHaveBeenCalledWith('wave-001');
+    expect(container.analyticsService.getContainerAnalytics).toHaveBeenCalledWith('wave-001');
   });
 
   it('uses specified waveName for analytics', async () => {
-    await aggregateComplianceData(container, { waveName: 'wave-002' });
-    expect(container.analyticsService.getWaveAnalytics).toHaveBeenCalledWith('wave-002');
+    await aggregateComplianceData(container, { containerName: 'wave-002' });
+    expect(container.analyticsService.getContainerAnalytics).toHaveBeenCalledWith('wave-002');
   });
 
   it('builds a human-readable summary', async () => {

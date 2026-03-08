@@ -7,7 +7,7 @@ function createMockProjectRepository(): IProjectRepository {
   return {
     getProjectItems: vi.fn(),
     updateItemField: vi.fn(),
-    getWaveStatus: vi.fn(),
+    getContainerStatus: vi.fn(),
     getCurrentUser: vi.fn(),
   };
 }

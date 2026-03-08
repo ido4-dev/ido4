@@ -8,12 +8,12 @@
 
 import type { IAuditService } from '../audit/audit-service.js';
 import type { PersistedAuditEvent, SerializedDomainEvent } from '../audit/audit-store.js';
-import type { IWaveService } from '../../container/interfaces.js';
+import type { IContainerService } from '../../container/interfaces.js';
 import type { ILogger } from '../../shared/logger.js';
 import type { IEventBus, Unsubscribe } from '../../shared/events/index.js';
 
 export interface IAnalyticsService {
-  getWaveAnalytics(waveName: string): Promise<WaveAnalytics>;
+  getContainerAnalytics(waveName: string): Promise<ContainerAnalytics>;
   getProjectAnalytics(options?: AnalyticsOptions): Promise<ProjectAnalytics>;
   getTaskCycleTime(issueNumber: number): Promise<TaskCycleTime | null>;
 }
@@ -24,7 +24,7 @@ export interface AnalyticsOptions {
   waveName?: string;
 }
 
-export interface WaveAnalytics {
+export interface ContainerAnalytics {
   waveName: string;
   velocity: number;
   avgCycleTime: number | null;
@@ -69,7 +69,7 @@ export class AnalyticsService implements IAnalyticsService {
 
   constructor(
     private readonly auditService: IAuditService,
-    private readonly waveService: IWaveService,
+    private readonly containerService: IContainerService,
     eventBus: IEventBus,
     _logger: ILogger,
   ) {
@@ -79,13 +79,13 @@ export class AnalyticsService implements IAnalyticsService {
     });
   }
 
-  async getWaveAnalytics(waveName: string): Promise<WaveAnalytics> {
-    const cacheKey = `wave:${waveName}`;
-    const cached = this.getCached<WaveAnalytics>(cacheKey);
+  async getContainerAnalytics(waveName: string): Promise<ContainerAnalytics> {
+    const cacheKey = `container:${waveName}`;
+    const cached = this.getCached<ContainerAnalytics>(cacheKey);
     if (cached) return cached;
 
-    // Get wave tasks
-    const waveStatus = await this.waveService.getWaveStatus(waveName);
+    // Get container tasks
+    const waveStatus = await this.containerService.getContainerStatus(waveName);
     const taskNumbers = new Set(waveStatus.tasks.map((t) => t.number));
 
     // Get all transition events for these tasks
@@ -143,7 +143,7 @@ export class AnalyticsService implements IAnalyticsService {
       }
     }
 
-    const result: WaveAnalytics = {
+    const result: ContainerAnalytics = {
       waveName,
       velocity,
       avgCycleTime: avgCycleTime !== null ? Math.round(avgCycleTime * 100) / 100 : null,

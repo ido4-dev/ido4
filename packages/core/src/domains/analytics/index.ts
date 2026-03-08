@@ -3,7 +3,7 @@ export { AnalyticsService } from './analytics-service.js';
 export type {
   IAnalyticsService,
   AnalyticsOptions,
-  WaveAnalytics,
+  ContainerAnalytics,
   ProjectAnalytics,
   TaskCycleTime,
 } from './analytics-service.js';

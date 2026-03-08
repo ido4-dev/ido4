@@ -16,7 +16,7 @@ import { AuditService } from '../../src/domains/audit/audit-service.js';
 import { JsonlAuditStore } from '../../src/domains/audit/audit-store.js';
 import { AnalyticsService } from '../../src/domains/analytics/analytics-service.js';
 import type { TaskTransitionEvent } from '../../src/shared/events/types.js';
-import type { IWaveService } from '../../src/container/interfaces.js';
+import type { IContainerService } from '../../src/container/interfaces.js';
 import { TestLogger } from '../helpers/test-logger.js';
 
 function createTransitionEvent(
@@ -41,9 +41,9 @@ function createTransitionEvent(
   };
 }
 
-function createMockWaveService(taskNumbers: number[]): IWaveService {
+function createMockContainerService(taskNumbers: number[]): IContainerService {
   return {
-    getWaveStatus: async () => ({
+    getContainerStatus: async () => ({
       name: 'wave-1',
       status: 'active',
       tasks: taskNumbers.map((n) => ({ number: n, title: `Task ${n}`, status: 'IN_PROGRESS' })),
@@ -51,11 +51,11 @@ function createMockWaveService(taskNumbers: number[]): IWaveService {
       completedTasks: 0,
       progress: 0,
     }),
-    listWaves: async () => [],
-    createWave: async () => ({ success: true }),
-    assignTaskToWave: async () => ({ success: true }),
-    validateWaveCompletion: async () => ({ complete: false, blockers: [] }),
-  } as unknown as IWaveService;
+    listContainers: async () => [],
+    createContainer: async () => ({ success: true }),
+    assignTaskToContainer: async () => ({ success: true }),
+    validateContainerCompletion: async () => ({ complete: false, blockers: [] }),
+  } as unknown as IContainerService;
 }
 
 describe('Audit + Analytics Integration', () => {
@@ -72,8 +72,8 @@ describe('Audit + Analytics Integration', () => {
     eventBus = new InMemoryEventBus();
     const auditStore = new JsonlAuditStore(tmpDir, logger);
     auditService = new AuditService(auditStore, eventBus, logger);
-    const waveService = createMockWaveService([42, 43, 44]);
-    analyticsService = new AnalyticsService(auditService, waveService, eventBus, logger);
+    const containerService = createMockContainerService([42, 43, 44]);
+    analyticsService = new AnalyticsService(auditService, containerService, eventBus, logger);
   });
 
   afterEach(async () => {

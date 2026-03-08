@@ -33,11 +33,11 @@ function createMocks() {
   const eventBus = new InMemoryEventBus();
   const logger = new NoopLogger();
 
-  const waveService = {
-    listWaves: vi.fn().mockResolvedValue([
+  const containerService = {
+    listContainers: vi.fn().mockResolvedValue([
       { name: 'wave-001', status: 'active', taskCount: 5, completedCount: 1, completionPercentage: 20 },
     ]),
-    getWaveStatus: vi.fn().mockResolvedValue({
+    getContainerStatus: vi.fn().mockResolvedValue({
       name: 'wave-001',
       tasks: [],
       metrics: { total: 0, completed: 0, inProgress: 0, blocked: 0, ready: 0 },
@@ -61,7 +61,7 @@ function createMocks() {
   };
 
   const service = new WorkDistributionService(
-    waveService as any,
+    containerService as any,
     agentService as any,
     taskService as any,
     auditService as any,
@@ -70,7 +70,7 @@ function createMocks() {
     logger,
   );
 
-  return { service, waveService, agentService, taskService, auditService, eventBus };
+  return { service, containerService, agentService, taskService, auditService, eventBus };
 }
 
 // ─── Tests ───
@@ -78,8 +78,8 @@ function createMocks() {
 describe('WorkDistributionService', () => {
   describe('getNextTask', () => {
     it('returns null recommendation when no candidates exist', async () => {
-      const { service, waveService } = createMocks();
-      waveService.getWaveStatus.mockResolvedValue({
+      const { service, containerService } = createMocks();
+      containerService.getContainerStatus.mockResolvedValue({
         name: 'wave-001',
         tasks: [makeTask({ number: 1, status: 'Done' }), makeTask({ number: 2, status: 'In Progress' })],
         metrics: { total: 2, completed: 1, inProgress: 1, blocked: 0, ready: 0 },
@@ -93,8 +93,8 @@ describe('WorkDistributionService', () => {
     });
 
     it('filters to Ready and Refinement tasks only', async () => {
-      const { service, waveService } = createMocks();
-      waveService.getWaveStatus.mockResolvedValue({
+      const { service, containerService } = createMocks();
+      containerService.getContainerStatus.mockResolvedValue({
         name: 'wave-001',
         tasks: [
           makeTask({ number: 1, status: 'Done' }),
@@ -120,8 +120,8 @@ describe('WorkDistributionService', () => {
     });
 
     it('excludes tasks locked by other agents', async () => {
-      const { service, waveService, agentService } = createMocks();
-      waveService.getWaveStatus.mockResolvedValue({
+      const { service, containerService, agentService } = createMocks();
+      containerService.getContainerStatus.mockResolvedValue({
         name: 'wave-001',
         tasks: [
           makeTask({ number: 10, status: 'Ready for Dev' }),
@@ -142,8 +142,8 @@ describe('WorkDistributionService', () => {
     });
 
     it('allows tasks locked by the requesting agent', async () => {
-      const { service, waveService, agentService } = createMocks();
-      waveService.getWaveStatus.mockResolvedValue({
+      const { service, containerService, agentService } = createMocks();
+      containerService.getContainerStatus.mockResolvedValue({
         name: 'wave-001',
         tasks: [makeTask({ number: 10, status: 'Ready for Dev' })],
         metrics: {},
@@ -156,9 +156,9 @@ describe('WorkDistributionService', () => {
       expect(result.recommendation?.issueNumber).toBe(10);
     });
 
-    it('auto-detects active wave when waveName not provided', async () => {
-      const { service, waveService } = createMocks();
-      waveService.getWaveStatus.mockResolvedValue({
+    it('auto-detects active container when containerName not provided', async () => {
+      const { service, containerService } = createMocks();
+      containerService.getContainerStatus.mockResolvedValue({
         name: 'wave-001',
         tasks: [makeTask({ number: 1, status: 'Ready for Dev' })],
         metrics: {},
@@ -166,25 +166,25 @@ describe('WorkDistributionService', () => {
 
       const result = await service.getNextTask('agent-alpha');
 
-      expect(waveService.listWaves).toHaveBeenCalled();
-      expect(result.context.activeWave).toBe('wave-001');
+      expect(containerService.listContainers).toHaveBeenCalled();
+      expect(result.context.activeContainer).toBe('wave-001');
     });
 
-    it('throws when no active wave exists and none provided', async () => {
-      const { service, waveService } = createMocks();
-      waveService.listWaves.mockResolvedValue([
+    it('throws when no active container exists and none provided', async () => {
+      const { service, containerService } = createMocks();
+      containerService.listContainers.mockResolvedValue([
         { name: 'wave-001', status: 'completed', taskCount: 5, completedCount: 5, completionPercentage: 100 },
       ]);
 
-      await expect(service.getNextTask('agent-alpha')).rejects.toThrow('No active wave');
+      await expect(service.getNextTask('agent-alpha')).rejects.toThrow('No active container');
     });
 
     describe('cascade scoring', () => {
       it('scores higher for tasks that unblock more downstream tasks', async () => {
-        const { service, waveService } = createMocks();
+        const { service, containerService } = createMocks();
         // Task 1 (Ready) unblocks tasks 3 and 4 (they depend on #1)
         // Task 2 (Ready) unblocks nothing
-        waveService.getWaveStatus.mockResolvedValue({
+        containerService.getContainerStatus.mockResolvedValue({
           name: 'wave-001',
           tasks: [
             makeTask({ number: 1, status: 'Ready for Dev' }),
@@ -204,9 +204,9 @@ describe('WorkDistributionService', () => {
       });
 
       it('gives higher cascade score for depth-1 than depth-2 dependents', async () => {
-        const { service, waveService } = createMocks();
+        const { service, containerService } = createMocks();
         // Task 1 -> Task 2 (depth 1) -> Task 3 (depth 2)
-        waveService.getWaveStatus.mockResolvedValue({
+        containerService.getContainerStatus.mockResolvedValue({
           name: 'wave-001',
           tasks: [
             makeTask({ number: 1, status: 'Ready for Dev' }),
@@ -224,12 +224,12 @@ describe('WorkDistributionService', () => {
       });
 
       it('caps cascade score at 40', async () => {
-        const { service, waveService } = createMocks();
+        const { service, containerService } = createMocks();
         // Task 1 unblocks many tasks
         const dependents = Array.from({ length: 5 }, (_, i) =>
           makeTask({ number: i + 2, status: 'Blocked', dependencies: '#1' }),
         );
-        waveService.getWaveStatus.mockResolvedValue({
+        containerService.getContainerStatus.mockResolvedValue({
           name: 'wave-001',
           tasks: [makeTask({ number: 1, status: 'Ready for Dev' }), ...dependents],
           metrics: {},
@@ -243,8 +243,8 @@ describe('WorkDistributionService', () => {
 
     describe('epic momentum scoring', () => {
       it('scores higher for tasks in nearly-complete epics', async () => {
-        const { service, waveService } = createMocks();
-        waveService.getWaveStatus.mockResolvedValue({
+        const { service, containerService } = createMocks();
+        containerService.getContainerStatus.mockResolvedValue({
           name: 'wave-001',
           tasks: [
             // Epic A: 3/4 done — high momentum
@@ -269,8 +269,8 @@ describe('WorkDistributionService', () => {
       });
 
       it('gives max score to the last remaining task in an epic', async () => {
-        const { service, waveService } = createMocks();
-        waveService.getWaveStatus.mockResolvedValue({
+        const { service, containerService } = createMocks();
+        containerService.getContainerStatus.mockResolvedValue({
           name: 'wave-001',
           tasks: [
             makeTask({ number: 1, status: 'Done', epic: 'Epic A' }),
@@ -285,8 +285,8 @@ describe('WorkDistributionService', () => {
       });
 
       it('returns 0 for tasks without an epic', async () => {
-        const { service, waveService } = createMocks();
-        waveService.getWaveStatus.mockResolvedValue({
+        const { service, containerService } = createMocks();
+        containerService.getContainerStatus.mockResolvedValue({
           name: 'wave-001',
           tasks: [makeTask({ number: 1, status: 'Ready for Dev' })], // no epic
           metrics: {},
@@ -300,9 +300,9 @@ describe('WorkDistributionService', () => {
 
     describe('capability matching', () => {
       it('scores neutral (10) when agent has no registration', async () => {
-        const { service, waveService, agentService } = createMocks();
+        const { service, containerService, agentService } = createMocks();
         agentService.getAgent.mockResolvedValue(null);
-        waveService.getWaveStatus.mockResolvedValue({
+        containerService.getContainerStatus.mockResolvedValue({
           name: 'wave-001',
           tasks: [makeTask({ number: 1, status: 'Ready for Dev' })],
           metrics: {},
@@ -314,13 +314,13 @@ describe('WorkDistributionService', () => {
       });
 
       it('scores higher for matching role and task type', async () => {
-        const { service, waveService, agentService } = createMocks();
+        const { service, containerService, agentService } = createMocks();
         agentService.getAgent.mockResolvedValue({
           agentId: 'agent-alpha', name: 'Alpha', role: 'coding',
           registeredAt: '', lastHeartbeat: '',
         } as RegisteredAgent);
 
-        waveService.getWaveStatus.mockResolvedValue({
+        containerService.getContainerStatus.mockResolvedValue({
           name: 'wave-001',
           tasks: [
             makeTask({ number: 1, status: 'Ready for Dev', taskType: 'FEATURE' }),
@@ -337,14 +337,14 @@ describe('WorkDistributionService', () => {
       });
 
       it('scores higher when agent capabilities match task title keywords', async () => {
-        const { service, waveService, agentService } = createMocks();
+        const { service, containerService, agentService } = createMocks();
         agentService.getAgent.mockResolvedValue({
           agentId: 'agent-alpha', name: 'Alpha', role: 'coding',
           capabilities: ['backend', 'api'],
           registeredAt: '', lastHeartbeat: '',
         } as RegisteredAgent);
 
-        waveService.getWaveStatus.mockResolvedValue({
+        containerService.getContainerStatus.mockResolvedValue({
           name: 'wave-001',
           tasks: [
             makeTask({ number: 1, status: 'Ready for Dev', title: 'Implement backend API endpoint' }),
@@ -361,14 +361,14 @@ describe('WorkDistributionService', () => {
       });
 
       it('caps capability score at 20', async () => {
-        const { service, waveService, agentService } = createMocks();
+        const { service, containerService, agentService } = createMocks();
         agentService.getAgent.mockResolvedValue({
           agentId: 'agent-alpha', name: 'Alpha', role: 'coding',
           capabilities: ['data', 'pipeline'],
           registeredAt: '', lastHeartbeat: '',
         } as RegisteredAgent);
 
-        waveService.getWaveStatus.mockResolvedValue({
+        containerService.getContainerStatus.mockResolvedValue({
           name: 'wave-001',
           tasks: [makeTask({ number: 1, status: 'Ready for Dev', title: 'Data pipeline feature', taskType: 'FEATURE', riskLevel: 'CRITICAL' })],
           metrics: {},
@@ -382,8 +382,8 @@ describe('WorkDistributionService', () => {
 
     describe('dependency freshness scoring', () => {
       it('scores higher when dependencies were recently completed', async () => {
-        const { service, waveService, auditService } = createMocks();
-        waveService.getWaveStatus.mockResolvedValue({
+        const { service, containerService, auditService } = createMocks();
+        containerService.getContainerStatus.mockResolvedValue({
           name: 'wave-001',
           tasks: [
             makeTask({ number: 1, status: 'Done' }),
@@ -413,8 +413,8 @@ describe('WorkDistributionService', () => {
       });
 
       it('returns 0 freshness for tasks with no dependencies', async () => {
-        const { service, waveService } = createMocks();
-        waveService.getWaveStatus.mockResolvedValue({
+        const { service, containerService } = createMocks();
+        containerService.getContainerStatus.mockResolvedValue({
           name: 'wave-001',
           tasks: [makeTask({ number: 1, status: 'Ready for Dev' })],
           metrics: {},
@@ -428,8 +428,8 @@ describe('WorkDistributionService', () => {
 
     describe('result structure', () => {
       it('returns up to 3 alternatives', async () => {
-        const { service, waveService } = createMocks();
-        waveService.getWaveStatus.mockResolvedValue({
+        const { service, containerService } = createMocks();
+        containerService.getContainerStatus.mockResolvedValue({
           name: 'wave-001',
           tasks: [
             makeTask({ number: 1, status: 'Ready for Dev' }),
@@ -448,8 +448,8 @@ describe('WorkDistributionService', () => {
       });
 
       it('includes reasoning in recommendation', async () => {
-        const { service, waveService } = createMocks();
-        waveService.getWaveStatus.mockResolvedValue({
+        const { service, containerService } = createMocks();
+        containerService.getContainerStatus.mockResolvedValue({
           name: 'wave-001',
           tasks: [
             makeTask({ number: 1, status: 'Ready for Dev' }),
@@ -465,8 +465,8 @@ describe('WorkDistributionService', () => {
       });
 
       it('includes context with locked tasks', async () => {
-        const { service, waveService, agentService } = createMocks();
-        waveService.getWaveStatus.mockResolvedValue({
+        const { service, containerService, agentService } = createMocks();
+        containerService.getContainerStatus.mockResolvedValue({
           name: 'wave-001',
           tasks: [
             makeTask({ number: 1, status: 'Ready for Dev' }),
@@ -483,17 +483,17 @@ describe('WorkDistributionService', () => {
 
         expect(result.context.lockedTasks).toContain(2);
         expect(result.context.agentId).toBe('agent-alpha');
-        expect(result.context.activeWave).toBe('wave-001');
+        expect(result.context.activeContainer).toBe('wave-001');
       });
     });
 
     describe('audit events', () => {
       it('emits work.recommendation event', async () => {
-        const { service, waveService, eventBus } = createMocks();
+        const { service, containerService, eventBus } = createMocks();
         const emitted: any[] = [];
         eventBus.on('work.recommendation', (event) => emitted.push(event));
 
-        waveService.getWaveStatus.mockResolvedValue({
+        containerService.getContainerStatus.mockResolvedValue({
           name: 'wave-001',
           tasks: [makeTask({ number: 1, status: 'Ready for Dev' })],
           metrics: {},
@@ -504,15 +504,15 @@ describe('WorkDistributionService', () => {
         expect(emitted).toHaveLength(1);
         expect(emitted[0].agentId).toBe('agent-alpha');
         expect(emitted[0].recommendedIssue).toBe(1);
-        expect(emitted[0].waveName).toBe('wave-001');
+        expect(emitted[0].containerName).toBe('wave-001');
       });
 
       it('emits event with null recommendation when no candidates', async () => {
-        const { service, waveService, eventBus } = createMocks();
+        const { service, containerService, eventBus } = createMocks();
         const emitted: any[] = [];
         eventBus.on('work.recommendation', (event) => emitted.push(event));
 
-        waveService.getWaveStatus.mockResolvedValue({
+        containerService.getContainerStatus.mockResolvedValue({
           name: 'wave-001',
           tasks: [makeTask({ number: 1, status: 'Done' })],
           metrics: {},
@@ -529,9 +529,9 @@ describe('WorkDistributionService', () => {
 
   describe('completeAndHandoff', () => {
     it('approves the task and releases the lock', async () => {
-      const { service, waveService, taskService, agentService } = createMocks();
+      const { service, containerService, taskService, agentService } = createMocks();
       taskService.getTask.mockResolvedValue(makeTask({ number: 42, title: 'Build API', status: 'Done' }));
-      waveService.getWaveStatus.mockResolvedValue({
+      containerService.getContainerStatus.mockResolvedValue({
         name: 'wave-001',
         tasks: [makeTask({ number: 42, status: 'Done' })],
         metrics: {},
@@ -545,10 +545,10 @@ describe('WorkDistributionService', () => {
     });
 
     it('identifies newly-unblocked downstream tasks', async () => {
-      const { service, waveService, taskService } = createMocks();
+      const { service, containerService, taskService } = createMocks();
       taskService.getTask.mockResolvedValue(makeTask({ number: 42, title: 'Build API', status: 'Done' }));
 
-      waveService.getWaveStatus.mockResolvedValue({
+      containerService.getContainerStatus.mockResolvedValue({
         name: 'wave-001',
         tasks: [
           makeTask({ number: 42, status: 'Done' }),
@@ -566,10 +566,10 @@ describe('WorkDistributionService', () => {
     });
 
     it('does not report tasks with unsatisfied dependencies as unblocked', async () => {
-      const { service, waveService, taskService } = createMocks();
+      const { service, containerService, taskService } = createMocks();
       taskService.getTask.mockResolvedValue(makeTask({ number: 42, status: 'Done' }));
 
-      waveService.getWaveStatus.mockResolvedValue({
+      containerService.getContainerStatus.mockResolvedValue({
         name: 'wave-001',
         tasks: [
           makeTask({ number: 42, status: 'Done' }),
@@ -586,10 +586,10 @@ describe('WorkDistributionService', () => {
     });
 
     it('continues gracefully if lock release fails', async () => {
-      const { service, waveService, taskService, agentService } = createMocks();
+      const { service, containerService, taskService, agentService } = createMocks();
       taskService.getTask.mockResolvedValue(makeTask({ number: 42, status: 'Done' }));
       agentService.releaseTask.mockRejectedValue(new Error('No lock'));
-      waveService.getWaveStatus.mockResolvedValue({
+      containerService.getContainerStatus.mockResolvedValue({
         name: 'wave-001',
         tasks: [makeTask({ number: 42, status: 'Done' })],
         metrics: {},
@@ -603,9 +603,9 @@ describe('WorkDistributionService', () => {
     });
 
     it('returns next task recommendation for the completing agent', async () => {
-      const { service, waveService, taskService } = createMocks();
+      const { service, containerService, taskService } = createMocks();
       taskService.getTask.mockResolvedValue(makeTask({ number: 42, status: 'Done' }));
-      waveService.getWaveStatus.mockResolvedValue({
+      containerService.getContainerStatus.mockResolvedValue({
         name: 'wave-001',
         tasks: [
           makeTask({ number: 42, status: 'Done' }),
@@ -622,12 +622,12 @@ describe('WorkDistributionService', () => {
     });
 
     it('emits work.handoff event', async () => {
-      const { service, waveService, taskService, eventBus } = createMocks();
+      const { service, containerService, taskService, eventBus } = createMocks();
       const emitted: any[] = [];
       eventBus.on('work.handoff', (event) => emitted.push(event));
 
       taskService.getTask.mockResolvedValue(makeTask({ number: 42, status: 'Done' }));
-      waveService.getWaveStatus.mockResolvedValue({
+      containerService.getContainerStatus.mockResolvedValue({
         name: 'wave-001',
         tasks: [
           makeTask({ number: 42, status: 'Done' }),
@@ -646,14 +646,14 @@ describe('WorkDistributionService', () => {
     });
 
     it('suggests agent for newly-unblocked tasks', async () => {
-      const { service, waveService, taskService, agentService } = createMocks();
+      const { service, containerService, taskService, agentService } = createMocks();
       taskService.getTask.mockResolvedValue(makeTask({ number: 42, status: 'Done' }));
       agentService.listAgents.mockResolvedValue([
         { agentId: 'agent-alpha', name: 'Alpha', role: 'coding', registeredAt: '', lastHeartbeat: '' },
         { agentId: 'agent-beta', name: 'Beta', role: 'coding', registeredAt: '', lastHeartbeat: '' },
       ]);
 
-      waveService.getWaveStatus.mockResolvedValue({
+      containerService.getContainerStatus.mockResolvedValue({
         name: 'wave-001',
         tasks: [
           makeTask({ number: 42, status: 'Done' }),
@@ -674,11 +674,11 @@ describe('WorkDistributionService', () => {
 
   describe('composite scoring', () => {
     it('combines all dimensions to pick the highest-leverage task', async () => {
-      const { service, waveService, auditService } = createMocks();
+      const { service, containerService, auditService } = createMocks();
 
       // Task 10: unblocks 2 tasks (cascade=30), in 80% done epic (momentum=20)
       // Task 11: unblocks 0, no epic, but has fresh dependency
-      waveService.getWaveStatus.mockResolvedValue({
+      containerService.getContainerStatus.mockResolvedValue({
         name: 'wave-001',
         tasks: [
           makeTask({ number: 10, status: 'Ready for Dev', epic: 'Auth' }),

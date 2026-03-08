@@ -5,23 +5,23 @@
 
 import type { ServiceContainer } from '@ido4/core';
 import type { BoardData, TaskAnnotation } from './types.js';
-import { resolveActiveWave } from './wave-detection.js';
+import { resolveActiveContainer } from './wave-detection.js';
 
 export interface BoardAggregatorOptions {
-  waveName?: string;
+  containerName?: string;
 }
 
 export async function aggregateBoardData(
   container: ServiceContainer,
   options?: BoardAggregatorOptions,
 ): Promise<BoardData> {
-  const waveName = await resolveActiveWave(container, options?.waveName);
+  const containerName = await resolveActiveContainer(container, options?.containerName);
 
   // Parallel: all independent calls at once
   const [waveStatus, taskResult, analytics, agents] = await Promise.all([
-    container.waveService.getWaveStatus(waveName),
-    container.taskService.listTasks({ wave: waveName }),
-    container.analyticsService.getWaveAnalytics(waveName),
+    container.containerService.getContainerStatus(containerName),
+    container.taskService.listTasks({ wave: containerName }),
+    container.analyticsService.getContainerAnalytics(containerName),
     container.agentService.listAgents(),
   ]);
 
@@ -58,7 +58,7 @@ export async function aggregateBoardData(
   const projectUrl = container.projectConfig.project.url ?? null;
 
   const { metrics } = waveStatus;
-  const summary = `${waveName}: ${metrics.total} tasks | ${metrics.completed} done, ${metrics.inProgress} in progress, ${metrics.blocked} blocked, ${metrics.ready} ready`;
+  const summary = `${containerName}: ${metrics.total} tasks | ${metrics.completed} done, ${metrics.inProgress} in progress, ${metrics.blocked} blocked, ${metrics.ready} ready`;
 
   return {
     waveStatus,

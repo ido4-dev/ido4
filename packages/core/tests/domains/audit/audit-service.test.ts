@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AuditService } from '../../../src/domains/audit/audit-service.js';
 import type { IAuditStore, SerializedDomainEvent, PersistedAuditEvent } from '../../../src/domains/audit/audit-store.js';
 import { InMemoryEventBus } from '../../../src/shared/events/in-memory-event-bus.js';
-import type { TaskTransitionEvent, WaveAssignmentEvent, ValidationEvent } from '../../../src/shared/events/types.js';
+import type { TaskTransitionEvent, ContainerAssignmentEvent, ValidationEvent } from '../../../src/shared/events/types.js';
 import { TestLogger } from '../../helpers/test-logger.js';
 
 function createMockStore(): IAuditStore {
@@ -28,15 +28,15 @@ function makeTransitionEvent(overrides?: Partial<TaskTransitionEvent>): TaskTran
   };
 }
 
-function makeWaveAssignmentEvent(overrides?: Partial<WaveAssignmentEvent>): WaveAssignmentEvent {
+function makeContainerAssignmentEvent(overrides?: Partial<ContainerAssignmentEvent>): ContainerAssignmentEvent {
   return {
-    type: 'wave.assignment',
+    type: 'container.assignment',
     timestamp: new Date().toISOString(),
     sessionId: 'test-session',
     actor: { type: 'ai-agent', id: 'mcp-session' },
     issueNumber: 42,
-    waveName: 'wave-001',
-    epicIntegrityMaintained: true,
+    containerName: 'wave-001',
+    integrityMaintained: true,
     ...overrides,
   };
 }
@@ -83,15 +83,15 @@ describe('AuditService', () => {
       expect(persisted.issueNumber).toBe(42);
     });
 
-    it('persists wave assignment events', async () => {
-      eventBus.emit(makeWaveAssignmentEvent());
+    it('persists container assignment events', async () => {
+      eventBus.emit(makeContainerAssignmentEvent());
 
       await vi.waitFor(() => {
         expect(store.appendEvent).toHaveBeenCalledTimes(1);
       });
 
       const persisted = vi.mocked(store.appendEvent).mock.calls[0]![0]!;
-      expect(persisted.type).toBe('wave.assignment');
+      expect(persisted.type).toBe('container.assignment');
     });
 
     it('persists validation events', async () => {
@@ -163,7 +163,7 @@ describe('AuditService', () => {
 
     it('maintains chronological ordering', async () => {
       eventBus.emit(makeTransitionEvent({ issueNumber: 1, timestamp: '2024-01-01T00:00:00Z' }));
-      eventBus.emit(makeWaveAssignmentEvent({ issueNumber: 2 }));
+      eventBus.emit(makeContainerAssignmentEvent({ issueNumber: 2 }));
       eventBus.emit(makeTransitionEvent({ issueNumber: 3, timestamp: '2024-03-01T00:00:00Z' }));
 
       const recent = await service.getRecentEvents();
@@ -219,7 +219,7 @@ describe('AuditService', () => {
         {
           id: 3,
           event: {
-            type: 'wave.assignment', timestamp: '2024-01-03T00:00:00Z',
+            type: 'container.assignment', timestamp: '2024-01-03T00:00:00Z',
             sessionId: 's1', actor: { type: 'ai-agent', id: 'agent-2' },
           },
           persistedAt: '2024-01-03T00:00:01Z',
@@ -230,7 +230,7 @@ describe('AuditService', () => {
       const summary = await service.getSummary();
 
       expect(summary.totalEvents).toBe(3);
-      expect(summary.byType).toEqual({ 'task.transition': 2, 'wave.assignment': 1 });
+      expect(summary.byType).toEqual({ 'task.transition': 2, 'container.assignment': 1 });
       expect(summary.byActor).toEqual({ 'agent-1': 2, 'agent-2': 1 });
       expect(summary.byTransition).toEqual({ start: 1, approve: 1 });
       expect(summary.recentActivity).toHaveLength(3);

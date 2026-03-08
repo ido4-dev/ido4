@@ -95,7 +95,7 @@ export function registerAllBuiltinSteps(registry: ValidationStepRegistry): void 
   registry.register('ApprovalRequirementValidation', () => new ApprovalRequirementValidation());
 
   // Service-injected steps
-  registry.register('EpicIntegrityValidation', (deps) => new EpicIntegrityValidation(deps.epicValidator));
+  registry.register('EpicIntegrityValidation', (deps) => new EpicIntegrityValidation(deps.integrityValidator));
   registry.register('DependencyValidation', (deps) => new DependencyValidation(deps.issueRepository));
   registry.register('ImplementationReadinessValidation', (deps) => new ImplementationReadinessValidation(deps.repositoryRepository));
   registry.register('SubtaskCompletionValidation', (deps) => new SubtaskCompletionValidation(deps.issueRepository));

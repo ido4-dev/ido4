@@ -17,9 +17,9 @@ export type {
   IEpicRepository,
   ITaskService,
   ITaskTransitionValidator,
-  IWaveService,
+  IContainerService,
   IEpicService,
-  IEpicValidator,
+  IIntegrityValidator,
   IDependencyService,
   IProjectConfig,
   IWorkflowConfig,
@@ -30,12 +30,12 @@ export type {
   ProjectItem,
   PullRequestInfo,
   UserInfo,
-  WaveSummary,
-  WaveStatusData,
-  WaveCreateResult,
-  WaveAssignResult,
-  WaveCompletionResult,
-  EpicIntegrityResult,
+  ContainerSummary,
+  ContainerStatusData,
+  ContainerCreateResult,
+  ContainerAssignResult,
+  ContainerCompletionResult,
+  IntegrityResult,
   EpicIssueData,
   IssueTimelineData,
   DependencyAnalysisResult,
@@ -81,7 +81,7 @@ export type {
   AgentStoreData,
   IAnalyticsService,
   AnalyticsOptions,
-  WaveAnalytics,
+  ContainerAnalytics,
   ProjectAnalytics,
   TaskCycleTime,
   IComplianceService,
@@ -145,7 +145,7 @@ export type { ToolResponse } from './shared/tool-response.js';
 export type {
   GovernanceEvent,
   TaskTransitionEvent,
-  WaveAssignmentEvent,
+  ContainerAssignmentEvent,
   ValidationEvent,
   WorkRecommendationEvent,
   TaskHandoffEvent,
@@ -181,13 +181,13 @@ export { registerAllBuiltinSteps } from './domains/tasks/index.js';
 
 // Domain Services — Epics
 export { EpicService } from './domains/epics/index.js';
-export { EpicValidator } from './domains/epics/index.js';
+export { IntegrityValidator } from './domains/epics/index.js';
 
 // Domain Services — Dependencies
 export { DependencyService } from './domains/dependencies/index.js';
 
-// Domain Services — Waves
-export { WaveService } from './domains/waves/index.js';
+// Domain Services — Containers
+export { ContainerService } from './domains/containers/index.js';
 
 // Domain Services — Projects
 export { ProjectInitService } from './domains/projects/index.js';

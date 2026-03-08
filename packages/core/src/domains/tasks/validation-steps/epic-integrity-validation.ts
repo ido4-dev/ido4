@@ -1,10 +1,10 @@
 import type { ValidationStep, ValidationStepResult, ValidationContext } from '../types.js';
-import type { IEpicValidator } from '../../../container/interfaces.js';
+import type { IIntegrityValidator } from '../../../container/interfaces.js';
 
 export class EpicIntegrityValidation implements ValidationStep {
   readonly name = 'EpicIntegrityValidation';
 
-  constructor(private readonly epicValidator: IEpicValidator) {}
+  constructor(private readonly integrityValidator: IIntegrityValidator) {}
 
   async validate(context: ValidationContext): Promise<ValidationStepResult> {
     if (!context.task.epic) {
@@ -25,7 +25,7 @@ export class EpicIntegrityValidation implements ValidationStep {
       };
     }
 
-    const result = await this.epicValidator.validateWaveAssignmentEpicIntegrity(
+    const result = await this.integrityValidator.validateAssignmentIntegrity(
       context.issueNumber,
       context.task.wave,
     );

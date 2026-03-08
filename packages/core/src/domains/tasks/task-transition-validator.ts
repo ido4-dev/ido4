@@ -13,7 +13,7 @@ import type {
   IIssueRepository,
   IProjectConfig,
   IWorkflowConfig,
-  IEpicValidator,
+  IIntegrityValidator,
   IRepositoryRepository,
   IGitWorkflowConfig,
   AllTransitionsResult,
@@ -46,7 +46,7 @@ export class TaskTransitionValidator implements ITaskTransitionValidator {
     issueRepository: IIssueRepository,
     projectConfig: IProjectConfig,
     workflowConfig: IWorkflowConfig,
-    epicValidator: IEpicValidator,
+    integrityValidator: IIntegrityValidator,
     repositoryRepository: IRepositoryRepository,
     gitWorkflowConfig: IGitWorkflowConfig,
     logger: ILogger,
@@ -73,7 +73,7 @@ export class TaskTransitionValidator implements ITaskTransitionValidator {
 
     this.stepDeps = {
       issueRepository,
-      epicValidator,
+      integrityValidator,
       repositoryRepository,
       projectConfig,
       workflowConfig,

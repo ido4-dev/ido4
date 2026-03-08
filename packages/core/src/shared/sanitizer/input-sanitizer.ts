@@ -28,7 +28,7 @@ const MAX_REPO_NAME_LENGTH = 100;
 const PROJECT_ID_PATTERN = /^PVT_[a-zA-Z0-9_-]+$/;
 const FIELD_ID_PATTERN = /^PVT[A-Z]*F_[a-zA-Z0-9_-]+$/;
 const ITEM_ID_PATTERN = /^PVTI_[a-zA-Z0-9_-]+$/;
-const WAVE_FORMAT_PATTERN = /^wave-\d{3}-[a-z0-9-]+$/;
+const CONTAINER_FORMAT_PATTERN = /^wave-\d{3}-[a-z0-9-]+$/;
 const REPO_NAME_PATTERN = /^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/;
 
 const WINDOWS_RESERVED_NAMES = new Set([
@@ -165,12 +165,12 @@ export class InputSanitizer {
   }
 
   /** Validate wave format (wave-NNN-description). */
-  static validateWaveFormat(waveName: string): SanitizeResult<string> {
+  static validateContainerFormat(waveName: string): SanitizeResult<string> {
     if (!waveName || typeof waveName !== 'string') {
       return { valid: false, value: '', error: 'Wave name is required' };
     }
 
-    if (!WAVE_FORMAT_PATTERN.test(waveName)) {
+    if (!CONTAINER_FORMAT_PATTERN.test(waveName)) {
       return { valid: false, value: waveName, error: 'Wave name must match format wave-NNN-description (e.g., wave-001-auth-system)' };
     }
 

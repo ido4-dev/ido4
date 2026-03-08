@@ -9,7 +9,7 @@ export type {
   HealthData,
 } from './types.js';
 
-export { resolveActiveWave } from './wave-detection.js';
+export { resolveActiveContainer } from './wave-detection.js';
 export { aggregateStandupData } from './standup-aggregator.js';
 export type { StandupAggregatorOptions } from './standup-aggregator.js';
 export { aggregateBoardData } from './board-aggregator.js';

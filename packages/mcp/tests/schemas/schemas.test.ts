@@ -9,10 +9,10 @@ import {
   ValidateAllTransitionsSchema,
 } from '../../src/schemas/task-schemas.js';
 import {
-  WaveNameSchema,
-  CreateWaveSchema,
-  AssignTaskToWaveSchema,
-} from '../../src/schemas/wave-schemas.js';
+  ContainerNameSchema,
+  CreateContainerSchema,
+  AssignTaskToContainerSchema,
+} from '../../src/schemas/container-schemas.js';
 import {
   DependencySchema,
 } from '../../src/schemas/dependency-schemas.js';
@@ -123,22 +123,22 @@ describe('Task Schemas', () => {
   });
 });
 
-describe('Wave Schemas', () => {
-  describe('WaveNameSchema', () => {
+describe('Container Schemas', () => {
+  describe('ContainerNameSchema', () => {
     it('accepts valid wave name', () => {
-      const result = parseSchema(WaveNameSchema, { waveName: 'Wave 1' });
+      const result = parseSchema(ContainerNameSchema, { waveName: 'Wave 1' });
       expect(result.success).toBe(true);
     });
 
     it('rejects missing waveName', () => {
-      const result = parseSchema(WaveNameSchema, {});
+      const result = parseSchema(ContainerNameSchema, {});
       expect(result.success).toBe(false);
     });
   });
 
-  describe('CreateWaveSchema', () => {
+  describe('CreateContainerSchema', () => {
     it('accepts name with description', () => {
-      const result = parseSchema(CreateWaveSchema, {
+      const result = parseSchema(CreateContainerSchema, {
         name: 'Wave 2',
         description: 'Second wave of features',
       });
@@ -146,14 +146,14 @@ describe('Wave Schemas', () => {
     });
 
     it('accepts name only', () => {
-      const result = parseSchema(CreateWaveSchema, { name: 'Wave 2' });
+      const result = parseSchema(CreateContainerSchema, { name: 'Wave 2' });
       expect(result.success).toBe(true);
     });
   });
 
-  describe('AssignTaskToWaveSchema', () => {
+  describe('AssignTaskToContainerSchema', () => {
     it('accepts valid assignment', () => {
-      const result = parseSchema(AssignTaskToWaveSchema, {
+      const result = parseSchema(AssignTaskToContainerSchema, {
         issueNumber: 42,
         waveName: 'Wave 1',
       });
@@ -161,7 +161,7 @@ describe('Wave Schemas', () => {
     });
 
     it('rejects missing waveName', () => {
-      const result = parseSchema(AssignTaskToWaveSchema, { issueNumber: 42 });
+      const result = parseSchema(AssignTaskToContainerSchema, { issueNumber: 42 });
       expect(result.success).toBe(false);
     });
   });

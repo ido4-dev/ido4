@@ -52,7 +52,7 @@ export function registerProjectTools(server: McpServer): void {
       const container = await getContainer();
 
       const [waves, taskResult] = await Promise.all([
-        container.waveService.listWaves(),
+        container.containerService.listContainers(),
         container.taskService.listTasks({}),
       ]);
 

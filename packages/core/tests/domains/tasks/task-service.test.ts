@@ -14,7 +14,7 @@ import type { WorkflowTransitionResult } from '../../../src/domains/tasks/task-w
 function createMockIssueRepo(): IIssueRepository {
   return {
     getTask: vi.fn(), getTaskWithDetails: vi.fn(), createIssue: vi.fn(),
-    updateTaskStatus: vi.fn(), updateTaskField: vi.fn(), updateTaskWave: vi.fn(),
+    updateTaskStatus: vi.fn(), updateTaskField: vi.fn(), updateTaskContainer: vi.fn(),
     assignTask: vi.fn(), addComment: vi.fn(), closeIssue: vi.fn(),
     findPullRequestForIssue: vi.fn(), getSubIssues: vi.fn().mockResolvedValue([]),
   };
@@ -25,7 +25,7 @@ function createMockProjectRepo(): IProjectRepository {
     getProjectItems: vi.fn().mockResolvedValue([]),
     addItemToProject: vi.fn().mockResolvedValue('PVTI_item1'),
     updateItemField: vi.fn(),
-    getWaveStatus: vi.fn(),
+    getContainerStatus: vi.fn(),
     getCurrentUser: vi.fn(),
   };
 }

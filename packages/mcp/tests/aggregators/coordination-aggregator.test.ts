@@ -32,11 +32,11 @@ function createMockContainer() {
       queryEvents: vi.fn().mockResolvedValue({ events: [], total: 0, query: {} }),
       getRecentEvents: vi.fn().mockResolvedValue([]),
     },
-    waveService: {
-      listWaves: vi.fn().mockResolvedValue([
+    containerService: {
+      listContainers: vi.fn().mockResolvedValue([
         { name: 'wave-001', status: 'active', taskCount: 3, completedCount: 1, completionPercentage: 33 },
       ]),
-      getWaveStatus: vi.fn().mockResolvedValue({
+      getContainerStatus: vi.fn().mockResolvedValue({
         name: 'wave-001',
         tasks: [
           { number: 1, title: 'Task 1', status: 'In Progress', wave: 'wave-001' },
@@ -163,7 +163,7 @@ describe('aggregateCoordinationData', () => {
   });
 
   it('handles no active wave gracefully', async () => {
-    (container.waveService.listWaves as ReturnType<typeof vi.fn>)
+    (container.containerService.listContainers as ReturnType<typeof vi.fn>)
       .mockResolvedValue([{ name: 'wave-001', status: 'completed' }]);
 
     const result = await aggregateCoordinationData(container);

@@ -148,7 +148,7 @@ export class GitHubIssueRepository implements IIssueRepository {
     this.logger.info('Task field updated', { issueNumber, fieldKey, fieldType });
   }
 
-  async updateTaskWave(issueNumber: number, waveName: string): Promise<void> {
+  async updateTaskContainer(issueNumber: number, waveName: string): Promise<void> {
     await this.updateTaskField(issueNumber, 'wave', waveName, 'text');
   }
 

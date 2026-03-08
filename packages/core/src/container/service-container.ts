@@ -18,9 +18,9 @@ import type {
   IEpicRepository,
   ITaskService,
   ITaskTransitionValidator,
-  IWaveService,
+  IContainerService,
   IEpicService,
-  IEpicValidator,
+  IIntegrityValidator,
   IDependencyService,
   IProjectConfig,
   IWorkflowConfig,
@@ -46,13 +46,13 @@ import { GitHubProjectRepository } from '../infrastructure/github/repositories/p
 import { GitHubRepositoryRepository } from '../infrastructure/github/repositories/repository-repository.js';
 import { GitHubEpicRepository } from '../infrastructure/github/repositories/epic-repository.js';
 import { EpicService } from '../domains/epics/epic-service.js';
-import { EpicValidator } from '../domains/epics/epic-validator.js';
+import { IntegrityValidator } from '../domains/epics/integrity-validator.js';
 import { DependencyService } from '../domains/dependencies/dependency-service.js';
 import { TaskTransitionValidator } from '../domains/tasks/task-transition-validator.js';
 import { TaskWorkflowService } from '../domains/tasks/task-workflow-service.js';
 import { SuggestionService } from '../domains/tasks/suggestion-service.js';
 import { TaskService } from '../domains/tasks/task-service.js';
-import { WaveService } from '../domains/waves/wave-service.js';
+import { ContainerService } from '../domains/containers/container-service.js';
 import { AuditService } from '../domains/audit/audit-service.js';
 import { JsonlAuditStore } from '../domains/audit/audit-store.js';
 import { AnalyticsService } from '../domains/analytics/analytics-service.js';
@@ -104,9 +104,9 @@ export class ServiceContainer {
   // Domain Services
   readonly taskService: ITaskService;
   readonly taskTransitionValidator: ITaskTransitionValidator;
-  readonly waveService: IWaveService;
+  readonly containerService: IContainerService;
   readonly epicService: IEpicService;
-  readonly epicValidator: IEpicValidator;
+  readonly integrityValidator: IIntegrityValidator;
   readonly dependencyService: IDependencyService;
   readonly auditService: IAuditService;
   readonly analyticsService: IAnalyticsService;
@@ -130,9 +130,9 @@ export class ServiceContainer {
     this.epicRepository = deps.epicRepository;
     this.taskService = deps.taskService;
     this.taskTransitionValidator = deps.taskTransitionValidator;
-    this.waveService = deps.waveService;
+    this.containerService = deps.containerService;
     this.epicService = deps.epicService;
-    this.epicValidator = deps.epicValidator;
+    this.integrityValidator = deps.integrityValidator;
     this.dependencyService = deps.dependencyService;
     this.auditService = deps.auditService;
     this.analyticsService = deps.analyticsService;
@@ -154,7 +154,7 @@ export class ServiceContainer {
    * 3. Infrastructure (credential manager, GraphQL client)
    * 4. Repositories (issue, project, repository, epic)
    * 5. Domain Services (epic, dependency, BRE)
-   * 6. Facade (workflow service, suggestion service, task service, wave service)
+   * 6. Facade (workflow service, suggestion service, task service, container service)
    */
   static async create(config: ServiceContainerConfig): Promise<ServiceContainer> {
     // Layer 1: Defaults
@@ -179,7 +179,7 @@ export class ServiceContainer {
 
     // Layer 5: Domain Services
     const epicService = new EpicService(projectRepository, logger);
-    const epicValidator = new EpicValidator(epicService, issueRepository, logger);
+    const integrityValidator = new IntegrityValidator(epicService, issueRepository, logger);
     const dependencyService = new DependencyService(issueRepository, workflowConfig, logger);
 
     // Layer 5a: Audit (subscribes to event bus, no domain dependencies)
@@ -196,7 +196,7 @@ export class ServiceContainer {
     registerAllBuiltinSteps(stepRegistry);
     const taskTransitionValidator = new TaskTransitionValidator(
       issueRepository, projectConfig, workflowConfig,
-      epicValidator, repositoryRepository, gitWorkflowConfig, logger,
+      integrityValidator, repositoryRepository, gitWorkflowConfig, logger,
       methodologyConfig, stepRegistry, agentService,
     );
 
@@ -209,19 +209,19 @@ export class ServiceContainer {
       workflowService, suggestionService, taskTransitionValidator,
       issueRepository, projectRepository, projectConfig, workflowConfig, eventBus, sessionId, logger,
     );
-    const waveService = new WaveService(
-      projectRepository, issueRepository, epicValidator, workflowConfig, logger,
+    const containerService = new ContainerService(
+      projectRepository, issueRepository, integrityValidator, workflowConfig, logger,
     );
 
-    // Layer 6b: Analytics (depends on auditService + waveService)
-    const analyticsService = new AnalyticsService(auditService, waveService, eventBus, logger);
+    // Layer 6b: Analytics (depends on auditService + containerService)
+    const analyticsService = new AnalyticsService(auditService, containerService, eventBus, logger);
 
     // Layer 7: Compliance (depends on auditService + analyticsService)
     const complianceService = new ComplianceService(auditService, analyticsService, eventBus, logger);
 
-    // Layer 8: Work Distribution (depends on wave, agent, task, audit)
+    // Layer 8: Work Distribution (depends on container, agent, task, audit)
     const workDistributionService = new WorkDistributionService(
-      waveService, agentService, taskService,
+      containerService, agentService, taskService,
       auditService, eventBus, sessionId, logger,
     );
 
@@ -246,9 +246,9 @@ export class ServiceContainer {
       epicRepository,
       taskService,
       taskTransitionValidator,
-      waveService,
+      containerService,
       epicService,
-      epicValidator,
+      integrityValidator,
       dependencyService,
       auditService,
       analyticsService,
@@ -275,9 +275,9 @@ interface ServiceContainerDependencies {
   epicRepository: IEpicRepository;
   taskService: ITaskService;
   taskTransitionValidator: ITaskTransitionValidator;
-  waveService: IWaveService;
+  containerService: IContainerService;
   epicService: IEpicService;
-  epicValidator: IEpicValidator;
+  integrityValidator: IIntegrityValidator;
   dependencyService: IDependencyService;
   auditService: IAuditService;
   analyticsService: IAnalyticsService;

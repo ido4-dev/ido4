@@ -70,7 +70,7 @@ describe('Methodology Config Integration', () => {
 
     const mockDeps = {
       issueRepository: {} as any,
-      epicValidator: {} as any,
+      integrityValidator: {} as any,
       repositoryRepository: {} as any,
       projectConfig: {} as any,
       workflowConfig: {} as any,

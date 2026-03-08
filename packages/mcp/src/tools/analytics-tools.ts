@@ -15,7 +15,7 @@ export function registerAnalyticsTools(server: McpServer): void {
       const container = await getContainer();
 
       if (args.waveName) {
-        const result = await container.analyticsService.getWaveAnalytics(args.waveName);
+        const result = await container.analyticsService.getContainerAnalytics(args.waveName);
         return toCallToolResult({ success: true, data: result });
       }
 

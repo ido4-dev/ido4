@@ -101,9 +101,9 @@ describe('ServiceContainer', () => {
     // Domain Services
     expect(container.taskService).toBeDefined();
     expect(container.taskTransitionValidator).toBeDefined();
-    expect(container.waveService).toBeDefined();
+    expect(container.containerService).toBeDefined();
     expect(container.epicService).toBeDefined();
-    expect(container.epicValidator).toBeDefined();
+    expect(container.integrityValidator).toBeDefined();
     expect(container.dependencyService).toBeDefined();
   });
 
@@ -187,8 +187,8 @@ describe('ServiceContainer', () => {
       githubToken: 'ghp_test_token',
     });
 
-    // Verify task service and wave service are separate
-    expect(container.taskService).not.toBe(container.waveService);
-    expect(container.epicService).not.toBe(container.epicValidator);
+    // Verify task service and container service are separate
+    expect(container.taskService).not.toBe(container.containerService);
+    expect(container.epicService).not.toBe(container.integrityValidator);
   });
 });

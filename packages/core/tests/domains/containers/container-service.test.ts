@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { WaveService } from '../../../src/domains/waves/wave-service.js';
-import type { IProjectRepository, IIssueRepository, IEpicValidator, IWorkflowConfig, ProjectItem } from '../../../src/container/interfaces.js';
+import { ContainerService } from '../../../src/domains/containers/container-service.js';
+import type { IProjectRepository, IIssueRepository, IIntegrityValidator, IWorkflowConfig, ProjectItem } from '../../../src/container/interfaces.js';
 import { TestLogger } from '../../helpers/test-logger.js';
 import { createMockWorkflowConfig, createMockProjectItem, createMockTaskData } from '../../helpers/mock-factories.js';
 
@@ -8,7 +8,7 @@ function createMockProjectRepo(): IProjectRepository {
   return {
     getProjectItems: vi.fn().mockResolvedValue([]),
     updateItemField: vi.fn(),
-    getWaveStatus: vi.fn(),
+    getContainerStatus: vi.fn(),
     getCurrentUser: vi.fn(),
   };
 }
@@ -16,15 +16,15 @@ function createMockProjectRepo(): IProjectRepository {
 function createMockIssueRepo(): IIssueRepository {
   return {
     getTask: vi.fn(), getTaskWithDetails: vi.fn(), updateTaskStatus: vi.fn(),
-    updateTaskField: vi.fn(), updateTaskWave: vi.fn(), assignTask: vi.fn(),
+    updateTaskField: vi.fn(), updateTaskContainer: vi.fn(), assignTask: vi.fn(),
     addComment: vi.fn(), closeIssue: vi.fn(), findPullRequestForIssue: vi.fn(),
     getSubIssues: vi.fn().mockResolvedValue([]),
   };
 }
 
-function createMockEpicValidator(): IEpicValidator {
+function createMockIntegrityValidator(): IIntegrityValidator {
   return {
-    validateWaveAssignmentEpicIntegrity: vi.fn().mockResolvedValue({ maintained: true, violations: [] }),
+    validateAssignmentIntegrity: vi.fn().mockResolvedValue({ maintained: true, violations: [] }),
   };
 }
 
@@ -39,31 +39,31 @@ function makeItems(...specs: Array<{ wave?: string; status?: string }>): Project
   }));
 }
 
-describe('WaveService', () => {
-  let service: WaveService;
+describe('ContainerService', () => {
+  let service: ContainerService;
   let projectRepo: ReturnType<typeof createMockProjectRepo>;
   let issueRepo: ReturnType<typeof createMockIssueRepo>;
-  let epicValidator: ReturnType<typeof createMockEpicValidator>;
+  let integrityValidator: ReturnType<typeof createMockIntegrityValidator>;
   let workflowConfig: IWorkflowConfig;
   let logger: TestLogger;
 
   beforeEach(() => {
     projectRepo = createMockProjectRepo();
     issueRepo = createMockIssueRepo();
-    epicValidator = createMockEpicValidator();
+    integrityValidator = createMockIntegrityValidator();
     workflowConfig = createMockWorkflowConfig();
     logger = new TestLogger();
-    service = new WaveService(projectRepo, issueRepo, epicValidator, workflowConfig, logger);
+    service = new ContainerService(projectRepo, issueRepo, integrityValidator, workflowConfig, logger);
   });
 
-  describe('listWaves', () => {
+  describe('listContainers', () => {
     it('returns empty array when no items', async () => {
       vi.mocked(projectRepo.getProjectItems).mockResolvedValue([]);
-      const result = await service.listWaves();
+      const result = await service.listContainers();
       expect(result).toHaveLength(0);
     });
 
-    it('groups items by wave name', async () => {
+    it('groups items by container name', async () => {
       vi.mocked(projectRepo.getProjectItems).mockResolvedValue(
         makeItems(
           { wave: 'wave-001' },
@@ -72,7 +72,7 @@ describe('WaveService', () => {
         ),
       );
 
-      const result = await service.listWaves();
+      const result = await service.listContainers();
       expect(result).toHaveLength(2);
       expect(result[0]!.name).toBe('wave-001');
       expect(result[0]!.taskCount).toBe(2);
@@ -80,12 +80,12 @@ describe('WaveService', () => {
       expect(result[1]!.taskCount).toBe(1);
     });
 
-    it('skips items without wave', async () => {
+    it('skips items without container', async () => {
       vi.mocked(projectRepo.getProjectItems).mockResolvedValue([
         createMockProjectItem({ fieldValues: { Status: 'Backlog' } }),
       ]);
 
-      const result = await service.listWaves();
+      const result = await service.listContainers();
       expect(result).toHaveLength(0);
     });
 
@@ -99,7 +99,7 @@ describe('WaveService', () => {
         ),
       );
 
-      const result = await service.listWaves();
+      const result = await service.listContainers();
       expect(result[0]!.completedCount).toBe(2);
       expect(result[0]!.completionPercentage).toBe(50);
     });
@@ -112,7 +112,7 @@ describe('WaveService', () => {
         ),
       );
 
-      const result = await service.listWaves();
+      const result = await service.listContainers();
       expect(result[0]!.status).toBe('completed');
     });
 
@@ -124,7 +124,7 @@ describe('WaveService', () => {
         ),
       );
 
-      const result = await service.listWaves();
+      const result = await service.listContainers();
       expect(result[0]!.status).toBe('active');
     });
 
@@ -136,11 +136,11 @@ describe('WaveService', () => {
         ),
       );
 
-      const result = await service.listWaves();
+      const result = await service.listContainers();
       expect(result[0]!.status).toBe('not_started');
     });
 
-    it('sorts waves alphabetically', async () => {
+    it('sorts containers alphabetically', async () => {
       vi.mocked(projectRepo.getProjectItems).mockResolvedValue(
         makeItems(
           { wave: 'wave-003' },
@@ -149,76 +149,76 @@ describe('WaveService', () => {
         ),
       );
 
-      const result = await service.listWaves();
+      const result = await service.listContainers();
       expect(result.map((w) => w.name)).toEqual(['wave-001', 'wave-002', 'wave-003']);
     });
   });
 
-  describe('getWaveStatus', () => {
+  describe('getContainerStatus', () => {
     it('delegates to projectRepository', async () => {
       const waveData = {
         name: 'wave-001',
         tasks: [createMockTaskData()],
         metrics: { total: 1, completed: 0, inProgress: 0, blocked: 0, ready: 1 },
       };
-      vi.mocked(projectRepo.getWaveStatus).mockResolvedValue(waveData);
+      vi.mocked(projectRepo.getContainerStatus).mockResolvedValue(waveData);
 
-      const result = await service.getWaveStatus('wave-001');
+      const result = await service.getContainerStatus('wave-001');
       expect(result).toEqual(waveData);
-      expect(projectRepo.getWaveStatus).toHaveBeenCalledWith('wave-001');
+      expect(projectRepo.getContainerStatus).toHaveBeenCalledWith('wave-001');
     });
   });
 
-  describe('createWave', () => {
-    it('creates wave with valid name', async () => {
-      const result = await service.createWave('wave-001-auth');
+  describe('createContainer', () => {
+    it('creates container with valid name', async () => {
+      const result = await service.createContainer('wave-001-auth');
       expect(result.name).toBe('wave-001-auth');
       expect(result.created).toBe(true);
     });
 
-    it('returns created=false for duplicate wave', async () => {
+    it('returns created=false for duplicate container', async () => {
       vi.mocked(projectRepo.getProjectItems).mockResolvedValue(
         makeItems({ wave: 'wave-001-auth' }),
       );
 
-      const result = await service.createWave('wave-001-auth');
+      const result = await service.createContainer('wave-001-auth');
       expect(result.created).toBe(false);
     });
 
-    it('throws for invalid wave format', async () => {
-      await expect(service.createWave('bad-name')).rejects.toThrow();
+    it('throws for invalid container format', async () => {
+      await expect(service.createContainer('bad-name')).rejects.toThrow();
     });
   });
 
-  describe('assignTaskToWave', () => {
-    it('updates wave and checks epic integrity', async () => {
-      const result = await service.assignTaskToWave(42, 'wave-001-auth');
+  describe('assignTaskToContainer', () => {
+    it('updates container and checks integrity', async () => {
+      const result = await service.assignTaskToContainer(42, 'wave-001-auth');
 
-      expect(issueRepo.updateTaskWave).toHaveBeenCalledWith(42, 'wave-001-auth');
-      expect(epicValidator.validateWaveAssignmentEpicIntegrity).toHaveBeenCalledWith(42, 'wave-001-auth');
+      expect(issueRepo.updateTaskContainer).toHaveBeenCalledWith(42, 'wave-001-auth');
+      expect(integrityValidator.validateAssignmentIntegrity).toHaveBeenCalledWith(42, 'wave-001-auth');
       expect(result.issueNumber).toBe(42);
-      expect(result.wave).toBe('wave-001-auth');
-      expect(result.epicIntegrity.maintained).toBe(true);
+      expect(result.container).toBe('wave-001-auth');
+      expect(result.integrity.maintained).toBe(true);
     });
 
-    it('returns integrity violations when epic is split', async () => {
-      vi.mocked(epicValidator.validateWaveAssignmentEpicIntegrity).mockResolvedValue({
-        maintained: false, violations: ['Epic split across waves'],
+    it('returns integrity violations when epic is split across containers', async () => {
+      vi.mocked(integrityValidator.validateAssignmentIntegrity).mockResolvedValue({
+        maintained: false, violations: ['Epic split across containers'],
       });
 
-      const result = await service.assignTaskToWave(42, 'wave-002-feature');
-      expect(result.epicIntegrity.maintained).toBe(false);
-      expect(result.epicIntegrity.violations).toHaveLength(1);
+      const result = await service.assignTaskToContainer(42, 'wave-002-feature');
+      expect(result.integrity.maintained).toBe(false);
+      expect(result.integrity.violations).toHaveLength(1);
     });
 
-    it('throws for invalid wave format', async () => {
-      await expect(service.assignTaskToWave(42, 'invalid')).rejects.toThrow();
+    it('throws for invalid container format', async () => {
+      await expect(service.assignTaskToContainer(42, 'invalid')).rejects.toThrow();
     });
   });
 
-  describe('validateWaveCompletion', () => {
+  describe('validateContainerCompletion', () => {
     it('returns canComplete=true when all tasks are Done', async () => {
-      vi.mocked(projectRepo.getWaveStatus).mockResolvedValue({
+      vi.mocked(projectRepo.getContainerStatus).mockResolvedValue({
         name: 'wave-001',
         tasks: [
           createMockTaskData({ number: 1, status: 'Done' }),
@@ -227,14 +227,14 @@ describe('WaveService', () => {
         metrics: { total: 2, completed: 2, inProgress: 0, blocked: 0, ready: 0 },
       });
 
-      const result = await service.validateWaveCompletion('wave-001');
+      const result = await service.validateContainerCompletion('wave-001');
       expect(result.canComplete).toBe(true);
       expect(result.reasons).toHaveLength(0);
       expect(result.tasks).toHaveLength(0);
     });
 
     it('returns canComplete=false when some tasks not Done', async () => {
-      vi.mocked(projectRepo.getWaveStatus).mockResolvedValue({
+      vi.mocked(projectRepo.getContainerStatus).mockResolvedValue({
         name: 'wave-001',
         tasks: [
           createMockTaskData({ number: 1, title: 'Task A', status: 'Done' }),
@@ -243,7 +243,7 @@ describe('WaveService', () => {
         metrics: { total: 2, completed: 1, inProgress: 1, blocked: 0, ready: 0 },
       });
 
-      const result = await service.validateWaveCompletion('wave-001');
+      const result = await service.validateContainerCompletion('wave-001');
       expect(result.canComplete).toBe(false);
       expect(result.tasks).toHaveLength(1);
       expect(result.tasks[0]!.number).toBe(2);
@@ -251,16 +251,16 @@ describe('WaveService', () => {
       expect(result.reasons[0]).toContain('In Progress');
     });
 
-    it('returns canComplete=false for empty wave', async () => {
-      vi.mocked(projectRepo.getWaveStatus).mockResolvedValue({
+    it('returns canComplete=false for empty container', async () => {
+      vi.mocked(projectRepo.getContainerStatus).mockResolvedValue({
         name: 'wave-001',
         tasks: [],
         metrics: { total: 0, completed: 0, inProgress: 0, blocked: 0, ready: 0 },
       });
 
-      const result = await service.validateWaveCompletion('wave-001');
+      const result = await service.validateContainerCompletion('wave-001');
       expect(result.canComplete).toBe(false);
-      expect(result.reasons).toContain('Wave has no tasks');
+      expect(result.reasons).toContain('Container has no tasks');
     });
   });
 });

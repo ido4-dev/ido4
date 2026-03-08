@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { TaskTransitionValidator } from '../../../src/domains/tasks/task-transition-validator.js';
-import type { IIssueRepository, IProjectConfig, IWorkflowConfig, IEpicValidator, IRepositoryRepository, IGitWorkflowConfig } from '../../../src/container/interfaces.js';
+import type { IIssueRepository, IProjectConfig, IWorkflowConfig, IIntegrityValidator, IRepositoryRepository, IGitWorkflowConfig } from '../../../src/container/interfaces.js';
 import { TestLogger } from '../../helpers/test-logger.js';
 import { createMockTaskData, createMockWorkflowConfig, createMockProjectConfig, createMockGitWorkflowConfig } from '../../helpers/mock-factories.js';
 
 function createMockIssueRepo(): IIssueRepository {
   return {
     getTask: vi.fn(), getTaskWithDetails: vi.fn(), updateTaskStatus: vi.fn(),
-    updateTaskField: vi.fn(), updateTaskWave: vi.fn(), assignTask: vi.fn(),
+    updateTaskField: vi.fn(), updateTaskContainer: vi.fn(), assignTask: vi.fn(),
     addComment: vi.fn(), closeIssue: vi.fn(), findPullRequestForIssue: vi.fn(),
     getSubIssues: vi.fn().mockResolvedValue([]),
   };
@@ -16,13 +16,13 @@ function createMockIssueRepo(): IIssueRepository {
 function createMockRepoRepo(): IRepositoryRepository {
   return {
     mergePullRequest: vi.fn(), findPullRequestForIssue: vi.fn(),
-    checkWaveBranchMerged: vi.fn(), getPullRequestReviews: vi.fn(),
+    checkContainerBranchMerged: vi.fn(), getPullRequestReviews: vi.fn(),
   };
 }
 
-function createMockEpicValidator(): IEpicValidator {
+function createMockIntegrityValidator(): IIntegrityValidator {
   return {
-    validateWaveAssignmentEpicIntegrity: vi.fn().mockResolvedValue({ maintained: true, violations: [] }),
+    validateAssignmentIntegrity: vi.fn().mockResolvedValue({ maintained: true, violations: [] }),
   };
 }
 
@@ -30,19 +30,19 @@ describe('TaskTransitionValidator', () => {
   let validator: TaskTransitionValidator;
   let issueRepo: ReturnType<typeof createMockIssueRepo>;
   let repoRepo: ReturnType<typeof createMockRepoRepo>;
-  let epicValidator: ReturnType<typeof createMockEpicValidator>;
+  let integrityValidator: ReturnType<typeof createMockIntegrityValidator>;
   let logger: TestLogger;
 
   beforeEach(() => {
     issueRepo = createMockIssueRepo();
     repoRepo = createMockRepoRepo();
-    epicValidator = createMockEpicValidator();
+    integrityValidator = createMockIntegrityValidator();
     logger = new TestLogger();
     validator = new TaskTransitionValidator(
       issueRepo,
       createMockProjectConfig(),
       createMockWorkflowConfig(),
-      epicValidator,
+      integrityValidator,
       repoRepo,
       createMockGitWorkflowConfig(),
       logger,

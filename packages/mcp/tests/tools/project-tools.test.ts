@@ -143,20 +143,20 @@ describe('Project Tools', () => {
   });
 
   describe('get_project_status', () => {
-    const mockWaveService = { listWaves: vi.fn() };
+    const mockContainerService = { listContainers: vi.fn() };
     const mockTaskService = {
       listTasks: vi.fn(),
     };
 
     beforeEach(() => {
       mockGetContainer.mockResolvedValue({
-        waveService: mockWaveService,
+        containerService: mockContainerService,
         taskService: mockTaskService,
       });
     });
 
     it('returns project dashboard with wave summaries and metrics', async () => {
-      mockWaveService.listWaves.mockResolvedValue([
+      mockContainerService.listContainers.mockResolvedValue([
         { name: 'wave-001', taskCount: 5, completedCount: 3, completionPercentage: 60, status: 'active' },
         { name: 'wave-002', taskCount: 3, completedCount: 0, completionPercentage: 0, status: 'not_started' },
       ]);
@@ -193,7 +193,7 @@ describe('Project Tools', () => {
     });
 
     it('handles empty project', async () => {
-      mockWaveService.listWaves.mockResolvedValue([]);
+      mockContainerService.listContainers.mockResolvedValue([]);
       mockTaskService.listTasks.mockResolvedValue({
         success: true,
         data: { tasks: [], total: 0, filters: {} },
