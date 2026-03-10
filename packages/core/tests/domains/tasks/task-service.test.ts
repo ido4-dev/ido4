@@ -8,6 +8,7 @@ import type { DomainEvent } from '../../../src/shared/events/types.js';
 import { TestLogger } from '../../helpers/test-logger.js';
 import { createMockTaskData, createMockProjectConfig, createMockWorkflowConfig, createMockGitWorkflowConfig } from '../../helpers/mock-factories.js';
 import { SYSTEM_ACTOR } from '../../../src/index.js';
+import { HYDRO_PROFILE } from '../../../src/profiles/hydro.js';
 import type { ValidationResult, TransitionType } from '../../../src/domains/tasks/types.js';
 import type { WorkflowTransitionResult } from '../../../src/domains/tasks/task-workflow-service.js';
 
@@ -86,8 +87,8 @@ describe('TaskService', () => {
     const projectConfig = createMockProjectConfig();
 
     // Use real WorkflowService and SuggestionService but mock their dependencies
-    workflowService = new TaskWorkflowService(issueRepo, validator, workflowConfig, logger);
-    suggestionService = new SuggestionService(workflowConfig, gitWorkflowConfig);
+    workflowService = new TaskWorkflowService(issueRepo, validator, workflowConfig, logger, HYDRO_PROFILE);
+    suggestionService = new SuggestionService(workflowConfig, gitWorkflowConfig, HYDRO_PROFILE);
 
     service = new TaskService(
       workflowService, suggestionService, validator,

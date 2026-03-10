@@ -1,14 +1,16 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { callPrompt, hasRegisteredPrompt } from '../helpers/test-utils.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { HYDRO_PROFILE } from '@ido4/core';
 import {
   registerPrompts,
-  STANDUP_PROMPT,
-  PLAN_WAVE_PROMPT,
-  BOARD_PROMPT,
-  COMPLIANCE_PROMPT,
-  HEALTH_PROMPT,
-  RETRO_PROMPT,
+  generateStandupPrompt,
+  generatePlanContainerPrompt,
+  generateBoardPrompt,
+  generateCompliancePrompt,
+  generateHealthPrompt,
+  generateRetroPrompt,
+  buildPromptContext,
 } from '../../src/prompts/index.js';
 
 type PromptResult = {
@@ -17,10 +19,11 @@ type PromptResult = {
 
 describe('Prompts', () => {
   let server: McpServer;
+  const ctx = buildPromptContext(HYDRO_PROFILE);
 
   beforeEach(() => {
     server = new McpServer({ name: 'test', version: '0.1.0' });
-    registerPrompts(server);
+    registerPrompts(server, HYDRO_PROFILE);
   });
 
   describe('standup', () => {
@@ -219,83 +222,97 @@ describe('Prompts', () => {
   });
 
   describe('few-shot examples', () => {
-    it('STANDUP_PROMPT includes example output', () => {
-      expect(STANDUP_PROMPT).toContain('Data-Backed Governance Expertise Sounds Like');
-      expect(STANDUP_PROMPT).toContain('cascade');
+    it('standup prompt includes example output', () => {
+      const prompt = generateStandupPrompt(ctx);
+      expect(prompt).toContain('Data-Backed Governance Expertise Sounds Like');
+      expect(prompt).toContain('cascade');
     });
 
-    it('PLAN_WAVE_PROMPT includes example output', () => {
-      expect(PLAN_WAVE_PROMPT).toContain('Data-Driven Principle-Aware Planning Sounds Like');
-      expect(PLAN_WAVE_PROMPT).toContain('All included per Epic Integrity');
+    it('plan prompt includes example output', () => {
+      const prompt = generatePlanContainerPrompt(ctx);
+      expect(prompt).toContain('Data-Driven Principle-Aware Planning Sounds Like');
+      expect(prompt).toContain('All included per Epic Integrity');
     });
 
-    it('BOARD_PROMPT includes example output', () => {
-      expect(BOARD_PROMPT).toContain('Flow Intelligence Report');
+    it('board prompt includes example output', () => {
+      const prompt = generateBoardPrompt(ctx);
+      expect(prompt).toContain('Flow Intelligence Report');
     });
 
-    it('COMPLIANCE_PROMPT includes example output', () => {
-      expect(COMPLIANCE_PROMPT).toContain('Compliance Intelligence');
+    it('compliance prompt includes example output', () => {
+      const prompt = generateCompliancePrompt(ctx);
+      expect(prompt).toContain('Compliance Intelligence');
     });
 
-    it('RETRO_PROMPT includes example output', () => {
-      expect(RETRO_PROMPT).toContain('Data-Backed Retrospective');
+    it('retro prompt includes example output', () => {
+      const prompt = generateRetroPrompt(ctx);
+      expect(prompt).toContain('Data-Backed Retrospective');
     });
   });
 
   describe('phase detection', () => {
-    it('STANDUP_PROMPT includes wave phase detection', () => {
-      expect(STANDUP_PROMPT).toContain('Phase Detection');
-      expect(STANDUP_PROMPT).toContain('Early (<30%)');
-      expect(STANDUP_PROMPT).toContain('Late (>70%)');
+    it('standup prompt includes wave phase detection', () => {
+      const prompt = generateStandupPrompt(ctx);
+      expect(prompt).toContain('Phase Detection');
+      expect(prompt).toContain('Early (<30%)');
+      expect(prompt).toContain('Late (>70%)');
     });
 
-    it('BOARD_PROMPT includes phase detection', () => {
-      expect(BOARD_PROMPT).toContain('Phase Detection');
+    it('board prompt includes phase detection', () => {
+      const prompt = generateBoardPrompt(ctx);
+      expect(prompt).toContain('Phase Detection');
     });
   });
 
   describe('severity scoring', () => {
-    it('COMPLIANCE_PROMPT includes severity model', () => {
-      expect(COMPLIANCE_PROMPT).toContain('Severity Scoring');
-      expect(COMPLIANCE_PROMPT).toContain('Wave proximity multiplier');
-      expect(COMPLIANCE_PROMPT).toContain('Cascade multiplier');
+    it('compliance prompt includes severity model', () => {
+      const prompt = generateCompliancePrompt(ctx);
+      expect(prompt).toContain('Severity Scoring');
+      expect(prompt).toContain('Wave proximity multiplier');
+      expect(prompt).toContain('Cascade multiplier');
     });
   });
 
-  describe('exported prompt strings', () => {
-    it('STANDUP_PROMPT includes governance reasoning', () => {
-      expect(STANDUP_PROMPT).toContain('leverage');
-      expect(STANDUP_PROMPT).toContain('Wave Health');
-      expect(STANDUP_PROMPT).toContain('Blocker Analysis');
+  describe('exported prompt generators', () => {
+    it('standup prompt includes governance reasoning', () => {
+      const prompt = generateStandupPrompt(ctx);
+      expect(prompt).toContain('leverage');
+      expect(prompt).toContain('Wave Health');
+      expect(prompt).toContain('Blocker Analysis');
     });
 
-    it('PLAN_WAVE_PROMPT includes principle enforcement', () => {
-      expect(PLAN_WAVE_PROMPT).toContain('Epic Integrity');
-      expect(PLAN_WAVE_PROMPT).toContain('Dependency Coherence');
-      expect(PLAN_WAVE_PROMPT).toContain('Self-Contained');
+    it('plan container prompt includes principle enforcement', () => {
+      const prompt = generatePlanContainerPrompt(ctx);
+      expect(prompt).toContain('Epic Integrity');
+      expect(prompt).toContain('Dependency Coherence');
+      expect(prompt).toContain('Self-Contained');
     });
 
-    it('BOARD_PROMPT includes flow intelligence', () => {
-      expect(BOARD_PROMPT).toContain('flow intelligence');
-      expect(BOARD_PROMPT).toContain('cascade');
-      expect(BOARD_PROMPT).toContain('bottleneck');
+    it('board prompt includes flow intelligence', () => {
+      const prompt = generateBoardPrompt(ctx);
+      expect(prompt).toContain('flow intelligence');
+      expect(prompt).toContain('cascade');
+      expect(prompt).toContain('bottleneck');
     });
 
-    it('COMPLIANCE_PROMPT audits all principles', () => {
-      expect(COMPLIANCE_PROMPT).toContain('Structural Principle Audit');
-      expect(COMPLIANCE_PROMPT).toContain('Remediation');
+    it('compliance prompt audits all principles', () => {
+      const prompt = generateCompliancePrompt(ctx);
+      expect(prompt).toContain('Structural Principle Audit');
+      expect(prompt).toContain('Remediation');
     });
 
-    it('HEALTH_PROMPT includes multi-dimensional assessment', () => {
-      expect(HEALTH_PROMPT).toContain('flow');
-      expect(HEALTH_PROMPT).toContain('governance');
-      expect(HEALTH_PROMPT).toContain('team');
+    it('health prompt includes multi-dimensional assessment', () => {
+      const prompt = generateHealthPrompt(ctx);
+      expect(prompt).toContain('flow');
+      expect(prompt).toContain('governance');
+      expect(prompt).toContain('team');
     });
 
-    it('RETRO_PROMPT includes retrospective framework', () => {
-      expect(RETRO_PROMPT).toContain('Velocity');
-      expect(RETRO_PROMPT).toContain('Recommendations');
-      expect(RETRO_PROMPT).toContain('Carry Forward');
+    it('retro prompt includes retrospective framework', () => {
+      const prompt = generateRetroPrompt(ctx);
+      expect(prompt).toContain('Velocity');
+      expect(prompt).toContain('Recommendations');
+      expect(prompt).toContain('Carry Forward');
     });
   });
 });

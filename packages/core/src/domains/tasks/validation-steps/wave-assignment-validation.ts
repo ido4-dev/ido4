@@ -4,11 +4,12 @@ export class WaveAssignmentValidation implements ValidationStep {
   readonly name = 'WaveAssignmentValidation';
 
   async validate(context: ValidationContext): Promise<ValidationStepResult> {
-    if (context.task.wave && context.task.wave.trim() !== '') {
+    const wave = context.task.containers['wave'];
+    if (wave && wave.trim() !== '') {
       return {
         stepName: this.name,
         passed: true,
-        message: `Task assigned to wave "${context.task.wave}"`,
+        message: `Task assigned to wave "${wave}"`,
         severity: 'info',
       };
     }

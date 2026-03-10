@@ -228,12 +228,31 @@ export type {
   ISandboxService,
 } from './domains/sandbox/index.js';
 
+// Profiles
+export type {
+  MethodologyProfile,
+  StateDefinition,
+  TransitionDefinition,
+  ContainerTypeDefinition,
+  IntegrityRuleDefinition,
+  SameContainerRule,
+  OrderingRule,
+  ContainmentRule,
+  PrincipleDefinition,
+  WorkItemsDefinition,
+  WorkItemTypeDefinition,
+  WorkItemHierarchyLevel,
+  MethodologyProfileFile,
+} from './profiles/index.js';
+export { HYDRO_PROFILE, SHAPE_UP_PROFILE, SCRUM_PROFILE, ProfileRegistry } from './profiles/index.js';
+
 // Configuration
 export { ProjectConfigLoader } from './config/index.js';
 export { WorkflowConfig } from './config/index.js';
 export { GitWorkflowConfig } from './config/index.js';
 export { MethodologyConfig, MethodologyConfigLoader, DEFAULT_METHODOLOGY } from './config/index.js';
 export type { IMethodologyConfig, MethodologyDefinition, MethodologyPipeline } from './config/index.js';
+export { ProfileConfigLoader } from './config/index.js';
 
 // Infrastructure — GitHub
 export {

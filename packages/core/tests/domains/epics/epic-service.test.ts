@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { EpicService } from '../../../src/domains/epics/epic-service.js';
 import type { IProjectRepository, ProjectItem } from '../../../src/container/interfaces.js';
+import { HYDRO_PROFILE } from '../../../src/profiles/hydro.js';
 import { TestLogger } from '../../helpers/test-logger.js';
 
 function createMockProjectRepository(): IProjectRepository {
@@ -46,7 +47,7 @@ describe('EpicService', () => {
   beforeEach(() => {
     projectRepo = createMockProjectRepository();
     logger = new TestLogger();
-    service = new EpicService(projectRepo, logger);
+    service = new EpicService(projectRepo, HYDRO_PROFILE, logger);
   });
 
   describe('getTasksInEpic', () => {
@@ -129,8 +130,8 @@ describe('EpicService', () => {
       expect(task.number).toBe(42);
       expect(task.title).toBe('Test Task');
       expect(task.status).toBe('In Progress');
-      expect(task.wave).toBe('wave-001');
-      expect(task.epic).toBe('Auth Epic');
+      expect(task.containers['wave']).toBe('wave-001');
+      expect(task.containers['epic']).toBe('Auth Epic');
       expect(task.itemId).toBe('PVTI_42');
     });
   });
@@ -139,6 +140,7 @@ describe('EpicService', () => {
     it('returns maintained when task has no epic', async () => {
       const result = await service.validateEpicIntegrity({
         id: 'I_1', itemId: 'PVTI_1', number: 1, title: 'T', body: '', status: 'Backlog',
+        containers: {},
       });
 
       expect(result.maintained).toBe(true);
@@ -153,7 +155,7 @@ describe('EpicService', () => {
 
       const result = await service.validateEpicIntegrity({
         id: 'I_1', itemId: 'PVTI_1', number: 1, title: 'T', body: '',
-        status: 'Backlog', epic: 'Auth Epic', wave: 'wave-001',
+        status: 'Backlog', containers: { epic: 'Auth Epic', wave: 'wave-001' },
       });
 
       expect(result.maintained).toBe(true);
@@ -168,7 +170,7 @@ describe('EpicService', () => {
 
       const result = await service.validateEpicIntegrity({
         id: 'I_1', itemId: 'PVTI_1', number: 1, title: 'T', body: '',
-        status: 'Backlog', epic: 'Auth Epic', wave: 'wave-001',
+        status: 'Backlog', containers: { epic: 'Auth Epic', wave: 'wave-001' },
       });
 
       expect(result.maintained).toBe(false);
@@ -186,7 +188,7 @@ describe('EpicService', () => {
 
       const result = await service.validateEpicIntegrity({
         id: 'I_1', itemId: 'PVTI_1', number: 1, title: 'T', body: '',
-        status: 'Backlog', epic: 'Auth Epic', wave: 'wave-001',
+        status: 'Backlog', containers: { epic: 'Auth Epic', wave: 'wave-001' },
       });
 
       expect(result.maintained).toBe(true);
@@ -199,7 +201,7 @@ describe('EpicService', () => {
 
       const result = await service.validateEpicIntegrity({
         id: 'I_1', itemId: 'PVTI_1', number: 1, title: 'T', body: '',
-        status: 'Backlog', epic: 'Auth Epic', wave: 'wave-001',
+        status: 'Backlog', containers: { epic: 'Auth Epic', wave: 'wave-001' },
       });
 
       expect(result.maintained).toBe(true);

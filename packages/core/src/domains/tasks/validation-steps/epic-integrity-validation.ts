@@ -7,7 +7,10 @@ export class EpicIntegrityValidation implements ValidationStep {
   constructor(private readonly integrityValidator: IIntegrityValidator) {}
 
   async validate(context: ValidationContext): Promise<ValidationStepResult> {
-    if (!context.task.epic) {
+    const epic = context.task.containers['epic'];
+    const wave = context.task.containers['wave'];
+
+    if (!epic) {
       return {
         stepName: this.name,
         passed: true,
@@ -16,7 +19,7 @@ export class EpicIntegrityValidation implements ValidationStep {
       };
     }
 
-    if (!context.task.wave) {
+    if (!wave) {
       return {
         stepName: this.name,
         passed: true,
@@ -27,14 +30,14 @@ export class EpicIntegrityValidation implements ValidationStep {
 
     const result = await this.integrityValidator.validateAssignmentIntegrity(
       context.issueNumber,
-      context.task.wave,
+      wave,
     );
 
     if (result.maintained) {
       return {
         stepName: this.name,
         passed: true,
-        message: `Epic integrity maintained for "${context.task.epic}"`,
+        message: `Epic integrity maintained for "${epic}"`,
         severity: 'info',
       };
     }
@@ -44,7 +47,7 @@ export class EpicIntegrityValidation implements ValidationStep {
       passed: false,
       message: `Epic integrity violation: ${result.violations.join('; ')}`,
       severity: 'error',
-      details: { epicName: context.task.epic, violations: result.violations },
+      details: { epicName: epic, violations: result.violations },
     };
   }
 }

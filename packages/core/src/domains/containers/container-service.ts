@@ -18,24 +18,32 @@ import type {
   ContainerCompletionResult,
 } from '../../container/interfaces.js';
 import type { ILogger } from '../../shared/logger.js';
+import type { MethodologyProfile } from '../../profiles/types.js';
 import { InputSanitizer } from '../../shared/sanitizer/input-sanitizer.js';
 import { ValidationError } from '../../shared/errors/index.js';
 
 export class ContainerService implements IContainerService {
+  private readonly containerField: string;
+
   constructor(
     private readonly projectRepository: IProjectRepository,
     private readonly issueRepository: IIssueRepository,
     private readonly integrityValidator: IIntegrityValidator,
     private readonly workflowConfig: IWorkflowConfig,
+    profile: MethodologyProfile,
     private readonly logger: ILogger,
-  ) {}
+  ) {
+    // Find the singular container type (the primary scheduling container)
+    const singularContainer = profile.containers.find((c) => c.singularity);
+    this.containerField = singularContainer?.taskField ?? 'Wave';
+  }
 
   async listContainers(): Promise<ContainerSummary[]> {
     const items = await this.projectRepository.getProjectItems();
     const containerMap = new Map<string, { total: number; completed: number }>();
 
     for (const item of items) {
-      const container = item.fieldValues['Wave'];
+      const container = item.fieldValues[this.containerField];
       if (!container) continue;
 
       const counts = containerMap.get(container) ?? { total: 0, completed: 0 };

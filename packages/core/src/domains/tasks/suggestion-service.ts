@@ -1,8 +1,8 @@
 /**
  * SuggestionService — Generates typed Suggestion[] from multiple sources.
  *
- * Bridges ValidationResult.suggestions (string[]) + other sources → typed Suggestion[].
- * Stateless. No repos. No side effects.
+ * Fully profile-driven. Uses WorkflowConfig semantic methods and profile transitions
+ * for status-based and transition-based suggestions.
  */
 
 import type {
@@ -12,11 +12,13 @@ import type {
   Suggestion,
 } from '../../container/interfaces.js';
 import type { TransitionType, ValidationResult } from './types.js';
+import type { MethodologyProfile } from '../../profiles/types.js';
 
 export class SuggestionService {
   constructor(
-    _workflowConfig: IWorkflowConfig,
-    private readonly gitWorkflowConfig?: IGitWorkflowConfig,
+    private readonly workflowConfig: IWorkflowConfig,
+    private readonly gitWorkflowConfig: IGitWorkflowConfig | undefined,
+    private readonly profile: MethodologyProfile,
   ) {}
 
   generateSuggestions(
@@ -52,7 +54,7 @@ export class SuggestionService {
           priority: 'high',
           humanPermissionRequired: false,
         });
-      } else if (detail.stepName === 'WaveAssignmentValidation') {
+      } else if (detail.stepName === 'WaveAssignmentValidation' || detail.stepName === 'ContainerAssignmentValidation') {
         suggestions.push({
           action: 'assign_wave',
           description: 'Assign task to a wave before starting',
@@ -76,7 +78,7 @@ export class SuggestionService {
           priority: 'high',
           humanPermissionRequired: true,
         });
-      } else if (detail.stepName === 'EpicIntegrityValidation') {
+      } else if (detail.stepName === 'EpicIntegrityValidation' || detail.stepName === 'ContainerIntegrityValidation') {
         suggestions.push({
           action: 'assign_wave',
           description: 'Reassign task to maintain epic integrity',
@@ -94,60 +96,40 @@ export class SuggestionService {
     const suggestions: Suggestion[] = [];
     const status = task.status;
 
-    switch (status) {
-      case 'Backlog':
+    if (this.workflowConfig.isBlockedStatus(status)) {
+      suggestions.push({
+        action: 'unblock_task',
+        description: 'Unblock this task when the blocker is resolved',
+        parameters: { issueNumber: task.number },
+        priority: 'high',
+      });
+      return suggestions;
+    }
+
+    if (this.workflowConfig.isTerminalStatus(status)) {
+      return suggestions; // No suggestions for terminal states
+    }
+
+    // Find valid forward transitions from current status
+    const statusKey = this.workflowConfig.getStatusKey(status);
+    if (statusKey) {
+      const forwardTransitions = this.profile.transitions.filter(
+        (t) => t.from.includes(statusKey) && !t.backward,
+      );
+
+      // Suggest the first non-block, non-return forward transition
+      for (const t of forwardTransitions) {
+        if (t.action === this.profile.behaviors.blockTransition) continue;
+        if (t.action === this.profile.behaviors.returnTransition) continue;
+
         suggestions.push({
-          action: 'refine_task',
-          description: 'Refine task to add acceptance criteria and estimates',
+          action: `${t.action}_task`,
+          description: t.label,
           parameters: { issueNumber: task.number },
           priority: 'medium',
         });
-        break;
-
-      case 'In Refinement':
-        suggestions.push({
-          action: 'ready_task',
-          description: 'Mark task as ready for development',
-          parameters: { issueNumber: task.number },
-          priority: 'medium',
-        });
-        break;
-
-      case 'Ready for Dev':
-        suggestions.push({
-          action: 'start_task',
-          description: 'Start working on this task',
-          parameters: { issueNumber: task.number },
-          priority: 'medium',
-        });
-        break;
-
-      case 'In Progress':
-        suggestions.push({
-          action: 'review_task',
-          description: 'Submit task for review',
-          parameters: { issueNumber: task.number },
-          priority: 'medium',
-        });
-        break;
-
-      case 'In Review':
-        suggestions.push({
-          action: 'approve_task',
-          description: 'Approve and complete this task',
-          parameters: { issueNumber: task.number },
-          priority: 'medium',
-        });
-        break;
-
-      case 'Blocked':
-        suggestions.push({
-          action: 'unblock_task',
-          description: 'Unblock this task when the blocker is resolved',
-          parameters: { issueNumber: task.number },
-          priority: 'high',
-        });
-        break;
+        break; // Only suggest the primary forward action
+      }
     }
 
     return suggestions;
@@ -156,42 +138,35 @@ export class SuggestionService {
   private getTransitionSuggestions(transition: TransitionType, task: TaskData): Suggestion[] {
     const suggestions: Suggestion[] = [];
 
-    switch (transition) {
-      case 'start':
+    // Find the transition's target state, then find forward transitions from it
+    const transitionDef = this.profile.transitions.find(
+      (t) => t.action === transition && !t.backward,
+    );
+    if (transitionDef) {
+      const toKey = transitionDef.to;
+      const forwardFromTo = this.profile.transitions.filter(
+        (t) => t.from.includes(toKey) && !t.backward
+          && t.action !== this.profile.behaviors.blockTransition,
+      );
+      if (forwardFromTo.length > 0) {
+        const next = forwardFromTo[0]!;
         suggestions.push({
-          action: 'review_task',
-          description: 'Submit for review when implementation is complete',
+          action: `${next.action}_task`,
+          description: next.label,
           parameters: { issueNumber: task.number },
           priority: 'low',
         });
-        break;
+      }
+    }
 
-      case 'review':
-        suggestions.push({
-          action: 'approve_task',
-          description: 'Approve after review is complete',
-          parameters: { issueNumber: task.number },
-          priority: 'low',
-        });
-        break;
-
-      case 'block':
-        suggestions.push({
-          action: 'unblock_task',
-          description: 'Unblock when the blocking issue is resolved',
-          parameters: { issueNumber: task.number },
-          priority: 'low',
-        });
-        break;
-
-      case 'refine':
-        suggestions.push({
-          action: 'ready_task',
-          description: 'Mark as ready when refinement is complete',
-          parameters: { issueNumber: task.number },
-          priority: 'low',
-        });
-        break;
+    // Block transition → suggest unblock
+    if (transition === this.profile.behaviors.blockTransition) {
+      suggestions.push({
+        action: 'unblock_task',
+        description: 'Unblock when the blocking issue is resolved',
+        parameters: { issueNumber: task.number },
+        priority: 'low',
+      });
     }
 
     return suggestions;
@@ -204,7 +179,7 @@ export class SuggestionService {
 
     const suggestions: Suggestion[] = [];
 
-    if (transition === 'review') {
+    if (this.isPreClosingTransition(transition)) {
       suggestions.push({
         action: 'check_pr_status',
         description: 'Verify pull request is ready for review',
@@ -213,7 +188,7 @@ export class SuggestionService {
       });
     }
 
-    if (transition === 'approve') {
+    if (this.isClosingTransition(transition)) {
       suggestions.push({
         action: 'merge_pull_request',
         description: 'Merge the associated pull request',
@@ -226,13 +201,29 @@ export class SuggestionService {
     return suggestions;
   }
 
+  private isClosingTransition(transition: string): boolean {
+    return this.profile.behaviors.closingTransitions.includes(transition);
+  }
+
+  /** Pre-closing = transition whose target state is a source state for closing transitions */
+  private isPreClosingTransition(transition: string): boolean {
+    const closingFromStates = new Set(
+      this.profile.transitions
+        .filter((t) => this.profile.behaviors.closingTransitions.includes(t.action))
+        .flatMap((t) => t.from),
+    );
+    const transitionDef = this.profile.transitions.find(
+      (t) => t.action === transition && !t.backward,
+    );
+    return transitionDef ? closingFromStates.has(transitionDef.to) : false;
+  }
+
   private getFailurePatternSuggestions(validationResult: ValidationResult): Suggestion[] {
     if (validationResult.canProceed) return [];
 
     const suggestions: Suggestion[] = [];
     const failedSteps = validationResult.details.filter((d) => !d.passed);
 
-    // Multiple dependency failures suggest checking the full chain
     const depFailures = failedSteps.filter(
       (d) => d.stepName === 'DependencyValidation' || d.stepName === 'DependencyIdentificationValidation',
     );
@@ -245,7 +236,6 @@ export class SuggestionService {
       });
     }
 
-    // Status transition failures suggest checking valid transitions
     const statusFailures = failedSteps.filter((d) => d.stepName === 'StatusTransitionValidation');
     if (statusFailures.length > 0) {
       suggestions.push({

@@ -11,6 +11,7 @@ import { TestLogger } from '../../helpers/test-logger.js';
 import { createMockWorkflowConfig, createMockGitWorkflowConfig, createMockProjectConfig } from '../../helpers/mock-factories.js';
 import type { IProjectConfig } from '../../../src/container/interfaces.js';
 import { SYSTEM_ACTOR } from '../../../src/index.js';
+import { HYDRO_PROFILE } from '../../../src/profiles/hydro.js';
 
 function createMockIssueRepo(): IIssueRepository {
   return {
@@ -80,8 +81,8 @@ describe('TaskService — listTasks', () => {
     const gitWorkflowConfig = createMockGitWorkflowConfig();
     const projectConfig = createMockProjectConfig();
 
-    const workflowService = new TaskWorkflowService(issueRepo, validator, workflowConfig, logger);
-    const suggestionService = new SuggestionService(workflowConfig, gitWorkflowConfig);
+    const workflowService = new TaskWorkflowService(issueRepo, validator, workflowConfig, logger, HYDRO_PROFILE);
+    const suggestionService = new SuggestionService(workflowConfig, gitWorkflowConfig, HYDRO_PROFILE);
 
     service = new TaskService(
       workflowService, suggestionService, validator,
@@ -121,7 +122,7 @@ describe('TaskService — listTasks', () => {
 
     const result = await service.listTasks({ wave: 'wave-001' });
     expect(result.data.tasks).toHaveLength(1);
-    expect(result.data.tasks[0]!.wave).toBe('wave-001');
+    expect(result.data.tasks[0]!.containers['wave']).toBe('wave-001');
   });
 
   it('returns empty array when no items match', async () => {
@@ -141,8 +142,8 @@ describe('TaskService — listTasks', () => {
     const task = result.data.tasks[0]!;
 
     expect(task.status).toBe('In Progress');
-    expect(task.wave).toBe('wave-001');
-    expect(task.epic).toBe('Auth');
+    expect(task.containers['wave']).toBe('wave-001');
+    expect(task.containers['epic']).toBe('Auth');
     expect(task.dependencies).toBe('#2');
     expect(task.aiSuitability).toBe('ai-reviewed');
     expect(task.riskLevel).toBe('Medium');
@@ -213,8 +214,8 @@ describe('TaskService — createTask', () => {
     const gitWorkflowConfig = createMockGitWorkflowConfig();
     projectConfig = createMockProjectConfig();
 
-    const workflowService = new TaskWorkflowService(issueRepo, validator, workflowConfig, logger);
-    const suggestionService = new SuggestionService(workflowConfig, gitWorkflowConfig);
+    const workflowService = new TaskWorkflowService(issueRepo, validator, workflowConfig, logger, HYDRO_PROFILE);
+    const suggestionService = new SuggestionService(workflowConfig, gitWorkflowConfig, HYDRO_PROFILE);
 
     service = new TaskService(
       workflowService, suggestionService, validator,
@@ -402,8 +403,8 @@ describe('TaskService — createTask', () => {
     const logger = new TestLogger();
     const workflowConfig = createMockWorkflowConfig();
     const gitWorkflowConfig = createMockGitWorkflowConfig();
-    const workflowService = new TaskWorkflowService(issueRepo, validator, workflowConfig, logger);
-    const suggestionService = new SuggestionService(workflowConfig, gitWorkflowConfig);
+    const workflowService = new TaskWorkflowService(issueRepo, validator, workflowConfig, logger, HYDRO_PROFILE);
+    const suggestionService = new SuggestionService(workflowConfig, gitWorkflowConfig, HYDRO_PROFILE);
     const sparseService = new TaskService(
       workflowService, suggestionService, validator,
       issueRepo, projectRepo, sparseConfig, workflowConfig, eventBus, 'test-session', logger,

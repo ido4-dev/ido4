@@ -4,8 +4,7 @@
  * Uses IMethodologyConfig to determine which validation steps run per transition,
  * and IValidationStepRegistry to instantiate them with dependency injection.
  *
- * Backward-compatible: when constructed without config/registry (legacy signature),
- * falls back to default methodology.
+ * Phase 3: Derives transition actions from profile. Uses type-scoped pipeline resolution.
  */
 
 import type {
@@ -23,14 +22,11 @@ import type { ValidationResult, TransitionType, ValidationContext } from './type
 import type { IMethodologyConfig } from '../../config/methodology-config.js';
 import type { IValidationStepRegistry, StepDependencies } from './validation-step-registry.js';
 import type { IAgentService } from '../agents/agent-service.js';
+import type { MethodologyProfile } from '../../profiles/types.js';
 import { ValidationPipeline } from './validation-pipeline.js';
 import { MethodologyConfig, DEFAULT_METHODOLOGY } from '../../config/methodology-config.js';
 import { ValidationStepRegistry } from './validation-step-registry.js';
 import { registerAllBuiltinSteps } from './validation-steps/index.js';
-
-const ALL_TRANSITIONS: TransitionType[] = [
-  'refine', 'ready', 'start', 'review', 'approve', 'complete', 'block', 'unblock', 'return',
-];
 
 export class TaskTransitionValidator implements ITaskTransitionValidator {
   private readonly methodologyConfig: IMethodologyConfig;
@@ -41,6 +37,7 @@ export class TaskTransitionValidator implements ITaskTransitionValidator {
   private readonly workflowConfig: IWorkflowConfig;
   private readonly gitWorkflowConfig: IGitWorkflowConfig;
   private readonly logger: ILogger;
+  private readonly profile: MethodologyProfile;
 
   constructor(
     issueRepository: IIssueRepository,
@@ -50,15 +47,17 @@ export class TaskTransitionValidator implements ITaskTransitionValidator {
     repositoryRepository: IRepositoryRepository,
     gitWorkflowConfig: IGitWorkflowConfig,
     logger: ILogger,
-    methodologyConfig?: IMethodologyConfig,
-    stepRegistry?: IValidationStepRegistry,
-    agentService?: IAgentService,
+    methodologyConfig: IMethodologyConfig | undefined,
+    stepRegistry: IValidationStepRegistry | undefined,
+    agentService: IAgentService | undefined,
+    profile: MethodologyProfile,
   ) {
     this.issueRepository = issueRepository;
     this.projectConfig = projectConfig;
     this.workflowConfig = workflowConfig;
     this.gitWorkflowConfig = gitWorkflowConfig;
     this.logger = logger;
+    this.profile = profile;
 
     // Config-driven BRE: use provided config/registry or create defaults
     if (methodologyConfig && stepRegistry) {
@@ -79,6 +78,7 @@ export class TaskTransitionValidator implements ITaskTransitionValidator {
       workflowConfig,
       gitWorkflowConfig,
       agentService,
+      profile,
     };
   }
 
@@ -93,7 +93,8 @@ export class TaskTransitionValidator implements ITaskTransitionValidator {
       gitWorkflowConfig: this.gitWorkflowConfig,
     };
 
-    const pipeline = this.createPipeline(transition as TransitionType);
+    const workItemType = this.profile.workItems.defaultType;
+    const pipeline = this.createPipeline(transition as TransitionType, workItemType);
     const result = await pipeline.execute(context);
 
     this.logger.debug('Transition validation complete', {
@@ -111,7 +112,12 @@ export class TaskTransitionValidator implements ITaskTransitionValidator {
     const task = await this.issueRepository.getTask(issueNumber);
     const transitions: Record<string, ValidationResult> = {};
 
-    for (const transition of ALL_TRANSITIONS) {
+    // Derive all unique action names from profile transitions
+    const allActions = [...new Set(this.profile.transitions.map((t) => t.action))];
+
+    const workItemType = this.profile.workItems.defaultType;
+
+    for (const transition of allActions) {
       const context: ValidationContext = {
         issueNumber,
         transition,
@@ -122,7 +128,7 @@ export class TaskTransitionValidator implements ITaskTransitionValidator {
       };
 
       try {
-        const pipeline = this.createPipeline(transition);
+        const pipeline = this.createPipeline(transition, workItemType);
         transitions[transition] = await pipeline.execute(context);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -140,9 +146,9 @@ export class TaskTransitionValidator implements ITaskTransitionValidator {
     return { issueNumber, transitions };
   }
 
-  private createPipeline(transition: TransitionType): ValidationPipeline {
+  private createPipeline(transition: TransitionType, workItemType?: string): ValidationPipeline {
     const pipeline = new ValidationPipeline();
-    const stepNames = this.methodologyConfig.getStepsForTransition(transition);
+    const stepNames = this.methodologyConfig.getStepsForTransition(transition, workItemType);
 
     for (const stepName of stepNames) {
       const step = this.stepRegistry.create(stepName, this.stepDeps);

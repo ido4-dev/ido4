@@ -88,6 +88,8 @@ export interface ITaskService {
   returnTask(request: ReturnTaskRequest): Promise<ToolResponse<TaskTransitionData>>;
   refineTask(request: TaskTransitionRequest): Promise<ToolResponse<TaskTransitionData>>;
   readyTask(request: TaskTransitionRequest): Promise<ToolResponse<TaskTransitionData>>;
+  /** Generic entry point for any transition action — used by dynamic MCP tool generation */
+  executeTransition(transition: string, request: TaskTransitionRequest | BlockTaskRequest | ReturnTaskRequest): Promise<ToolResponse<TaskTransitionData>>;
   getTask(request: GetTaskRequest): Promise<TaskData>;
   getTaskField(request: GetTaskRequest): Promise<unknown>;
   listTasks(request: ListTasksRequest): Promise<ToolResponse<ListTasksData>>;
@@ -161,6 +163,18 @@ export interface IWorkflowConfig {
   getAllStatusValues(): Record<string, string>;
   /** Returns all valid destination statuses from the given status name */
   getValidNextTransitions(fromStatus: string): string[];
+  /** Finds the target state key for a given action from a given state key */
+  getTargetStateKey(fromStateKey: string, action: string): string | undefined;
+  /** Check if a status name is a terminal (done) status */
+  isTerminalStatus(statusName: string): boolean;
+  /** Check if a status name is a blocked status */
+  isBlockedStatus(statusName: string): boolean;
+  /** Check if a status name is a ready status */
+  isReadyStatus(statusName: string): boolean;
+  /** Check if a status name is an active status */
+  isActiveStatus(statusName: string): boolean;
+  /** Reverse lookup: status name → status key */
+  getStatusKey(statusName: string): string | undefined;
 }
 
 export interface IGitWorkflowConfig {
@@ -179,8 +193,7 @@ export interface TaskData {
   title: string;
   body: string;
   status: string;
-  wave?: string;
-  epic?: string;
+  containers: Record<string, string>;
   dependencies?: string;
   aiSuitability?: string;
   riskLevel?: string;

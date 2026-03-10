@@ -5,7 +5,7 @@
 
 import type { ServiceContainer } from '@ido4/core';
 import type { StandupData, TaskReviewStatus, TaskBlockerAnalysis } from './types.js';
-import { resolveActiveContainer } from './wave-detection.js';
+import { resolveActiveContainer, getReviewStateNames } from './wave-detection.js';
 
 export interface StandupAggregatorOptions {
   containerName?: string;
@@ -33,8 +33,9 @@ export async function aggregateStandupData(
   const tasks = taskResult.data.tasks;
 
   // Step 2: Per-task iterations with error isolation
-  const inReviewTasks = tasks.filter((t) => t.status === 'In Review');
-  const blockedTasks = tasks.filter((t) => t.status === 'Blocked');
+  const reviewStates = getReviewStateNames(container.profile);
+  const inReviewTasks = tasks.filter((t) => reviewStates.has(t.status));
+  const blockedTasks = tasks.filter((t) => container.workflowConfig.isBlockedStatus(t.status));
 
   const reviewStatuses: TaskReviewStatus[] = await Promise.all(
     inReviewTasks.map(async (task): Promise<TaskReviewStatus> => {

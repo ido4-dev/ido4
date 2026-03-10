@@ -10,13 +10,16 @@ import type {
   IEpicService,
   IIssueRepository,
   IntegrityResult,
+  TaskData,
 } from '../../container/interfaces.js';
 import type { ILogger } from '../../shared/logger.js';
+import type { MethodologyProfile, SameContainerRule } from '../../profiles/types.js';
 
 export class IntegrityValidator implements IIntegrityValidator {
   constructor(
     private readonly epicService: IEpicService,
     private readonly issueRepository: IIssueRepository,
+    private readonly profile: MethodologyProfile,
     private readonly logger: ILogger,
   ) {}
 
@@ -26,38 +29,64 @@ export class IntegrityValidator implements IIntegrityValidator {
   ): Promise<IntegrityResult> {
     const task = await this.issueRepository.getTask(issueNumber);
 
-    if (!task.epic) {
+    // Find all same-container integrity rules from the profile
+    const sameContainerRules = this.profile.integrityRules.filter(
+      (r): r is SameContainerRule => r.type === 'same-container',
+    );
+
+    const allViolations: string[] = [];
+
+    for (const rule of sameContainerRules) {
+      const violations = await this.checkSameContainerRule(rule, task, issueNumber, containerName);
+      allViolations.push(...violations);
+    }
+
+    if (allViolations.length === 0) {
       return { maintained: true, violations: [] };
     }
 
-    const epicTasks = await this.epicService.getTasksInEpic(task.epic);
+    return { maintained: false, violations: allViolations };
+  }
 
-    // Simulate: what would the container set look like if this task were assigned?
-    const containers = new Set<string>();
+  private async checkSameContainerRule(
+    rule: SameContainerRule,
+    task: TaskData,
+    issueNumber: number,
+    containerName: string,
+  ): Promise<string[]> {
+    const groupByValue = task.containers[rule.groupBy];
+    if (!groupByValue) {
+      return []; // Task not in the groupBy container — rule doesn't apply
+    }
+
+    const epicTasks = await this.epicService.getTasksInEpic(groupByValue);
+
+    // Simulate: what would the mustMatch container set look like if this task were assigned?
+    const mustMatchValues = new Set<string>();
     for (const t of epicTasks) {
       if (t.number === issueNumber) {
-        if (containerName) containers.add(containerName);
-      } else if (t.wave) {
-        containers.add(t.wave);
+        if (containerName) mustMatchValues.add(containerName);
+      } else {
+        const value = t.containers[rule.mustMatch];
+        if (value) mustMatchValues.add(value);
       }
     }
 
-    if (containers.size <= 1) {
-      return { maintained: true, violations: [] };
+    if (mustMatchValues.size <= 1) {
+      return [];
     }
 
-    const containerList = [...containers];
-    const violations = [
-      `Assigning task #${issueNumber} to container "${containerName}" would split epic "${task.epic}" across containers: ${containerList.join(', ')}`,
-    ];
-
+    const containerList = [...mustMatchValues];
     this.logger.debug('Container assignment would violate integrity', {
       issueNumber,
       containerName,
-      epicName: task.epic,
+      ruleId: rule.id,
+      groupBy: groupByValue,
       containers: containerList,
     });
 
-    return { maintained: false, violations };
+    return [
+      `Assigning task #${issueNumber} to container "${containerName}" would split ${rule.groupBy} "${groupByValue}" across containers: ${containerList.join(', ')}`,
+    ];
   }
 }

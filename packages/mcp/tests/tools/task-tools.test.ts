@@ -1,15 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { callTool } from '../helpers/test-utils.js';
+import { callTool, hasRegisteredTool } from '../helpers/test-utils.js';
 
 const mockTaskService = {
-  startTask: vi.fn(),
-  reviewTask: vi.fn(),
-  approveTask: vi.fn(),
-  blockTask: vi.fn(),
-  unblockTask: vi.fn(),
-  returnTask: vi.fn(),
-  refineTask: vi.fn(),
-  readyTask: vi.fn(),
+  executeTransition: vi.fn(),
   getTask: vi.fn(),
   getTaskField: vi.fn(),
   listTasks: vi.fn(),
@@ -48,6 +41,7 @@ vi.mock('../../src/helpers/container-init.js', () => ({
 }));
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { HYDRO_PROFILE, SHAPE_UP_PROFILE, SCRUM_PROFILE } from '@ido4/core';
 import { registerTaskTools } from '../../src/tools/task-tools.js';
 
 describe('Task Tools', () => {
@@ -58,10 +52,10 @@ describe('Task Tools', () => {
     mockGetContainer.mockResolvedValue(mockContainer);
 
     server = new McpServer({ name: 'test', version: '0.1.0' });
-    registerTaskTools(server);
+    registerTaskTools(server, HYDRO_PROFILE);
   });
 
-  describe('transition tools', () => {
+  describe('dynamic transition tools', () => {
     const toolResponse = {
       success: true,
       data: { issueNumber: 42, fromStatus: 'Ready for Dev', toStatus: 'In Progress' },
@@ -69,46 +63,45 @@ describe('Task Tools', () => {
       warnings: [],
     };
 
-    const transitionTools = [
-      { name: 'start_task', method: 'startTask' },
-      { name: 'review_task', method: 'reviewTask' },
-      { name: 'approve_task', method: 'approveTask' },
-      { name: 'unblock_task', method: 'unblockTask' },
-      { name: 'refine_task', method: 'refineTask' },
-      { name: 'ready_task', method: 'readyTask' },
-    ] as const;
+    const standardTransitions = [
+      'start_task', 'review_task', 'approve_task',
+      'unblock_task', 'refine_task', 'ready_task', 'complete_task',
+    ];
 
-    it.each(transitionTools)('$name calls $method with correct args', async ({ name, method }) => {
-      mockTaskService[method].mockResolvedValue(toolResponse);
+    it.each(standardTransitions)('%s calls executeTransition with correct action', async (toolName) => {
+      mockTaskService.executeTransition.mockResolvedValue(toolResponse);
 
-      await callTool(server, name, {
+      await callTool(server, toolName, {
         issueNumber: 42,
         message: 'test message',
         dryRun: true,
       });
 
-      expect(mockTaskService[method]).toHaveBeenCalledTimes(1);
-      const call = mockTaskService[method].mock.calls[0]![0];
-      expect(call.issueNumber).toBe(42);
-      expect(call.message).toBe('test message');
-      expect(call.dryRun).toBe(true);
-      expect(call.actor).toEqual({ type: 'ai-agent', id: 'mcp-session', name: 'Claude Code' });
+      expect(mockTaskService.executeTransition).toHaveBeenCalledTimes(1);
+      const [action, request] = mockTaskService.executeTransition.mock.calls[0]!;
+      const expectedAction = toolName.replace('_task', '');
+      expect(action).toBe(expectedAction);
+      expect(request.issueNumber).toBe(42);
+      expect(request.message).toBe('test message');
+      expect(request.dryRun).toBe(true);
+      expect(request.actor).toEqual({ type: 'ai-agent', id: 'mcp-session', name: 'Claude Code' });
     });
 
-    it('block_task passes reason', async () => {
-      mockTaskService.blockTask.mockResolvedValue(toolResponse);
+    it('block_task passes reason via executeTransition', async () => {
+      mockTaskService.executeTransition.mockResolvedValue(toolResponse);
 
       await callTool(server, 'block_task', {
         issueNumber: 42,
         reason: 'Waiting for API access',
       });
 
-      const call = mockTaskService.blockTask.mock.calls[0]![0];
-      expect(call.reason).toBe('Waiting for API access');
+      const [action, request] = mockTaskService.executeTransition.mock.calls[0]!;
+      expect(action).toBe('block');
+      expect(request.reason).toBe('Waiting for API access');
     });
 
-    it('return_task passes targetStatus and reason', async () => {
-      mockTaskService.returnTask.mockResolvedValue(toolResponse);
+    it('return_task passes targetStatus and reason via executeTransition', async () => {
+      mockTaskService.executeTransition.mockResolvedValue(toolResponse);
 
       await callTool(server, 'return_task', {
         issueNumber: 42,
@@ -116,18 +109,53 @@ describe('Task Tools', () => {
         reason: 'Needs more detail',
       });
 
-      const call = mockTaskService.returnTask.mock.calls[0]![0];
-      expect(call.targetStatus).toBe('In Refinement');
-      expect(call.reason).toBe('Needs more detail');
+      const [action, request] = mockTaskService.executeTransition.mock.calls[0]!;
+      expect(action).toBe('return');
+      expect(request.targetStatus).toBe('In Refinement');
+      expect(request.reason).toBe('Needs more detail');
     });
 
     it('serializes response as JSON text content', async () => {
-      mockTaskService.startTask.mockResolvedValue(toolResponse);
+      mockTaskService.executeTransition.mockResolvedValue(toolResponse);
 
       const result = await callTool(server, 'start_task', { issueNumber: 42 }) as { content: Array<{ text: string }> };
       const parsed = JSON.parse(result.content[0]!.text);
       expect(parsed.success).toBe(true);
       expect(parsed.data.issueNumber).toBe(42);
+    });
+
+    it('Hydro generates 9 transition tools', () => {
+      const expected = [
+        'refine_task', 'ready_task', 'start_task', 'review_task',
+        'approve_task', 'complete_task', 'block_task', 'unblock_task', 'return_task',
+      ];
+      for (const name of expected) {
+        expect(hasRegisteredTool(server, name), `Missing: ${name}`).toBe(true);
+      }
+    });
+  });
+
+  describe('profile-specific transition tools', () => {
+    it('Shape Up generates shape_task, bet_task, ship_task, kill_task', () => {
+      const shapeUpServer = new McpServer({ name: 'test', version: '0.1.0' });
+      registerTaskTools(shapeUpServer, SHAPE_UP_PROFILE);
+
+      const expected = ['shape_task', 'bet_task', 'start_task', 'review_task', 'ship_task', 'block_task', 'unblock_task', 'kill_task', 'return_task'];
+      for (const name of expected) {
+        expect(hasRegisteredTool(shapeUpServer, name), `Missing: ${name}`).toBe(true);
+      }
+      // Should NOT have approve_task or refine_task
+      expect(hasRegisteredTool(shapeUpServer, 'approve_task')).toBe(false);
+      expect(hasRegisteredTool(shapeUpServer, 'refine_task')).toBe(false);
+    });
+
+    it('Scrum generates plan_task, no refine_task', () => {
+      const scrumServer = new McpServer({ name: 'test', version: '0.1.0' });
+      registerTaskTools(scrumServer, SCRUM_PROFILE);
+
+      expect(hasRegisteredTool(scrumServer, 'plan_task')).toBe(true);
+      expect(hasRegisteredTool(scrumServer, 'refine_task')).toBe(false);
+      expect(hasRegisteredTool(scrumServer, 'complete_task')).toBe(false);
     });
   });
 
@@ -398,7 +426,7 @@ describe('Task Tools', () => {
   describe('error handling', () => {
     it('returns isError on service failure', async () => {
       const { ValidationError } = await import('@ido4/core');
-      mockTaskService.startTask.mockRejectedValue(
+      mockTaskService.executeTransition.mockRejectedValue(
         new ValidationError({ message: 'Invalid transition' }),
       );
 

@@ -5,7 +5,7 @@
 
 import type { ServiceContainer } from '@ido4/core';
 import type { BoardData, TaskAnnotation } from './types.js';
-import { resolveActiveContainer } from './wave-detection.js';
+import { resolveActiveContainer, getReviewStateNames } from './wave-detection.js';
 
 export interface BoardAggregatorOptions {
   containerName?: string;
@@ -27,15 +27,18 @@ export async function aggregateBoardData(
 
   const tasks = taskResult.data.tasks;
 
-  // Per-task: PR lookup for In Review, lock lookup for In Progress
-  const annotatedTasks = tasks.filter((t) => t.status === 'In Review' || t.status === 'In Progress');
+  // Per-task: PR lookup for review states, lock lookup for active states
+  const reviewStates = getReviewStateNames(container.profile);
+  const annotatedTasks = tasks.filter(
+    (t) => reviewStates.has(t.status) || container.workflowConfig.isActiveStatus(t.status),
+  );
 
   const annotations: TaskAnnotation[] = await Promise.all(
     annotatedTasks.map(async (task): Promise<TaskAnnotation> => {
       let pullRequest: TaskAnnotation['pullRequest'] = null;
       let lock: TaskAnnotation['lock'] = null;
 
-      if (task.status === 'In Review') {
+      if (reviewStates.has(task.status)) {
         try {
           pullRequest = await container.issueRepository.findPullRequestForIssue(task.number);
         } catch {
@@ -43,7 +46,7 @@ export async function aggregateBoardData(
         }
       }
 
-      if (task.status === 'In Progress') {
+      if (container.workflowConfig.isActiveStatus(task.status)) {
         try {
           lock = await container.agentService.getTaskLock(task.number);
         } catch {

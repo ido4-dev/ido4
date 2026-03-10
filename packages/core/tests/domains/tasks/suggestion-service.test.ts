@@ -3,6 +3,8 @@ import { SuggestionService } from '../../../src/domains/tasks/suggestion-service
 import type { ValidationResult, TransitionType } from '../../../src/domains/tasks/types.js';
 import { createMockTaskData, createMockWorkflowConfig, createMockGitWorkflowConfig } from '../../helpers/mock-factories.js';
 import type { TaskData, Suggestion } from '../../../src/container/interfaces.js';
+import { HYDRO_PROFILE } from '../../../src/profiles/hydro.js';
+import type { MethodologyProfile } from '../../../src/profiles/types.js';
 
 function makeValidationResult(overrides: Partial<ValidationResult> = {}): ValidationResult {
   return {
@@ -34,7 +36,7 @@ describe('SuggestionService', () => {
 
   describe('remediation suggestions', () => {
     it('suggests checking dependencies on DependencyValidation failure', () => {
-      const service = new SuggestionService(workflowConfig);
+      const service = new SuggestionService(workflowConfig, undefined, HYDRO_PROFILE);
       const result = makeFailedResult(['DependencyValidation']);
       const task = createMockTaskData({ status: 'Ready for Dev' });
 
@@ -43,7 +45,7 @@ describe('SuggestionService', () => {
     });
 
     it('suggests assigning wave on WaveAssignmentValidation failure', () => {
-      const service = new SuggestionService(workflowConfig);
+      const service = new SuggestionService(workflowConfig, undefined, HYDRO_PROFILE);
       const result = makeFailedResult(['WaveAssignmentValidation']);
       const task = createMockTaskData({ status: 'Ready for Dev' });
 
@@ -52,7 +54,7 @@ describe('SuggestionService', () => {
     });
 
     it('suggests refine on AcceptanceCriteriaValidation failure', () => {
-      const service = new SuggestionService(workflowConfig);
+      const service = new SuggestionService(workflowConfig, undefined, HYDRO_PROFILE);
       const result = makeFailedResult(['AcceptanceCriteriaValidation']);
       const task = createMockTaskData({ status: 'In Refinement' });
 
@@ -63,7 +65,7 @@ describe('SuggestionService', () => {
     });
 
     it('suggests creating PR on ImplementationReadinessValidation failure', () => {
-      const service = new SuggestionService(workflowConfig);
+      const service = new SuggestionService(workflowConfig, undefined, HYDRO_PROFILE);
       const result = makeFailedResult(['ImplementationReadinessValidation']);
       const task = createMockTaskData({ status: 'In Progress' });
 
@@ -72,7 +74,7 @@ describe('SuggestionService', () => {
     });
 
     it('suggests reassigning wave on EpicIntegrityValidation failure', () => {
-      const service = new SuggestionService(workflowConfig);
+      const service = new SuggestionService(workflowConfig, undefined, HYDRO_PROFILE);
       const result = makeFailedResult(['EpicIntegrityValidation']);
       const task = createMockTaskData({ status: 'Ready for Dev' });
 
@@ -84,7 +86,7 @@ describe('SuggestionService', () => {
     });
 
     it('does not generate remediation suggestions when validation passes', () => {
-      const service = new SuggestionService(workflowConfig);
+      const service = new SuggestionService(workflowConfig, undefined, HYDRO_PROFILE);
       const result = makeValidationResult();
       const task = createMockTaskData({ status: 'Ready for Dev' });
 
@@ -107,7 +109,7 @@ describe('SuggestionService', () => {
 
     for (const [status, expectedAction] of statusToAction) {
       it(`suggests ${expectedAction} for ${status} status`, () => {
-        const service = new SuggestionService(workflowConfig);
+        const service = new SuggestionService(workflowConfig, undefined, HYDRO_PROFILE);
         const result = makeValidationResult();
         const task = createMockTaskData({ status });
 
@@ -119,7 +121,7 @@ describe('SuggestionService', () => {
 
   describe('transition-specific suggestions', () => {
     it('suggests review_task after start', () => {
-      const service = new SuggestionService(workflowConfig);
+      const service = new SuggestionService(workflowConfig, undefined, HYDRO_PROFILE);
       const result = makeValidationResult();
       const task = createMockTaskData({ status: 'In Progress' });
 
@@ -129,7 +131,7 @@ describe('SuggestionService', () => {
     });
 
     it('suggests approve_task after review', () => {
-      const service = new SuggestionService(workflowConfig);
+      const service = new SuggestionService(workflowConfig, undefined, HYDRO_PROFILE);
       const result = makeValidationResult();
       const task = createMockTaskData({ status: 'In Review' });
 
@@ -139,7 +141,7 @@ describe('SuggestionService', () => {
     });
 
     it('suggests unblock_task after block', () => {
-      const service = new SuggestionService(workflowConfig);
+      const service = new SuggestionService(workflowConfig, undefined, HYDRO_PROFILE);
       const result = makeValidationResult();
       const task = createMockTaskData({ status: 'Blocked' });
 
@@ -152,7 +154,7 @@ describe('SuggestionService', () => {
   describe('git workflow suggestions', () => {
     it('suggests check_pr_status on review when git is enabled', () => {
       const gitConfig = createMockGitWorkflowConfig({ shouldShowGitSuggestions: () => true });
-      const service = new SuggestionService(workflowConfig, gitConfig);
+      const service = new SuggestionService(workflowConfig, gitConfig, HYDRO_PROFILE);
       const result = makeValidationResult();
       const task = createMockTaskData({ status: 'In Progress' });
 
@@ -162,7 +164,7 @@ describe('SuggestionService', () => {
 
     it('suggests merge_pull_request on approve when git is enabled', () => {
       const gitConfig = createMockGitWorkflowConfig({ shouldShowGitSuggestions: () => true });
-      const service = new SuggestionService(workflowConfig, gitConfig);
+      const service = new SuggestionService(workflowConfig, gitConfig, HYDRO_PROFILE);
       const result = makeValidationResult();
       const task = createMockTaskData({ status: 'In Review' });
 
@@ -174,7 +176,7 @@ describe('SuggestionService', () => {
 
     it('skips git suggestions when git is disabled', () => {
       const gitConfig = createMockGitWorkflowConfig({ shouldShowGitSuggestions: () => false });
-      const service = new SuggestionService(workflowConfig, gitConfig);
+      const service = new SuggestionService(workflowConfig, gitConfig, HYDRO_PROFILE);
       const result = makeValidationResult();
       const task = createMockTaskData({ status: 'In Progress' });
 
@@ -183,7 +185,7 @@ describe('SuggestionService', () => {
     });
 
     it('skips git suggestions when no git config', () => {
-      const service = new SuggestionService(workflowConfig);
+      const service = new SuggestionService(workflowConfig, undefined, HYDRO_PROFILE);
       const result = makeValidationResult();
       const task = createMockTaskData({ status: 'In Progress' });
 
@@ -194,7 +196,7 @@ describe('SuggestionService', () => {
 
   describe('failure pattern suggestions', () => {
     it('suggests analyze_dependencies on dependency-related failures', () => {
-      const service = new SuggestionService(workflowConfig);
+      const service = new SuggestionService(workflowConfig, undefined, HYDRO_PROFILE);
       const result = makeFailedResult(['DependencyValidation']);
       const task = createMockTaskData({ status: 'Ready for Dev' });
 
@@ -203,7 +205,7 @@ describe('SuggestionService', () => {
     });
 
     it('suggests validate_all_transitions on status transition failures', () => {
-      const service = new SuggestionService(workflowConfig);
+      const service = new SuggestionService(workflowConfig, undefined, HYDRO_PROFILE);
       const result = makeFailedResult(['StatusTransitionValidation']);
       const task = createMockTaskData({ status: 'Backlog' });
 
@@ -212,7 +214,7 @@ describe('SuggestionService', () => {
     });
 
     it('skips failure pattern suggestions when validation passes', () => {
-      const service = new SuggestionService(workflowConfig);
+      const service = new SuggestionService(workflowConfig, undefined, HYDRO_PROFILE);
       const result = makeValidationResult();
       const task = createMockTaskData();
 
@@ -224,7 +226,7 @@ describe('SuggestionService', () => {
 
   describe('deduplication and sorting', () => {
     it('deduplicates suggestions with same action and parameters', () => {
-      const service = new SuggestionService(workflowConfig);
+      const service = new SuggestionService(workflowConfig, undefined, HYDRO_PROFILE);
       const result = makeValidationResult();
       // Blocked status generates unblock suggestion, and block transition also generates unblock suggestion
       const task = createMockTaskData({ status: 'Blocked', number: 42 });
@@ -237,7 +239,7 @@ describe('SuggestionService', () => {
     });
 
     it('sorts suggestions by priority (high first)', () => {
-      const service = new SuggestionService(workflowConfig);
+      const service = new SuggestionService(workflowConfig, undefined, HYDRO_PROFILE);
       const result = makeFailedResult(['WaveAssignmentValidation']);
       const task = createMockTaskData({ status: 'Ready for Dev' });
 
@@ -251,6 +253,68 @@ describe('SuggestionService', () => {
         expect(order[s.priority]).toBeGreaterThanOrEqual(order[lastPriority]!);
         lastPriority = s.priority;
       }
+    });
+  });
+
+  describe('cross-profile: non-standard closing transitions', () => {
+    /**
+     * Verifies git workflow suggestions work with a profile where closing
+     * transition is 'finish' (not 'approve') and pre-closing is 'qa' (not 'review').
+     *
+     * Profile transitions: ... → qa → IN_REVIEW → finish → DONE
+     */
+    const customProfile: MethodologyProfile = {
+      ...HYDRO_PROFILE,
+      id: 'test-custom',
+      transitions: [
+        ...HYDRO_PROFILE.transitions.filter((t) => t.action !== 'approve' && t.action !== 'review'),
+        { action: 'qa', from: ['IN_PROGRESS'], to: 'IN_REVIEW', label: 'Submit for QA' },
+        { action: 'finish', from: ['IN_REVIEW'], to: 'DONE', label: 'Finish task' },
+      ],
+      behaviors: {
+        ...HYDRO_PROFILE.behaviors,
+        closingTransitions: ['finish'],
+      },
+    };
+
+    it('suggests merge_pull_request for "finish" transition (not "approve")', () => {
+      const gitConfig = createMockGitWorkflowConfig({ shouldShowGitSuggestions: () => true });
+      const service = new SuggestionService(workflowConfig, gitConfig, customProfile);
+      const result = makeValidationResult();
+      const task = createMockTaskData({ status: 'In Review' });
+
+      const suggestions = service.generateSuggestions('finish', result, task);
+      expect(suggestions.some((s) => s.action === 'merge_pull_request')).toBe(true);
+    });
+
+    it('does NOT suggest merge_pull_request for "approve" when profile uses "finish"', () => {
+      const gitConfig = createMockGitWorkflowConfig({ shouldShowGitSuggestions: () => true });
+      const service = new SuggestionService(workflowConfig, gitConfig, customProfile);
+      const result = makeValidationResult();
+      const task = createMockTaskData({ status: 'In Review' });
+
+      const suggestions = service.generateSuggestions('approve', result, task);
+      expect(suggestions.some((s) => s.action === 'merge_pull_request')).toBe(false);
+    });
+
+    it('suggests check_pr_status for "qa" (pre-closing transition)', () => {
+      const gitConfig = createMockGitWorkflowConfig({ shouldShowGitSuggestions: () => true });
+      const service = new SuggestionService(workflowConfig, gitConfig, customProfile);
+      const result = makeValidationResult();
+      const task = createMockTaskData({ status: 'In Progress' });
+
+      const suggestions = service.generateSuggestions('qa', result, task);
+      expect(suggestions.some((s) => s.action === 'check_pr_status')).toBe(true);
+    });
+
+    it('does NOT suggest check_pr_status for "review" when profile uses "qa"', () => {
+      const gitConfig = createMockGitWorkflowConfig({ shouldShowGitSuggestions: () => true });
+      const service = new SuggestionService(workflowConfig, gitConfig, customProfile);
+      const result = makeValidationResult();
+      const task = createMockTaskData({ status: 'In Progress' });
+
+      const suggestions = service.generateSuggestions('review', result, task);
+      expect(suggestions.some((s) => s.action === 'check_pr_status')).toBe(false);
     });
   });
 });

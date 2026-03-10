@@ -4,12 +4,7 @@
  * Computes a reproducible 0-100 compliance score from audit trail data.
  * No separate storage — the audit log IS the source of truth.
  *
- * 5 weighted categories:
- *   - BRE Pass Rate (40%): % transitions where all validation steps passed
- *   - Quality Gates (20%): % approvals satisfying quality gate steps
- *   - Process Adherence (20%): % completed tasks following full lifecycle
- *   - Epic Integrity (10%): % wave assignments maintaining epic integrity
- *   - Flow Efficiency (10%): Ratio of active time to total time
+ * Phase 3: Lifecycle and weights are now profile-driven.
  */
 
 import type { IAuditService } from '../audit/audit-service.js';
@@ -17,6 +12,7 @@ import type { IAnalyticsService } from '../analytics/analytics-service.js';
 import type { PersistedAuditEvent } from '../audit/audit-store.js';
 import type { ILogger } from '../../shared/logger.js';
 import type { IEventBus, Unsubscribe } from '../../shared/events/index.js';
+import type { MethodologyProfile } from '../../profiles/types.js';
 
 // ─── Public Interface ───
 
@@ -81,15 +77,6 @@ const QUALITY_GATE_STEPS = new Set([
   'SecurityScanValidation',
 ]);
 
-const FULL_LIFECYCLE: readonly string[] = ['refine', 'ready', 'start', 'review', 'approve'];
-
-const WEIGHTS = {
-  brePassRate: 0.40,
-  qualityGates: 0.20,
-  processAdherence: 0.20,
-  epicIntegrity: 0.10,
-  flowEfficiency: 0.10,
-} as const;
 
 function scoreToGrade(score: number): 'A' | 'B' | 'C' | 'D' | 'F' {
   if (score >= 90) return 'A';
@@ -109,13 +96,20 @@ export class ComplianceService implements IComplianceService {
   private cache: Map<string, { data: unknown; timestamp: number }> = new Map();
   private readonly cacheTtlMs = 30_000;
   private readonly unsubscribe: Unsubscribe;
+  private readonly lifecycle: readonly string[];
+  private readonly weights: Record<string, number>;
+  private readonly closingTransitions: readonly string[];
 
   constructor(
     private readonly auditService: IAuditService,
     private readonly analyticsService: IAnalyticsService,
     eventBus: IEventBus,
     _logger: ILogger,
+    profile: MethodologyProfile,
   ) {
+    this.lifecycle = profile.compliance.lifecycle;
+    this.weights = profile.compliance.weights;
+    this.closingTransitions = profile.behaviors.closingTransitions;
     this.unsubscribe = eventBus.on('*', () => {
       this.cache.clear();
     });
@@ -189,6 +183,11 @@ export class ComplianceService implements IComplianceService {
     this.unsubscribe();
   }
 
+  /** Lookup weight by key, with fallback to 0 for profiles missing a category */
+  private w(key: string): number {
+    return this.weights[key] ?? 0;
+  }
+
   // ─── Category Computations ───
 
   private computeBrePassRate(events: PersistedAuditEvent[]): CategoryScore {
@@ -215,8 +214,8 @@ export class ComplianceService implements IComplianceService {
 
     return {
       score,
-      weight: WEIGHTS.brePassRate,
-      contribution: round2(score * WEIGHTS.brePassRate),
+      weight: this.w('brePassRate'),
+      contribution: round2(score * this.w('brePassRate')),
       detail: totalWithValidation > 0
         ? `${passCount}/${totalWithValidation} transitions passed all BRE steps`
         : 'No validated transitions in period',
@@ -224,23 +223,23 @@ export class ComplianceService implements IComplianceService {
   }
 
   private computeQualityGates(events: PersistedAuditEvent[]): CategoryScore {
-    const approveEvents = events.filter((e) => {
+    const closingEvents = events.filter((e) => {
       const transition = (e.event as Record<string, unknown>).transition;
-      return transition === 'approve';
+      return typeof transition === 'string' && this.closingTransitions.includes(transition);
     });
 
-    if (approveEvents.length === 0) {
+    if (closingEvents.length === 0) {
       return {
         score: 100,
-        weight: WEIGHTS.qualityGates,
-        contribution: round2(100 * WEIGHTS.qualityGates),
-        detail: 'No approve transitions in period',
+        weight: this.w('qualityGates'),
+        contribution: round2(100 * this.w('qualityGates')),
+        detail: 'No closing transitions in period',
       };
     }
 
     let passCount = 0;
 
-    for (const entry of approveEvents) {
+    for (const entry of closingEvents) {
       const vr = (entry.event as Record<string, unknown>).validationResult as
         | { details?: Array<{ stepName: string; passed: boolean }> }
         | undefined;
@@ -262,14 +261,14 @@ export class ComplianceService implements IComplianceService {
       }
     }
 
-    const rawScore = (passCount / approveEvents.length) * 100;
+    const rawScore = (passCount / closingEvents.length) * 100;
     const score = round2(rawScore);
 
     return {
       score,
-      weight: WEIGHTS.qualityGates,
-      contribution: round2(score * WEIGHTS.qualityGates),
-      detail: `${passCount}/${approveEvents.length} approve transitions satisfied quality gates`,
+      weight: this.w('qualityGates'),
+      contribution: round2(score * this.w('qualityGates')),
+      detail: `${passCount}/${closingEvents.length} closing transitions satisfied quality gates`,
     };
   }
 
@@ -288,23 +287,24 @@ export class ComplianceService implements IComplianceService {
       byIssue.get(issueNumber)!.add(transition);
     }
 
-    // Only evaluate completed tasks (have 'approve' transition)
+    // Only evaluate completed tasks (have a closing transition)
     let totalAdherence = 0;
     let tasksEvaluated = 0;
 
     for (const [, transitions] of byIssue) {
-      if (!transitions.has('approve')) continue;
+      const hasClosing = this.closingTransitions.some((ct) => transitions.has(ct));
+      if (!hasClosing) continue;
 
       tasksEvaluated++;
-      const stepsFollowed = FULL_LIFECYCLE.filter((step) => transitions.has(step)).length;
-      totalAdherence += (stepsFollowed / FULL_LIFECYCLE.length) * 100;
+      const stepsFollowed = this.lifecycle.filter((step) => transitions.has(step)).length;
+      totalAdherence += (stepsFollowed / this.lifecycle.length) * 100;
     }
 
     if (tasksEvaluated === 0) {
       return {
         score: 100,
-        weight: WEIGHTS.processAdherence,
-        contribution: round2(100 * WEIGHTS.processAdherence),
+        weight: this.w('processAdherence'),
+        contribution: round2(100 * this.w('processAdherence')),
         detail: 'No completed tasks to evaluate process adherence',
       };
     }
@@ -314,8 +314,8 @@ export class ComplianceService implements IComplianceService {
 
     return {
       score,
-      weight: WEIGHTS.processAdherence,
-      contribution: round2(score * WEIGHTS.processAdherence),
+      weight: this.w('processAdherence'),
+      contribution: round2(score * this.w('processAdherence')),
       detail: `${tasksEvaluated} completed tasks evaluated, average ${score.toFixed(1)}% lifecycle adherence`,
     };
   }
@@ -324,8 +324,8 @@ export class ComplianceService implements IComplianceService {
     if (containerAssignmentEvents.length === 0) {
       return {
         score: 100,
-        weight: WEIGHTS.epicIntegrity,
-        contribution: round2(100 * WEIGHTS.epicIntegrity),
+        weight: this.w('containerIntegrity'),
+        contribution: round2(100 * this.w('containerIntegrity')),
         detail: 'No container assignments in period',
       };
     }
@@ -342,8 +342,8 @@ export class ComplianceService implements IComplianceService {
 
     return {
       score,
-      weight: WEIGHTS.epicIntegrity,
-      contribution: round2(score * WEIGHTS.epicIntegrity),
+      weight: this.w('containerIntegrity'),
+      contribution: round2(score * this.w('containerIntegrity')),
       detail: `${maintained}/${containerAssignmentEvents.length} container assignments maintained integrity`,
     };
   }
@@ -358,8 +358,8 @@ export class ComplianceService implements IComplianceService {
     if (issueNumbers.size === 0) {
       return {
         score: 100,
-        weight: WEIGHTS.flowEfficiency,
-        contribution: round2(100 * WEIGHTS.flowEfficiency),
+        weight: this.w('flowEfficiency'),
+        contribution: round2(100 * this.w('flowEfficiency')),
         detail: 'No tasks in period',
       };
     }
@@ -382,8 +382,8 @@ export class ComplianceService implements IComplianceService {
     if (tasksEvaluated === 0) {
       return {
         score: 100,
-        weight: WEIGHTS.flowEfficiency,
-        contribution: round2(100 * WEIGHTS.flowEfficiency),
+        weight: this.w('flowEfficiency'),
+        contribution: round2(100 * this.w('flowEfficiency')),
         detail: 'No completed tasks with cycle time data',
       };
     }
@@ -393,8 +393,8 @@ export class ComplianceService implements IComplianceService {
 
     return {
       score,
-      weight: WEIGHTS.flowEfficiency,
-      contribution: round2(score * WEIGHTS.flowEfficiency),
+      weight: this.w('flowEfficiency'),
+      contribution: round2(score * this.w('flowEfficiency')),
       detail: `${tasksEvaluated} tasks evaluated, average ${score.toFixed(1)}% flow efficiency`,
     };
   }
@@ -485,11 +485,11 @@ export class ComplianceService implements IComplianceService {
       grade: 'A',
       period: { since, until },
       categories: {
-        brePassRate: emptyCategory(WEIGHTS.brePassRate),
-        qualityGates: emptyCategory(WEIGHTS.qualityGates),
-        processAdherence: emptyCategory(WEIGHTS.processAdherence),
-        epicIntegrity: emptyCategory(WEIGHTS.epicIntegrity),
-        flowEfficiency: emptyCategory(WEIGHTS.flowEfficiency),
+        brePassRate: emptyCategory(this.w('brePassRate')),
+        qualityGates: emptyCategory(this.w('qualityGates')),
+        processAdherence: emptyCategory(this.w('processAdherence')),
+        epicIntegrity: emptyCategory(this.w('containerIntegrity')),
+        flowEfficiency: emptyCategory(this.w('flowEfficiency')),
       },
       summary: 'No governance events in the specified period. Score reflects clean baseline.',
       recommendations: [],

@@ -8,6 +8,8 @@ import {
   DEFAULT_METHODOLOGY,
 } from '../../src/config/methodology-config.js';
 import { ConfigurationError } from '../../src/shared/errors/index.js';
+import { HYDRO_PROFILE } from '../../src/profiles/hydro.js';
+import { SCRUM_PROFILE } from '../../src/profiles/scrum.js';
 
 describe('MethodologyConfig', () => {
   const config = new MethodologyConfig(DEFAULT_METHODOLOGY);
@@ -168,6 +170,65 @@ describe('MethodologyConfigLoader', () => {
     const config = await MethodologyConfigLoader.load(tmpDir);
     const transitions = config.getTransitions();
     expect(transitions).toHaveLength(9);
+  });
+});
+
+describe('MethodologyConfig.fromProfile', () => {
+  it('creates config from Hydro profile with same pipelines', () => {
+    const config = MethodologyConfig.fromProfile(HYDRO_PROFILE);
+    const steps = config.getStepsForTransition('refine');
+    expect(steps).toEqual(HYDRO_PROFILE.pipelines.refine.steps);
+  });
+
+  it('creates config from Scrum profile', () => {
+    const config = MethodologyConfig.fromProfile(SCRUM_PROFILE);
+    const steps = config.getStepsForTransition('plan');
+    expect(steps).toEqual(SCRUM_PROFILE.pipelines.plan.steps);
+  });
+
+  it('returns all transitions from profile pipelines', () => {
+    const config = MethodologyConfig.fromProfile(HYDRO_PROFILE);
+    const transitions = config.getTransitions();
+    expect(transitions).toContain('refine');
+    expect(transitions).toContain('approve');
+    expect(transitions).toHaveLength(Object.keys(HYDRO_PROFILE.pipelines).length);
+  });
+});
+
+describe('type-scoped pipeline resolution', () => {
+  it('resolves type-scoped pipeline when available (Scrum plan:story)', () => {
+    const config = MethodologyConfig.fromProfile(SCRUM_PROFILE);
+    const storySteps = config.getStepsForTransition('plan', 'story');
+    expect(storySteps).toEqual(SCRUM_PROFILE.pipelines['plan:story'].steps);
+    // Different from default plan
+    const defaultSteps = config.getStepsForTransition('plan');
+    expect(storySteps).not.toEqual(defaultSteps);
+  });
+
+  it('falls back to default pipeline when type-scoped not found', () => {
+    const config = MethodologyConfig.fromProfile(SCRUM_PROFILE);
+    const steps = config.getStepsForTransition('plan', 'chore');
+    // No plan:chore exists, falls back to plan
+    expect(steps).toEqual(SCRUM_PROFILE.pipelines.plan.steps);
+  });
+
+  it('falls back when workItemType is undefined', () => {
+    const config = MethodologyConfig.fromProfile(SCRUM_PROFILE);
+    const steps = config.getStepsForTransition('plan', undefined);
+    expect(steps).toEqual(SCRUM_PROFILE.pipelines.plan.steps);
+  });
+
+  it('type-scoped resolution returns empty for unknown transition', () => {
+    const config = MethodologyConfig.fromProfile(SCRUM_PROFILE);
+    const steps = config.getStepsForTransition('nonexistent', 'story');
+    expect(steps).toEqual([]);
+  });
+
+  it('Hydro has no type-scoped overrides, always returns default', () => {
+    const config = MethodologyConfig.fromProfile(HYDRO_PROFILE);
+    const defaultSteps = config.getStepsForTransition('start');
+    const typedSteps = config.getStepsForTransition('start', 'task');
+    expect(typedSteps).toEqual(defaultSteps);
   });
 });
 

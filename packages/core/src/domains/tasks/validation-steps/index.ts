@@ -41,6 +41,12 @@ export { SecurityScanValidation } from './security-scan-validation.js';
 // Multi-agent validations
 export { TaskLockValidation } from './task-lock-validation.js';
 
+// Generic profile-driven validations
+export { SourceStatusValidation } from './source-status-validation.js';
+export { ContainerAssignmentValidation } from './container-assignment-validation.js';
+export { ContainerIntegrityValidation } from './container-integrity-validation.js';
+export { ContainerSingularityValidation } from './container-singularity-validation.js';
+
 // Registry registration helper
 import type { ValidationStepRegistry } from '../validation-step-registry.js';
 import { RefineFromBacklogValidation } from './refine-from-backlog-validation.js';
@@ -70,6 +76,10 @@ import { PRReviewValidation } from './pr-review-validation.js';
 import { TestCoverageValidation } from './test-coverage-validation.js';
 import { SecurityScanValidation } from './security-scan-validation.js';
 import { TaskLockValidation } from './task-lock-validation.js';
+import { SourceStatusValidation } from './source-status-validation.js';
+import { ContainerAssignmentValidation } from './container-assignment-validation.js';
+import { ContainerIntegrityValidation } from './container-integrity-validation.js';
+import { ContainerSingularityValidation } from './container-singularity-validation.js';
 
 /** Register all built-in validation steps with a registry */
 export function registerAllBuiltinSteps(registry: ValidationStepRegistry): void {
@@ -104,6 +114,12 @@ export function registerAllBuiltinSteps(registry: ValidationStepRegistry): void 
   registry.register('PRReviewValidation', (deps) => new PRReviewValidation(deps.repositoryRepository, deps.issueRepository));
   registry.register('TestCoverageValidation', (deps) => new TestCoverageValidation(deps.repositoryRepository, deps.issueRepository));
   registry.register('SecurityScanValidation', (deps) => new SecurityScanValidation(deps.repositoryRepository));
+
+  // Generic profile-driven steps
+  registry.register('SourceStatusValidation', (_deps, param) => new SourceStatusValidation(param!));
+  registry.register('ContainerAssignmentValidation', (_deps, param) => new ContainerAssignmentValidation(param!));
+  registry.register('ContainerIntegrityValidation', (deps, param) => new ContainerIntegrityValidation(param!, deps));
+  registry.register('ContainerSingularityValidation', (deps, param) => new ContainerSingularityValidation(param!, deps));
 
   // Multi-agent steps (only active when agentService is available)
   registry.register('TaskLockValidation', (deps) => {

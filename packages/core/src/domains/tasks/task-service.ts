@@ -99,30 +99,35 @@ export class TaskService implements ITaskService {
   async listTasks(request: ListTasksRequest): Promise<ToolResponse<ListTasksData>> {
     const items = await this.projectRepository.getProjectItems();
 
-    let tasks: TaskData[] = items.map((item) => ({
-      id: item.content.url,
-      itemId: item.id,
-      number: item.content.number,
-      title: item.content.title,
-      body: item.content.body,
-      status: item.fieldValues.Status ?? 'Unknown',
-      wave: item.fieldValues.Wave,
-      epic: item.fieldValues.Epic,
-      dependencies: item.fieldValues.Dependencies,
-      aiSuitability: item.fieldValues['AI Suitability'],
-      riskLevel: item.fieldValues['Risk Level'],
-      effort: item.fieldValues.Effort,
-      taskType: item.fieldValues['Task Type'],
-      aiContext: item.fieldValues['AI Context'],
-      url: item.content.url,
-      closed: item.content.closed,
-    }));
+    let tasks: TaskData[] = items.map((item) => {
+      const containers: Record<string, string> = {};
+      if (item.fieldValues.Wave) containers['wave'] = item.fieldValues.Wave;
+      if (item.fieldValues.Epic) containers['epic'] = item.fieldValues.Epic;
+
+      return {
+        id: item.content.url,
+        itemId: item.id,
+        number: item.content.number,
+        title: item.content.title,
+        body: item.content.body,
+        status: item.fieldValues.Status ?? 'Unknown',
+        containers,
+        dependencies: item.fieldValues.Dependencies,
+        aiSuitability: item.fieldValues['AI Suitability'],
+        riskLevel: item.fieldValues['Risk Level'],
+        effort: item.fieldValues.Effort,
+        taskType: item.fieldValues['Task Type'],
+        aiContext: item.fieldValues['AI Context'],
+        url: item.content.url,
+        closed: item.content.closed,
+      };
+    });
 
     if (request.status) {
       tasks = tasks.filter((t) => t.status === request.status);
     }
     if (request.wave) {
-      tasks = tasks.filter((t) => t.wave === request.wave);
+      tasks = tasks.filter((t) => t.containers['wave'] === request.wave);
     }
 
     return {
@@ -214,7 +219,7 @@ export class TaskService implements ITaskService {
     };
   }
 
-  private async executeTransition(
+  async executeTransition(
     transition: TransitionType,
     request: TaskTransitionRequest | BlockTaskRequest | ReturnTaskRequest,
   ): Promise<ToolResponse<TaskTransitionData>> {

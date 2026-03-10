@@ -6,9 +6,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { aggregateComplianceData } from '../../src/aggregators/compliance-aggregator.js';
 import type { ServiceContainer } from '@ido4/core';
+import { HYDRO_PROFILE } from '@ido4/core';
 
 function createMockContainer() {
   return {
+    profile: HYDRO_PROFILE,
+    workflowConfig: {
+      isBlockedStatus: (s: string) => s === 'Blocked',
+      isActiveStatus: (s: string) => s === 'In Progress' || s === 'In Review',
+      isTerminalStatus: (s: string) => s === 'Done',
+    },
     complianceService: {
       computeComplianceScore: vi.fn().mockResolvedValue({
         score: 78, grade: 'C', period: {}, categories: [], recommendations: [],
@@ -27,10 +34,10 @@ function createMockContainer() {
       listTasks: vi.fn().mockResolvedValue({
         data: {
           tasks: [
-            { number: 1, title: 'Task 1', status: 'Done', wave: 'wave-001', epic: 'Auth' },
-            { number: 2, title: 'Task 2', status: 'Blocked', wave: 'wave-001', epic: 'Auth' },
-            { number: 3, title: 'Task 3', status: 'In Progress', wave: 'wave-001', epic: 'Data' },
-            { number: 4, title: 'Task 4', status: 'Ready', wave: 'wave-001' },
+            { number: 1, title: 'Task 1', status: 'Done', containers: { wave: 'wave-001', epic: 'Auth' } },
+            { number: 2, title: 'Task 2', status: 'Blocked', containers: { wave: 'wave-001', epic: 'Auth' } },
+            { number: 3, title: 'Task 3', status: 'In Progress', containers: { wave: 'wave-001', epic: 'Data' } },
+            { number: 4, title: 'Task 4', status: 'Ready', containers: { wave: 'wave-001' } },
           ],
           total: 4,
           filters: {},
@@ -112,7 +119,7 @@ describe('aggregateComplianceData', () => {
     await aggregateComplianceData(container);
     // Auth has tasks #1 and #2, should use the first one encountered (#1)
     const authCall = (container.epicService.validateEpicIntegrity as ReturnType<typeof vi.fn>).mock.calls
-      .find((c) => c[0].epic === 'Auth');
+      .find((c) => c[0].containers['epic'] === 'Auth');
     expect(authCall![0].number).toBe(1);
   });
 

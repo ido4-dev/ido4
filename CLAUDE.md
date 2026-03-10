@@ -100,6 +100,28 @@ Both `@ido4/core` and `@ido4/mcp` are published to npm. CI auto-publishes on ver
 - **Docs (GitBook)**: https://hydro-dev.gitbook.io/ido4 — auto-syncs from `docs/` directory
 - **Website**: https://github.com/ido4-dev/ido4-website (separate repo, deployed to ido4.dev)
 
+## Workflow
+
+### Plan First
+- Enter plan mode for any non-trivial task (3+ steps or architectural decisions)
+- If something goes sideways, STOP and re-plan — don't keep pushing a broken approach
+- Write the plan before writing code
+
+### Verify Before Done
+- Never mark a task complete without proving it works
+- Run tests, check build, demonstrate correctness
+- Ask yourself: "Would a staff engineer approve this?"
+
+### Self-Improvement Loop
+- After ANY correction from the user, update `memory/lessons.md` with the pattern
+- Write rules that prevent the same mistake twice
+- Review lessons at session start
+
+### Autonomous Bug Fixing
+- When given a bug report: just fix it — don't ask for hand-holding
+- Point at logs, errors, failing tests — then resolve them
+- Go fix failing CI tests without being told how
+
 ## Rules
 
 1. Every service method must have a corresponding interface definition
@@ -108,3 +130,8 @@ Both `@ido4/core` and `@ido4/mcp` are published to npm. CI auto-publishes on ver
 4. Every state transition creates an audit entry
 5. Tests must test real behavior, not just existence (`expect(true).toBe(true)` is forbidden)
 6. No hardcoded analytics values — use real data or mark explicitly as TODO with a tracking issue
+7. Simplicity first — make every change as simple as possible, minimal code impact
+8. No laziness — find root causes, no temporary fixes, senior developer standards
+9. **Same value ≠ same concept.** Before abstracting, map every usage site to the concept it represents. If two sites use the same string but mean different things, they need different abstractions. Applies to refactoring, config extraction, DRY consolidation — any shared representation over concrete values.
+10. **"Behavior-preserving" requires behavior verification.** When a change claims zero behavioral impact, generate actual output and diff against the original. Tests passing is necessary but not sufficient. Make output diffing a mandatory step for behavior-preserving refactors.
+11. **Mechanical-looking tasks are the most dangerous.** When a task feels like find-and-replace, slow down and ask: "Is there a semantic distinction here that the mechanical approach would destroy?" Treat apparent simplicity as a risk indicator, not a green light.

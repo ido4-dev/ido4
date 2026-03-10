@@ -59,11 +59,13 @@ import { AnalyticsService } from '../domains/analytics/analytics-service.js';
 import { ComplianceService } from '../domains/compliance/compliance-service.js';
 import { AgentService } from '../domains/agents/agent-service.js';
 import { FileAgentStore } from '../domains/agents/agent-store.js';
-import { MethodologyConfigLoader } from '../config/methodology-config.js';
+import { MethodologyConfig } from '../config/methodology-config.js';
 import { ValidationStepRegistry } from '../domains/tasks/validation-step-registry.js';
 import { registerAllBuiltinSteps } from '../domains/tasks/validation-steps/index.js';
 import { WorkDistributionService } from '../domains/distribution/work-distribution-service.js';
 import { MergeReadinessService } from '../domains/gate/merge-readiness-service.js';
+import type { MethodologyProfile } from '../profiles/types.js';
+import { ProfileConfigLoader } from '../config/profile-loader.js';
 
 export interface ServiceContainerConfig {
   /** Absolute path to the project root (containing .ido4/ directory) */
@@ -88,6 +90,9 @@ export class ServiceContainer {
 
   // Logging
   readonly logger: ILogger;
+
+  // Methodology profile
+  readonly profile: MethodologyProfile;
 
   // Configuration
   readonly projectConfig: IProjectConfig;
@@ -120,6 +125,7 @@ export class ServiceContainer {
     this.agentId = deps.agentId;
     this.eventBus = deps.eventBus;
     this.logger = deps.logger;
+    this.profile = deps.profile;
     this.projectConfig = deps.projectConfig;
     this.workflowConfig = deps.workflowConfig;
     this.gitWorkflowConfig = deps.gitWorkflowConfig;
@@ -164,7 +170,6 @@ export class ServiceContainer {
 
     // Layer 2: Configuration
     const projectConfig = await ProjectConfigLoader.load(config.projectRoot);
-    const workflowConfig = new WorkflowConfig(projectConfig);
     const gitWorkflowConfig = await GitWorkflowConfig.load(config.projectRoot);
 
     // Layer 3: Infrastructure
@@ -177,9 +182,13 @@ export class ServiceContainer {
     const repositoryRepository = new GitHubRepositoryRepository(graphqlClient, projectConfig, logger);
     const epicRepository = new GitHubEpicRepository(graphqlClient, projectConfig, logger);
 
+    // Layer 4.5: Methodology Profile + Workflow Config
+    const profile = await ProfileConfigLoader.load(config.projectRoot);
+    const workflowConfig = new WorkflowConfig(profile, projectConfig);
+
     // Layer 5: Domain Services
-    const epicService = new EpicService(projectRepository, logger);
-    const integrityValidator = new IntegrityValidator(epicService, issueRepository, logger);
+    const epicService = new EpicService(projectRepository, profile, logger);
+    const integrityValidator = new IntegrityValidator(epicService, issueRepository, profile, logger);
     const dependencyService = new DependencyService(issueRepository, workflowConfig, logger);
 
     // Layer 5a: Audit (subscribes to event bus, no domain dependencies)
@@ -190,39 +199,39 @@ export class ServiceContainer {
     const agentStore = new FileAgentStore(config.projectRoot, logger);
     const agentService = new AgentService(agentStore, logger);
 
-    // Layer 5c: BRE (config-driven pipeline with all step dependencies)
-    const methodologyConfig = await MethodologyConfigLoader.load(config.projectRoot);
+    // Layer 5c: BRE (profile-driven pipeline with all step dependencies)
+    const methodologyConfig = MethodologyConfig.fromProfile(profile);
     const stepRegistry = new ValidationStepRegistry();
     registerAllBuiltinSteps(stepRegistry);
     const taskTransitionValidator = new TaskTransitionValidator(
       issueRepository, projectConfig, workflowConfig,
       integrityValidator, repositoryRepository, gitWorkflowConfig, logger,
-      methodologyConfig, stepRegistry, agentService,
+      methodologyConfig, stepRegistry, agentService, profile,
     );
 
     // Layer 6: Facade
-    const suggestionService = new SuggestionService(workflowConfig, gitWorkflowConfig);
+    const suggestionService = new SuggestionService(workflowConfig, gitWorkflowConfig, profile);
     const workflowService = new TaskWorkflowService(
-      issueRepository, taskTransitionValidator, workflowConfig, logger,
+      issueRepository, taskTransitionValidator, workflowConfig, logger, profile,
     );
     const taskService = new TaskService(
       workflowService, suggestionService, taskTransitionValidator,
       issueRepository, projectRepository, projectConfig, workflowConfig, eventBus, sessionId, logger,
     );
     const containerService = new ContainerService(
-      projectRepository, issueRepository, integrityValidator, workflowConfig, logger,
+      projectRepository, issueRepository, integrityValidator, workflowConfig, profile, logger,
     );
 
-    // Layer 6b: Analytics (depends on auditService + containerService)
-    const analyticsService = new AnalyticsService(auditService, containerService, eventBus, logger);
+    // Layer 6b: Analytics (depends on auditService + containerService, profile-aware)
+    const analyticsService = new AnalyticsService(auditService, containerService, eventBus, logger, profile);
 
-    // Layer 7: Compliance (depends on auditService + analyticsService)
-    const complianceService = new ComplianceService(auditService, analyticsService, eventBus, logger);
+    // Layer 7: Compliance (depends on auditService + analyticsService, profile-driven)
+    const complianceService = new ComplianceService(auditService, analyticsService, eventBus, logger, profile);
 
-    // Layer 8: Work Distribution (depends on container, agent, task, audit)
+    // Layer 8: Work Distribution (depends on container, agent, task, audit, profile-driven)
     const workDistributionService = new WorkDistributionService(
       containerService, agentService, taskService,
-      auditService, eventBus, sessionId, logger,
+      auditService, eventBus, sessionId, logger, workflowConfig, profile,
     );
 
     // Layer 9: Merge Readiness Gate (depends on task, issue, repo, dependency, epic, audit, compliance)
@@ -236,6 +245,7 @@ export class ServiceContainer {
       agentId: config.agentId,
       eventBus,
       logger,
+      profile,
       projectConfig,
       workflowConfig,
       gitWorkflowConfig,
@@ -265,6 +275,7 @@ interface ServiceContainerDependencies {
   agentId?: string;
   eventBus: IEventBus;
   logger: ILogger;
+  profile: MethodologyProfile;
   projectConfig: IProjectConfig;
   workflowConfig: IWorkflowConfig;
   gitWorkflowConfig: IGitWorkflowConfig;

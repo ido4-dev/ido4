@@ -4,6 +4,7 @@ import type { StepDependencies } from '../../../src/domains/tasks/validation-ste
 import type { ValidationStep, ValidationStepResult, ValidationContext } from '../../../src/domains/tasks/types.js';
 import { registerAllBuiltinSteps } from '../../../src/domains/tasks/validation-steps/index.js';
 import { NotFoundError } from '../../../src/shared/errors/index.js';
+import { HYDRO_PROFILE } from '../../../src/profiles/hydro.js';
 
 class MockStep implements ValidationStep {
   readonly name = 'MockStep';
@@ -20,6 +21,7 @@ function createMockDeps(): StepDependencies {
     projectConfig: {} as StepDependencies['projectConfig'],
     workflowConfig: {} as StepDependencies['workflowConfig'],
     gitWorkflowConfig: {} as StepDependencies['gitWorkflowConfig'],
+    profile: HYDRO_PROFILE,
   };
 }
 
@@ -106,12 +108,12 @@ describe('ValidationStepRegistry', () => {
   });
 
   describe('registerAllBuiltinSteps', () => {
-    it('registers all 27 built-in validation steps', () => {
+    it('registers all 31 built-in validation steps', () => {
       const registry = new ValidationStepRegistry();
       registerAllBuiltinSteps(registry);
 
       const names = registry.getRegisteredNames();
-      expect(names).toHaveLength(27);
+      expect(names).toHaveLength(31);
 
       // Verify key steps exist
       expect(registry.has('StatusTransitionValidation')).toBe(true);
@@ -120,6 +122,11 @@ describe('ValidationStepRegistry', () => {
       expect(registry.has('ImplementationReadinessValidation')).toBe(true);
       expect(registry.has('SubtaskCompletionValidation')).toBe(true);
       expect(registry.has('TaskLockValidation')).toBe(true);
+      // New generic profile-driven steps
+      expect(registry.has('SourceStatusValidation')).toBe(true);
+      expect(registry.has('ContainerAssignmentValidation')).toBe(true);
+      expect(registry.has('ContainerIntegrityValidation')).toBe(true);
+      expect(registry.has('ContainerSingularityValidation')).toBe(true);
     });
 
     it('can create parameterized StatusTransitionValidation step', () => {

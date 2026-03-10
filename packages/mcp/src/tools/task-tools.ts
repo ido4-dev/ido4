@@ -1,13 +1,14 @@
 /**
- * Task tool registrations — 18 MCP tools for task transitions, queries, list, create,
- * PR/review awareness, governed communication, and task decomposition.
+ * Task tool registrations — dynamic transition tools from profile + static query/validation tools.
+ *
+ * Dynamic transition tools are generated from profile.transitions.
+ * Static tools (get_task, list_tasks, create_task, etc.) are unchanged.
  */
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { MethodologyProfile } from '@ido4/core';
+import { z } from 'zod';
 import {
-  TaskTransitionSchema,
-  BlockTaskSchema,
-  ReturnTaskSchema,
   GetTaskSchema,
   ValidateTransitionSchema,
   ValidateAllTransitionsSchema,
@@ -20,153 +21,15 @@ import {
 } from '../schemas/index.js';
 import { handleErrors, toCallToolResult, getContainer, createMcpActor } from '../helpers/index.js';
 
-export function registerTaskTools(server: McpServer): void {
-  // --- Transition tools ---
-
-  server.tool(
-    'start_task',
-    'Start working on a task — transitions from Ready for Dev to In Progress with BRE validation',
-    TaskTransitionSchema,
-    async (args) => handleErrors(async () => {
-      const container = await getContainer();
-      const result = await container.taskService.startTask({
-        issueNumber: args.issueNumber,
-        actor: createMcpActor(),
-        message: args.message,
-        skipValidation: args.skipValidation,
-        dryRun: args.dryRun,
-      });
-      return toCallToolResult(result);
-    }),
-  );
-
-  server.tool(
-    'review_task',
-    'Submit a task for review — transitions from In Progress to In Review with BRE validation',
-    TaskTransitionSchema,
-    async (args) => handleErrors(async () => {
-      const container = await getContainer();
-      const result = await container.taskService.reviewTask({
-        issueNumber: args.issueNumber,
-        actor: createMcpActor(),
-        message: args.message,
-        skipValidation: args.skipValidation,
-        dryRun: args.dryRun,
-      });
-      return toCallToolResult(result);
-    }),
-  );
-
-  server.tool(
-    'approve_task',
-    'Approve and complete a task — transitions from In Review to Done with BRE validation',
-    TaskTransitionSchema,
-    async (args) => handleErrors(async () => {
-      const container = await getContainer();
-      const result = await container.taskService.approveTask({
-        issueNumber: args.issueNumber,
-        actor: createMcpActor(),
-        message: args.message,
-        skipValidation: args.skipValidation,
-        dryRun: args.dryRun,
-      });
-      return toCallToolResult(result);
-    }),
-  );
-
-  server.tool(
-    'block_task',
-    'Block a task — transitions to Blocked status with a required reason',
-    BlockTaskSchema,
-    async (args) => handleErrors(async () => {
-      const container = await getContainer();
-      const result = await container.taskService.blockTask({
-        issueNumber: args.issueNumber,
-        actor: createMcpActor(),
-        reason: args.reason,
-        message: args.message,
-        skipValidation: args.skipValidation,
-        dryRun: args.dryRun,
-      });
-      return toCallToolResult(result);
-    }),
-  );
-
-  server.tool(
-    'unblock_task',
-    'Unblock a task — transitions from Blocked back to Ready for Dev',
-    TaskTransitionSchema,
-    async (args) => handleErrors(async () => {
-      const container = await getContainer();
-      const result = await container.taskService.unblockTask({
-        issueNumber: args.issueNumber,
-        actor: createMcpActor(),
-        message: args.message,
-        skipValidation: args.skipValidation,
-        dryRun: args.dryRun,
-      });
-      return toCallToolResult(result);
-    }),
-  );
-
-  server.tool(
-    'return_task',
-    'Return a task to a previous status — backward transition with reason',
-    ReturnTaskSchema,
-    async (args) => handleErrors(async () => {
-      const container = await getContainer();
-      const result = await container.taskService.returnTask({
-        issueNumber: args.issueNumber,
-        actor: createMcpActor(),
-        targetStatus: args.targetStatus,
-        reason: args.reason,
-        message: args.message,
-        skipValidation: args.skipValidation,
-        dryRun: args.dryRun,
-      });
-      return toCallToolResult(result);
-    }),
-  );
-
-  server.tool(
-    'refine_task',
-    'Move a task into refinement — transitions from Backlog to In Refinement',
-    TaskTransitionSchema,
-    async (args) => handleErrors(async () => {
-      const container = await getContainer();
-      const result = await container.taskService.refineTask({
-        issueNumber: args.issueNumber,
-        actor: createMcpActor(),
-        message: args.message,
-        skipValidation: args.skipValidation,
-        dryRun: args.dryRun,
-      });
-      return toCallToolResult(result);
-    }),
-  );
-
-  server.tool(
-    'ready_task',
-    'Mark a task as ready for development — transitions from In Refinement to Ready for Dev',
-    TaskTransitionSchema,
-    async (args) => handleErrors(async () => {
-      const container = await getContainer();
-      const result = await container.taskService.readyTask({
-        issueNumber: args.issueNumber,
-        actor: createMcpActor(),
-        message: args.message,
-        skipValidation: args.skipValidation,
-        dryRun: args.dryRun,
-      });
-      return toCallToolResult(result);
-    }),
-  );
+export function registerTaskTools(server: McpServer, profile: MethodologyProfile): void {
+  // --- Dynamic transition tools ---
+  registerDynamicTransitionTools(server, profile);
 
   // --- Read tools ---
 
   server.tool(
     'get_task',
-    'Get full task details including status, wave, epic, dependencies, and all metadata',
+    `Get full ${profile.workItems.primary.singular.toLowerCase()} details including status, containers, dependencies, and all metadata`,
     GetTaskSchema,
     async (args) => handleErrors(async () => {
       const container = await getContainer();
@@ -179,7 +42,7 @@ export function registerTaskTools(server: McpServer): void {
 
   server.tool(
     'get_task_field',
-    'Get a specific field value from a task',
+    `Get a specific field value from a ${profile.workItems.primary.singular.toLowerCase()}`,
     GetTaskSchema,
     async (args) => handleErrors(async () => {
       const container = await getContainer();
@@ -195,7 +58,7 @@ export function registerTaskTools(server: McpServer): void {
 
   server.tool(
     'list_tasks',
-    'List all tasks in the project board with optional filtering by status, wave, or assignee',
+    `List all ${profile.workItems.primary.plural.toLowerCase()} in the project board with optional filtering by status, wave, or assignee`,
     ListTasksSchema,
     async (args) => handleErrors(async () => {
       const container = await getContainer();
@@ -210,7 +73,7 @@ export function registerTaskTools(server: McpServer): void {
 
   server.tool(
     'create_task',
-    'Create a new task (GitHub issue) and add it to the project board with initial field values',
+    `Create a new ${profile.workItems.primary.singular.toLowerCase()} (GitHub issue) and add it to the project board with initial field values`,
     CreateTaskSchema,
     async (args) => handleErrors(async () => {
       const container = await getContainer();
@@ -237,7 +100,7 @@ export function registerTaskTools(server: McpServer): void {
 
   server.tool(
     'validate_transition',
-    'Validate whether a specific transition is possible for a task without executing it',
+    `Validate whether a specific transition is possible for a ${profile.workItems.primary.singular.toLowerCase()} without executing it`,
     ValidateTransitionSchema,
     async (args) => handleErrors(async () => {
       const container = await getContainer();
@@ -251,7 +114,7 @@ export function registerTaskTools(server: McpServer): void {
 
   server.tool(
     'validate_all_transitions',
-    'Check all possible transitions for a task — shows which workflow actions are currently valid',
+    `Check all possible transitions for a ${profile.workItems.primary.singular.toLowerCase()} — shows which workflow actions are currently valid`,
     ValidateAllTransitionsSchema,
     async (args) => handleErrors(async () => {
       const container = await getContainer();
@@ -266,7 +129,7 @@ export function registerTaskTools(server: McpServer): void {
 
   server.tool(
     'find_task_pr',
-    'Find the pull request linked to a task. Checks closing references and title/body mentions. Returns PR number, title, state, and merge status.',
+    `Find the pull request linked to a ${profile.workItems.primary.singular.toLowerCase()}. Checks closing references and title/body mentions. Returns PR number, title, state, and merge status.`,
     FindTaskPrSchema,
     async (args) => handleErrors(async () => {
       const container = await getContainer();
@@ -277,7 +140,7 @@ export function registerTaskTools(server: McpServer): void {
 
   server.tool(
     'get_pr_reviews',
-    'Get all reviews for a pull request: reviewer, state (APPROVED/CHANGES_REQUESTED/etc), and feedback. Needed to verify review requirements before approving a task.',
+    `Get all reviews for a pull request: reviewer, state (APPROVED/CHANGES_REQUESTED/etc), and feedback. Needed to verify review requirements before approving a ${profile.workItems.primary.singular.toLowerCase()}.`,
     GetPrReviewsSchema,
     async (args) => handleErrors(async () => {
       const container = await getContainer();
@@ -290,7 +153,7 @@ export function registerTaskTools(server: McpServer): void {
 
   server.tool(
     'add_task_comment',
-    'Add a governed comment to a task issue. Creates an audit-trailed record of decisions, status updates, or inter-agent communication.',
+    `Add a governed comment to a ${profile.workItems.primary.singular.toLowerCase()} issue. Creates an audit-trailed record of decisions, status updates, or inter-agent communication.`,
     AddTaskCommentSchema,
     async (args) => handleErrors(async () => {
       const container = await getContainer();
@@ -319,4 +182,127 @@ export function registerTaskTools(server: McpServer): void {
       });
     }),
   );
+}
+
+/**
+ * Generate transition tools dynamically from profile.transitions.
+ *
+ * Deduplicates actions (e.g., 'return' appears multiple times with different from states).
+ * Schema variants:
+ * - block transition: requires 'reason' parameter
+ * - return transition: requires 'targetStatus' + 'reason' parameters
+ * - all others: standard schema (issueNumber, message, skipValidation, dryRun)
+ */
+function registerDynamicTransitionTools(server: McpServer, profile: MethodologyProfile): void {
+  const itemLabel = profile.workItems.primary.singular.toLowerCase();
+  const blockAction = profile.behaviors.blockTransition;
+  const returnAction = profile.behaviors.returnTransition;
+
+  // Collect unique actions with their metadata
+  const actionMap = new Map<string, { fromStates: string[]; toState: string; label: string }>();
+
+  for (const transition of profile.transitions) {
+    const existing = actionMap.get(transition.action);
+    if (existing) {
+      // Merge from states (e.g., 'return' can come from multiple states)
+      for (const from of transition.from) {
+        if (!existing.fromStates.includes(from)) {
+          existing.fromStates.push(from);
+        }
+      }
+    } else {
+      actionMap.set(transition.action, {
+        fromStates: [...transition.from],
+        toState: transition.to,
+        label: transition.label,
+      });
+    }
+  }
+
+  // Resolve state keys to names for descriptions
+  const stateNameMap = new Map(profile.states.map((s) => [s.key, s.name]));
+  const resolveStateName = (key: string): string => stateNameMap.get(key) ?? key;
+
+  for (const [action, meta] of actionMap) {
+    const fromStateNames = meta.fromStates.map(resolveStateName).join(', ');
+    const toolName = `${action}_task`;
+    const description = `${meta.label}. Valid from: ${fromStateNames}`;
+
+    if (action === blockAction) {
+      // Block schema: requires reason
+      server.tool(
+        toolName,
+        description,
+        {
+          issueNumber: z.number().int().positive().describe(`GitHub issue number of the ${itemLabel}`),
+          reason: z.string().describe(`Why the ${itemLabel} is blocked`),
+          message: z.string().optional().describe('Comment to add to the issue'),
+          skipValidation: z.boolean().optional().describe('Skip BRE validation (not recommended)'),
+          dryRun: z.boolean().optional().describe('Validate without executing the transition'),
+        },
+        async (args) => handleErrors(async () => {
+          const container = await getContainer();
+          const result = await container.taskService.executeTransition(action, {
+            issueNumber: args.issueNumber,
+            actor: createMcpActor(),
+            reason: args.reason,
+            message: args.message,
+            skipValidation: args.skipValidation,
+            dryRun: args.dryRun,
+          });
+          return toCallToolResult(result);
+        }),
+      );
+    } else if (action === returnAction) {
+      // Return schema: requires targetStatus + reason
+      server.tool(
+        toolName,
+        description,
+        {
+          issueNumber: z.number().int().positive().describe(`GitHub issue number of the ${itemLabel}`),
+          targetStatus: z.string().describe('Target status to return to'),
+          reason: z.string().describe(`Why the ${itemLabel} is being returned`),
+          message: z.string().optional().describe('Comment to add to the issue'),
+          skipValidation: z.boolean().optional().describe('Skip BRE validation (not recommended)'),
+          dryRun: z.boolean().optional().describe('Validate without executing the transition'),
+        },
+        async (args) => handleErrors(async () => {
+          const container = await getContainer();
+          const result = await container.taskService.executeTransition(action, {
+            issueNumber: args.issueNumber,
+            actor: createMcpActor(),
+            targetStatus: args.targetStatus,
+            reason: args.reason,
+            message: args.message,
+            skipValidation: args.skipValidation,
+            dryRun: args.dryRun,
+          });
+          return toCallToolResult(result);
+        }),
+      );
+    } else {
+      // Standard schema
+      server.tool(
+        toolName,
+        description,
+        {
+          issueNumber: z.number().int().positive().describe(`GitHub issue number of the ${itemLabel}`),
+          message: z.string().optional().describe('Comment to add to the issue'),
+          skipValidation: z.boolean().optional().describe('Skip BRE validation (not recommended)'),
+          dryRun: z.boolean().optional().describe('Validate without executing the transition'),
+        },
+        async (args) => handleErrors(async () => {
+          const container = await getContainer();
+          const result = await container.taskService.executeTransition(action, {
+            issueNumber: args.issueNumber,
+            actor: createMcpActor(),
+            message: args.message,
+            skipValidation: args.skipValidation,
+            dryRun: args.dryRun,
+          });
+          return toCallToolResult(result);
+        }),
+      );
+    }
+  }
 }

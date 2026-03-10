@@ -131,8 +131,8 @@ describe('FieldExtractor', () => {
     it('extracts all standard project fields', () => {
       const common = FieldExtractor.extractCommonFields(sampleFieldValues);
       expect(common.status).toBe('In Progress');
-      expect(common.wave).toBe('wave-001');
-      expect(common.epic).toBe('Epic-Auth');
+      expect(common.containers['wave']).toBe('wave-001');
+      expect(common.containers['epic']).toBe('Epic-Auth');
       expect(common.dependencies).toBe('#123 (Done), #124 (In Progress)');
       expect(common.aiSuitability).toBe('ai-only');
       expect(common.riskLevel).toBe('Medium');
@@ -143,8 +143,8 @@ describe('FieldExtractor', () => {
     it('returns undefined for missing fields', () => {
       const common = FieldExtractor.extractCommonFields([]);
       expect(common.status).toBeUndefined();
-      expect(common.wave).toBeUndefined();
-      expect(common.epic).toBeUndefined();
+      expect(common.containers['wave']).toBeUndefined();
+      expect(common.containers['epic']).toBeUndefined();
     });
   });
 });

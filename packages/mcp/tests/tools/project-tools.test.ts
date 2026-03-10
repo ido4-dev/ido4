@@ -36,6 +36,7 @@ vi.mock('../../src/helpers/container-init.js', () => ({
 }));
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { HYDRO_PROFILE } from '@ido4/core';
 import { registerProjectTools } from '../../src/tools/project-tools.js';
 
 describe('Project Tools', () => {
@@ -44,7 +45,7 @@ describe('Project Tools', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     server = new McpServer({ name: 'test', version: '0.1.0' });
-    registerProjectTools(server);
+    registerProjectTools(server, HYDRO_PROFILE);
   });
 
   it('init_project calls ProjectInitService.initializeProject', async () => {
@@ -152,6 +153,12 @@ describe('Project Tools', () => {
       mockGetContainer.mockResolvedValue({
         containerService: mockContainerService,
         taskService: mockTaskService,
+        profile: HYDRO_PROFILE,
+        workflowConfig: {
+          isBlockedStatus: (s: string) => s === 'Blocked',
+          isActiveStatus: (s: string) => s === 'In Progress' || s === 'In Review',
+          isTerminalStatus: (s: string) => s === 'Done',
+        },
       });
     });
 
@@ -164,11 +171,11 @@ describe('Project Tools', () => {
         success: true,
         data: {
           tasks: [
-            { number: 1, status: 'Done', wave: 'wave-001', closed: false },
-            { number: 2, status: 'In Progress', wave: 'wave-001', closed: false },
-            { number: 3, status: 'Blocked', wave: 'wave-001', closed: false },
-            { number: 4, status: 'Backlog', wave: 'wave-002', closed: false },
-            { number: 5, status: 'Backlog', closed: false },
+            { number: 1, status: 'Done', containers: { wave: 'wave-001' }, closed: false },
+            { number: 2, status: 'In Progress', containers: { wave: 'wave-001' }, closed: false },
+            { number: 3, status: 'Blocked', containers: { wave: 'wave-001' }, closed: false },
+            { number: 4, status: 'Backlog', containers: { wave: 'wave-002' }, closed: false },
+            { number: 5, status: 'Backlog', containers: {}, closed: false },
           ],
           total: 5,
           filters: {},

@@ -42,7 +42,7 @@ export async function aggregateComplianceData(
   const analytics = await container.analyticsService.getContainerAnalytics(analyticsContainer);
 
   // Per-task: dependency analysis for blocked tasks
-  const blockedTasks = tasks.filter((t) => t.status === 'Blocked');
+  const blockedTasks = tasks.filter((t) => container.workflowConfig.isBlockedStatus(t.status));
   const blockerAnalyses: TaskBlockerAnalysis[] = await Promise.all(
     blockedTasks.map(async (task): Promise<TaskBlockerAnalysis> => {
       try {
@@ -54,11 +54,18 @@ export async function aggregateComplianceData(
     }),
   );
 
-  // Per-epic: validate integrity for a representative task from each unique epic
+  // Per-integrity-group: validate integrity for a representative task from each unique grouping container
+  // Derive grouping container from profile's same-container integrity rules
+  const sameContainerRules = container.profile.integrityRules.filter((r) => r.type === 'same-container');
+  const groupByContainerId = sameContainerRules[0]?.groupBy;
+
   const epicMap = new Map<string, TaskData>();
-  for (const task of tasks) {
-    if (task.epic && !epicMap.has(task.epic)) {
-      epicMap.set(task.epic, task);
+  if (groupByContainerId) {
+    for (const task of tasks) {
+      const groupValue = task.containers[groupByContainerId];
+      if (groupValue && !epicMap.has(groupValue)) {
+        epicMap.set(groupValue, task);
+      }
     }
   }
 

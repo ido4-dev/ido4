@@ -14,7 +14,7 @@ import { ConfigurationError } from '../shared/errors/index.js';
 
 /** Configuration for which validation steps run per transition */
 export interface IMethodologyConfig {
-  getStepsForTransition(transition: string): string[];
+  getStepsForTransition(transition: string, workItemType?: string): string[];
   getStepConfig(stepName: string): Record<string, unknown>;
   getTransitions(): string[];
   isStepEnabled(transition: string, stepName: string): boolean;
@@ -114,7 +114,30 @@ export const DEFAULT_METHODOLOGY: MethodologyDefinition = {
 export class MethodologyConfig implements IMethodologyConfig {
   constructor(private readonly definition: MethodologyDefinition) {}
 
-  getStepsForTransition(transition: string): string[] {
+  /**
+   * Create a MethodologyConfig from a MethodologyProfile.
+   * The profile IS the methodology — its pipelines drive the BRE.
+   */
+  static fromProfile(profile: { version: string; name: string; pipelines: Record<string, { steps: string[] }> }): MethodologyConfig {
+    return new MethodologyConfig({
+      version: profile.version,
+      name: profile.name,
+      pipelines: Object.fromEntries(
+        Object.entries(profile.pipelines).map(([key, val]) => [key, { steps: [...val.steps] }]),
+      ),
+    });
+  }
+
+  getStepsForTransition(transition: string, workItemType?: string): string[] {
+    // Type-scoped lookup: try action:type first, fall back to action
+    if (workItemType) {
+      const scopedKey = `${transition}:${workItemType}`;
+      const scopedPipeline = this.definition.pipelines[scopedKey];
+      if (scopedPipeline) {
+        return [...scopedPipeline.steps];
+      }
+    }
+
     const pipeline = this.definition.pipelines[transition];
     if (!pipeline) {
       return [];

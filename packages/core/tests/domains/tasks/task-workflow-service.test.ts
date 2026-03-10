@@ -4,6 +4,7 @@ import type { IIssueRepository, ITaskTransitionValidator, IWorkflowConfig } from
 import { TestLogger } from '../../helpers/test-logger.js';
 import { createMockTaskData, createMockWorkflowConfig } from '../../helpers/mock-factories.js';
 import { SYSTEM_ACTOR } from '../../../src/index.js';
+import { HYDRO_PROFILE } from '../../../src/profiles/hydro.js';
 import type { ValidationResult, TransitionType } from '../../../src/domains/tasks/types.js';
 
 function createMockIssueRepo(): IIssueRepository {
@@ -56,7 +57,7 @@ describe('TaskWorkflowService', () => {
     validator = createMockValidator();
     workflowConfig = createMockWorkflowConfig();
     logger = new TestLogger();
-    service = new TaskWorkflowService(issueRepo, validator, workflowConfig, logger);
+    service = new TaskWorkflowService(issueRepo, validator, workflowConfig, logger, HYDRO_PROFILE);
 
     vi.mocked(issueRepo.getTask).mockResolvedValue(
       createMockTaskData({ status: 'Ready for Dev' }),
@@ -181,20 +182,21 @@ describe('TaskWorkflowService', () => {
   });
 
   describe('executeTransition — all transition types map correctly', () => {
-    const transitionToStatus: Array<[TransitionType, string, string]> = [
-      ['refine', 'IN_REFINEMENT', 'In Refinement'],
-      ['ready', 'READY_FOR_DEV', 'Ready for Dev'],
-      ['start', 'IN_PROGRESS', 'In Progress'],
-      ['review', 'IN_REVIEW', 'In Review'],
-      ['approve', 'DONE', 'Done'],
-      ['complete', 'DONE', 'Done'],
-      ['block', 'BLOCKED', 'Blocked'],
-      ['unblock', 'READY_FOR_DEV', 'Ready for Dev'],
+    // Each transition needs a valid from-status for profile-driven lookup
+    const transitionToStatus: Array<[TransitionType, string, string, string]> = [
+      ['refine', 'IN_REFINEMENT', 'In Refinement', 'Backlog'],
+      ['ready', 'READY_FOR_DEV', 'Ready for Dev', 'In Refinement'],
+      ['start', 'IN_PROGRESS', 'In Progress', 'Ready for Dev'],
+      ['review', 'IN_REVIEW', 'In Review', 'In Progress'],
+      ['approve', 'DONE', 'Done', 'In Review'],
+      ['complete', 'DONE', 'Done', 'Done'],
+      ['block', 'BLOCKED', 'Blocked', 'In Progress'],
+      ['unblock', 'READY_FOR_DEV', 'Ready for Dev', 'Blocked'],
     ];
 
-    for (const [transition, statusKey, statusName] of transitionToStatus) {
+    for (const [transition, statusKey, statusName, fromStatus] of transitionToStatus) {
       it(`maps ${transition} → ${statusName}`, async () => {
-        vi.mocked(issueRepo.getTask).mockResolvedValue(createMockTaskData({ status: 'In Progress' }));
+        vi.mocked(issueRepo.getTask).mockResolvedValue(createMockTaskData({ status: fromStatus }));
         vi.mocked(validator.validateTransition).mockResolvedValue(makePassingValidation(transition));
 
         const result = await service.executeTransition(transition, {
@@ -205,5 +207,18 @@ describe('TaskWorkflowService', () => {
         expect(issueRepo.updateTaskStatus).toHaveBeenCalledWith(42, statusKey);
       });
     }
+  });
+
+  describe('profile-driven behaviors', () => {
+    it('uses profile.behaviors.closingTransitions for closing transition detection', async () => {
+      vi.mocked(validator.validateTransition).mockResolvedValue(makePassingValidation('approve'));
+      vi.mocked(issueRepo.getTask).mockResolvedValue(createMockTaskData({ status: 'In Review' }));
+
+      await service.executeTransition('approve', {
+        issueNumber: 42, actor: SYSTEM_ACTOR,
+      });
+
+      expect(issueRepo.closeIssue).toHaveBeenCalledWith(42);
+    });
   });
 });

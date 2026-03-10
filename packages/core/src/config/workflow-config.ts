@@ -1,80 +1,59 @@
 /**
- * WorkflowConfig — Implements IWorkflowConfig with cached transition map.
+ * WorkflowConfig — Implements IWorkflowConfig, now profile-driven.
  *
- * Changes from CLI:
- * - Pre-computes transition map in constructor for O(1) lookups
- * - Caches workflow constants
- * - Uses scaffold's ConfigurationError
+ * Constructor takes (profile, config). Derives STATUS_KEYS and TRANSITION_PAIRS
+ * from profile.states and profile.transitions. Adds semantic methods.
+ *
+ * All existing methods preserved with identical behavior for Hydro profile.
  */
 
 import type { IProjectConfig, IWorkflowConfig } from '../container/interfaces.js';
+import type { MethodologyProfile } from '../profiles/types.js';
 import { ConfigurationError } from '../shared/errors/index.js';
-
-type WorkflowStatusKey =
-  | 'BACKLOG'
-  | 'IN_REFINEMENT'
-  | 'READY_FOR_DEV'
-  | 'BLOCKED'
-  | 'IN_PROGRESS'
-  | 'IN_REVIEW'
-  | 'DONE';
-
-const STATUS_KEYS: readonly WorkflowStatusKey[] = [
-  'BACKLOG', 'IN_REFINEMENT', 'READY_FOR_DEV', 'BLOCKED',
-  'IN_PROGRESS', 'IN_REVIEW', 'DONE',
-];
-
-/** Defines all valid workflow transitions as [fromKey, toKey] pairs. */
-const TRANSITION_PAIRS: ReadonlyArray<readonly [WorkflowStatusKey, WorkflowStatusKey]> = [
-  // Forward transitions
-  ['BACKLOG', 'IN_REFINEMENT'],         // refine
-  ['BACKLOG', 'READY_FOR_DEV'],         // ready (fast-track)
-  ['IN_REFINEMENT', 'READY_FOR_DEV'],   // ready
-  ['READY_FOR_DEV', 'IN_PROGRESS'],     // start
-  ['IN_PROGRESS', 'IN_REVIEW'],         // review
-  ['IN_REVIEW', 'DONE'],               // approve
-  ['DONE', 'DONE'],                     // complete (administrative)
-  // Block/unblock
-  ['BACKLOG', 'BLOCKED'],
-  ['IN_REFINEMENT', 'BLOCKED'],
-  ['READY_FOR_DEV', 'BLOCKED'],
-  ['IN_PROGRESS', 'BLOCKED'],
-  ['IN_REVIEW', 'BLOCKED'],
-  ['BLOCKED', 'READY_FOR_DEV'],         // unblock
-  // Return (backward)
-  ['READY_FOR_DEV', 'IN_REFINEMENT'],
-  ['IN_PROGRESS', 'READY_FOR_DEV'],
-  ['IN_REVIEW', 'IN_PROGRESS'],
-];
 
 export class WorkflowConfig implements IWorkflowConfig {
   private readonly config: IProjectConfig;
+  private readonly profile: MethodologyProfile;
   private readonly transitionMap: Set<string>;
   private readonly statusNameCache: Map<string, string>;
+  private readonly statusKeyCache: Map<string, string>;
   /** Pre-computed reverse-lookup: status name → valid destination status names */
   private readonly nextTransitionsMap: Map<string, string[]>;
+  /** Derived status keys from profile */
+  private readonly statusKeys: readonly string[];
 
-  constructor(config: IProjectConfig) {
+  constructor(profile: MethodologyProfile, config: IProjectConfig) {
     this.config = config;
+    this.profile = profile;
 
-    // Pre-compute transition map for O(1) lookups
+    // Derive STATUS_KEYS from profile
+    this.statusKeys = profile.states.map((s) => s.key);
+
+    // Pre-compute caches
     this.transitionMap = new Set<string>();
     this.statusNameCache = new Map<string, string>();
+    this.statusKeyCache = new Map<string, string>();
     const nextMap = new Map<string, Set<string>>();
 
-    for (const key of STATUS_KEYS) {
+    for (const key of this.statusKeys) {
       const option = config.status_options[key];
       if (option) {
         this.statusNameCache.set(key, option.name);
+        this.statusKeyCache.set(option.name, key);
       }
     }
 
-    for (const [fromKey, toKey] of TRANSITION_PAIRS) {
-      const fromName = this.statusNameCache.get(fromKey);
-      const toName = this.statusNameCache.get(toKey);
-      if (fromName && toName) {
+    // Derive TRANSITION_PAIRS from profile.transitions
+    for (const transition of profile.transitions) {
+      const toName = this.statusNameCache.get(transition.to);
+      if (!toName) continue;
+
+      for (const fromKey of transition.from) {
+        const fromName = this.statusNameCache.get(fromKey);
+        if (!fromName) continue;
+
         this.transitionMap.add(`${fromName}->${toName}`);
-        // Build reverse-lookup for getValidNextTransitions
+
         let destinations = nextMap.get(fromName);
         if (!destinations) {
           destinations = new Set<string>();
@@ -134,7 +113,7 @@ export class WorkflowConfig implements IWorkflowConfig {
 
   getAllStatusValues(): Record<string, string> {
     const result: Record<string, string> = {};
-    for (const key of STATUS_KEYS) {
+    for (const key of this.statusKeys) {
       const name = this.statusNameCache.get(key);
       if (name) {
         result[key] = name;
@@ -145,6 +124,45 @@ export class WorkflowConfig implements IWorkflowConfig {
 
   getValidNextTransitions(fromStatus: string): string[] {
     return this.nextTransitionsMap.get(fromStatus) ?? [];
+  }
+
+  // ─── New Semantic Methods ───
+
+  getTargetStateKey(fromStateKey: string, action: string): string | undefined {
+    for (const t of this.profile.transitions) {
+      if (t.action === action && t.from.includes(fromStateKey)) {
+        return t.to;
+      }
+    }
+    return undefined;
+  }
+
+  isTerminalStatus(statusName: string): boolean {
+    const key = this.statusKeyCache.get(statusName);
+    if (!key) return false;
+    return this.profile.semantics.terminalStates.includes(key);
+  }
+
+  isBlockedStatus(statusName: string): boolean {
+    const key = this.statusKeyCache.get(statusName);
+    if (!key) return false;
+    return this.profile.semantics.blockedStates.includes(key);
+  }
+
+  isReadyStatus(statusName: string): boolean {
+    const key = this.statusKeyCache.get(statusName);
+    if (!key) return false;
+    return this.profile.semantics.readyStates.includes(key);
+  }
+
+  isActiveStatus(statusName: string): boolean {
+    const key = this.statusKeyCache.get(statusName);
+    if (!key) return false;
+    return this.profile.semantics.activeStates.includes(key);
+  }
+
+  getStatusKey(statusName: string): string | undefined {
+    return this.statusKeyCache.get(statusName);
   }
 
   private getAvailableFieldKeys(): string[] {

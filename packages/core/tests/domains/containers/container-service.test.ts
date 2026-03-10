@@ -3,6 +3,7 @@ import { ContainerService } from '../../../src/domains/containers/container-serv
 import type { IProjectRepository, IIssueRepository, IIntegrityValidator, IWorkflowConfig, ProjectItem } from '../../../src/container/interfaces.js';
 import { TestLogger } from '../../helpers/test-logger.js';
 import { createMockWorkflowConfig, createMockProjectItem, createMockTaskData } from '../../helpers/mock-factories.js';
+import { HYDRO_PROFILE } from '../../../src/profiles/hydro.js';
 
 function createMockProjectRepo(): IProjectRepository {
   return {
@@ -53,7 +54,7 @@ describe('ContainerService', () => {
     integrityValidator = createMockIntegrityValidator();
     workflowConfig = createMockWorkflowConfig();
     logger = new TestLogger();
-    service = new ContainerService(projectRepo, issueRepo, integrityValidator, workflowConfig, logger);
+    service = new ContainerService(projectRepo, issueRepo, integrityValidator, workflowConfig, HYDRO_PROFILE, logger);
   });
 
   describe('listContainers', () => {

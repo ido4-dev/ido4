@@ -4,16 +4,13 @@
  * Defines the validation pipeline types used by the BRE (Business Rule Engine).
  */
 
-export type TransitionType =
-  | 'refine'
-  | 'ready'
-  | 'start'
-  | 'review'
-  | 'approve'
-  | 'complete'
-  | 'block'
-  | 'unblock'
-  | 'return';
+/**
+ * TransitionType — widened to `string` in Phase 3.
+ *
+ * The engine no longer assumes specific transition names. The profile defines them.
+ * All existing 9-value transition names remain valid as string values.
+ */
+export type TransitionType = string;
 
 export interface ValidationResult {
   canProceed: boolean;

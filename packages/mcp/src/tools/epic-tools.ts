@@ -1,8 +1,12 @@
 /**
- * Epic tool registrations — 4 MCP tools for epic visibility and governance.
+ * Legacy epic tool registrations — 4 MCP tools for epic visibility and governance.
+ *
+ * These tools use epicRepository (Hydro infrastructure) and are only registered
+ * when the profile has a container with id === 'epic'.
  */
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { MethodologyProfile } from '@ido4/core';
 import {
   SearchEpicsSchema,
   GetEpicTasksSchema,
@@ -11,7 +15,11 @@ import {
 } from '../schemas/index.js';
 import { handleErrors, toCallToolResult, getContainer } from '../helpers/index.js';
 
-export function registerEpicTools(server: McpServer): void {
+export function registerEpicTools(server: McpServer, profile: MethodologyProfile): void {
+  // Only register legacy epic tools when profile has an 'epic' container
+  const hasEpicContainer = profile.containers.some((c) => c.id === 'epic');
+  if (!hasEpicContainer) return;
+
   server.tool(
     'search_epics',
     'Search for epic issues by name or title pattern. Returns matching issues with number, title, and URL.',

@@ -115,19 +115,19 @@ describe('WaveAssignmentValidation', () => {
   const step = new WaveAssignmentValidation();
 
   it('passes when wave is assigned', async () => {
-    const result = await step.validate(makeContext({ wave: 'wave-001' }));
+    const result = await step.validate(makeContext({ containers: { wave: 'wave-001' } }));
     expect(result.passed).toBe(true);
     expect(result.message).toContain('wave-001');
   });
 
   it('fails when wave is missing', async () => {
-    const result = await step.validate(makeContext({ wave: undefined }));
+    const result = await step.validate(makeContext({ containers: {} }));
     expect(result.passed).toBe(false);
     expect(result.severity).toBe('error');
   });
 
   it('fails when wave is empty string', async () => {
-    const result = await step.validate(makeContext({ wave: '' }));
+    const result = await step.validate(makeContext({ containers: { wave: '' } }));
     expect(result.passed).toBe(false);
   });
 });

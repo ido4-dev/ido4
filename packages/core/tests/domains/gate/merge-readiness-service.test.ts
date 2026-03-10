@@ -15,7 +15,7 @@ function createMocks() {
   const taskService = {
     getTask: vi.fn().mockResolvedValue({
       number: 42, title: 'Test task', status: 'In Review',
-      id: 'ID_42', itemId: 'ITEM_42', body: '', epic: 'Auth',
+      id: 'ID_42', itemId: 'ITEM_42', body: '', containers: { epic: 'Auth' },
     }),
   };
 
@@ -105,7 +105,7 @@ describe('MergeReadinessService', () => {
       const { service, taskService } = createMocks();
       taskService.getTask.mockResolvedValue({
         number: 42, title: 'Test', status: 'In Progress',
-        id: 'ID_42', itemId: 'ITEM_42', body: '',
+        id: 'ID_42', itemId: 'ITEM_42', body: '', containers: {},
       });
 
       const result = await service.checkMergeReadiness(42);
@@ -232,7 +232,7 @@ describe('MergeReadinessService', () => {
       const { service, taskService } = createMocks();
       taskService.getTask.mockResolvedValue({
         number: 42, title: 'Test', status: 'In Review',
-        id: 'ID_42', itemId: 'ITEM_42', body: '',
+        id: 'ID_42', itemId: 'ITEM_42', body: '', containers: {},
         // no epic
       });
 

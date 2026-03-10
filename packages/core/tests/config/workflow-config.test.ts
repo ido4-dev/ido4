@@ -2,9 +2,11 @@ import { describe, it, expect } from 'vitest';
 import { WorkflowConfig } from '../../src/config/workflow-config.js';
 import { createMockProjectConfig } from '../helpers/mock-factories.js';
 import { ConfigurationError } from '../../src/shared/errors/index.js';
+import { HYDRO_PROFILE } from '../../src/profiles/hydro.js';
+import { SCRUM_PROFILE } from '../../src/profiles/scrum.js';
 
 describe('WorkflowConfig', () => {
-  const config = new WorkflowConfig(createMockProjectConfig());
+  const config = new WorkflowConfig(HYDRO_PROFILE, createMockProjectConfig());
 
   describe('getStatusId', () => {
     it('returns the status option ID', () => {
@@ -124,6 +126,125 @@ describe('WorkflowConfig', () => {
 
     it('returns empty array for unknown status', () => {
       expect(config.getValidNextTransitions('Nonexistent')).toEqual([]);
+    });
+  });
+
+  describe('semantic methods', () => {
+    describe('getTargetStateKey', () => {
+      it('returns target key for start from READY_FOR_DEV', () => {
+        expect(config.getTargetStateKey('READY_FOR_DEV', 'start')).toBe('IN_PROGRESS');
+      });
+
+      it('returns target key for approve from IN_REVIEW', () => {
+        expect(config.getTargetStateKey('IN_REVIEW', 'approve')).toBe('DONE');
+      });
+
+      it('returns target key for block from multiple sources', () => {
+        expect(config.getTargetStateKey('IN_PROGRESS', 'block')).toBe('BLOCKED');
+        expect(config.getTargetStateKey('BACKLOG', 'block')).toBe('BLOCKED');
+      });
+
+      it('returns undefined for invalid from/action pair', () => {
+        expect(config.getTargetStateKey('DONE', 'start')).toBeUndefined();
+      });
+
+      it('handles return transitions (multiple from-states with different targets)', () => {
+        expect(config.getTargetStateKey('IN_REVIEW', 'return')).toBe('IN_PROGRESS');
+        expect(config.getTargetStateKey('IN_PROGRESS', 'return')).toBe('READY_FOR_DEV');
+        expect(config.getTargetStateKey('READY_FOR_DEV', 'return')).toBe('IN_REFINEMENT');
+      });
+    });
+
+    describe('isTerminalStatus', () => {
+      it('Done is terminal', () => {
+        expect(config.isTerminalStatus('Done')).toBe(true);
+      });
+
+      it('In Progress is not terminal', () => {
+        expect(config.isTerminalStatus('In Progress')).toBe(false);
+      });
+
+      it('unknown status is not terminal', () => {
+        expect(config.isTerminalStatus('Nonexistent')).toBe(false);
+      });
+    });
+
+    describe('isBlockedStatus', () => {
+      it('Blocked is blocked', () => {
+        expect(config.isBlockedStatus('Blocked')).toBe(true);
+      });
+
+      it('In Progress is not blocked', () => {
+        expect(config.isBlockedStatus('In Progress')).toBe(false);
+      });
+    });
+
+    describe('isReadyStatus', () => {
+      it('Ready for Dev is ready', () => {
+        expect(config.isReadyStatus('Ready for Dev')).toBe(true);
+      });
+
+      it('In Progress is not ready', () => {
+        expect(config.isReadyStatus('In Progress')).toBe(false);
+      });
+    });
+
+    describe('isActiveStatus', () => {
+      it('In Progress is active', () => {
+        expect(config.isActiveStatus('In Progress')).toBe(true);
+      });
+
+      it('In Review is active', () => {
+        expect(config.isActiveStatus('In Review')).toBe(true);
+      });
+
+      it('Backlog is not active', () => {
+        expect(config.isActiveStatus('Backlog')).toBe(false);
+      });
+    });
+
+    describe('getStatusKey', () => {
+      it('returns key for known status name', () => {
+        expect(config.getStatusKey('Backlog')).toBe('BACKLOG');
+        expect(config.getStatusKey('Done')).toBe('DONE');
+        expect(config.getStatusKey('In Progress')).toBe('IN_PROGRESS');
+      });
+
+      it('returns undefined for unknown status name', () => {
+        expect(config.getStatusKey('Nonexistent')).toBeUndefined();
+      });
+    });
+  });
+
+  describe('Scrum profile produces different state machine', () => {
+    const scrumConfig = new WorkflowConfig(SCRUM_PROFILE, createMockProjectConfig({
+      status_options: {
+        BACKLOG: { name: 'Product Backlog', id: 'opt_backlog' },
+        SPRINT: { name: 'Sprint Backlog', id: 'opt_sprint' },
+        IN_PROGRESS: { name: 'In Progress', id: 'opt_progress' },
+        IN_REVIEW: { name: 'In Review', id: 'opt_review' },
+        DONE: { name: 'Done', id: 'opt_done' },
+        BLOCKED: { name: 'Blocked', id: 'opt_blocked' },
+      },
+    }));
+
+    it('has 6 statuses (not 7)', () => {
+      const statuses = scrumConfig.getAllStatusValues();
+      expect(Object.keys(statuses).length).toBe(6);
+      expect(statuses['SPRINT']).toBe('Sprint Backlog');
+    });
+
+    it('accepts Scrum transitions', () => {
+      expect(scrumConfig.isValidTransition('Product Backlog', 'Sprint Backlog')).toBe(true);
+      expect(scrumConfig.isValidTransition('Sprint Backlog', 'In Progress')).toBe(true);
+    });
+
+    it('getTargetStateKey works for Scrum plan action', () => {
+      expect(scrumConfig.getTargetStateKey('BACKLOG', 'plan')).toBe('SPRINT');
+    });
+
+    it('isReadyStatus identifies Sprint Backlog', () => {
+      expect(scrumConfig.isReadyStatus('Sprint Backlog')).toBe(true);
     });
   });
 });

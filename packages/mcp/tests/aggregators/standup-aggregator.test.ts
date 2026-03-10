@@ -6,9 +6,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { aggregateStandupData } from '../../src/aggregators/standup-aggregator.js';
 import type { ServiceContainer } from '@ido4/core';
+import { HYDRO_PROFILE } from '@ido4/core';
 
 function createMockContainer(overrides: Record<string, unknown> = {}) {
   const defaults = {
+    profile: HYDRO_PROFILE,
+    workflowConfig: {
+      isBlockedStatus: (s: string) => s === 'Blocked',
+      isActiveStatus: (s: string) => s === 'In Progress' || s === 'In Review',
+      isTerminalStatus: (s: string) => s === 'Done',
+    },
     containerService: {
       listContainers: vi.fn().mockResolvedValue([
         { name: 'wave-001', status: 'active', taskCount: 5, completedCount: 2, completionPercentage: 40 },

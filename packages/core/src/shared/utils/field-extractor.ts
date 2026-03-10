@@ -20,8 +20,7 @@ export interface FieldValue {
 
 export interface CommonFields {
   readonly status: string | undefined;
-  readonly wave: string | undefined;
-  readonly epic: string | undefined;
+  readonly containers: Record<string, string>;
   readonly dependencies: string | undefined;
   readonly aiSuitability: string | undefined;
   readonly riskLevel: string | undefined;
@@ -86,10 +85,15 @@ export class FieldExtractor {
 
   /** Extract all common project fields into a typed object. */
   static extractCommonFields(fieldValues: readonly FieldValue[]): CommonFields {
+    const wave = FieldExtractor.getFieldValue(fieldValues, 'Wave');
+    const epic = FieldExtractor.getFieldValue(fieldValues, 'Epic');
+    const containers: Record<string, string> = {};
+    if (wave) containers['wave'] = wave;
+    if (epic) containers['epic'] = epic;
+
     return {
       status: FieldExtractor.getFieldValue(fieldValues, 'Status'),
-      wave: FieldExtractor.getFieldValue(fieldValues, 'Wave'),
-      epic: FieldExtractor.getFieldValue(fieldValues, 'Epic'),
+      containers,
       dependencies: FieldExtractor.getFieldValue(fieldValues, 'Dependencies'),
       aiSuitability: FieldExtractor.getFieldValue(fieldValues, 'AI Suitability'),
       riskLevel: FieldExtractor.getFieldValue(fieldValues, 'Risk Level'),

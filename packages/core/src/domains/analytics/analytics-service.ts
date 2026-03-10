@@ -11,6 +11,7 @@ import type { PersistedAuditEvent, SerializedDomainEvent } from '../audit/audit-
 import type { IContainerService } from '../../container/interfaces.js';
 import type { ILogger } from '../../shared/logger.js';
 import type { IEventBus, Unsubscribe } from '../../shared/events/index.js';
+import type { MethodologyProfile } from '../../profiles/types.js';
 
 export interface IAnalyticsService {
   getContainerAnalytics(waveName: string): Promise<ContainerAnalytics>;
@@ -72,6 +73,7 @@ export class AnalyticsService implements IAnalyticsService {
     private readonly containerService: IContainerService,
     eventBus: IEventBus,
     _logger: ILogger,
+    private readonly profile?: MethodologyProfile,
   ) {
     // Invalidate cache on any new event
     this.unsubscribe = eventBus.on('*', () => {
@@ -248,6 +250,13 @@ export class AnalyticsService implements IAnalyticsService {
   private computeTaskMetrics(timeline: TaskTimeline): TaskCycleTime {
     const { issueNumber, events } = timeline;
 
+    // Derive semantic transition sets from profile (fall back to Hydro defaults)
+    const activeTargetActions = this.getActiveTargetActions();
+    const closingActions = this.getClosingActions();
+    const blockAction = this.profile?.behaviors.blockTransition ?? 'block';
+    const returnAction = this.profile?.behaviors.returnTransition ?? 'return';
+    const unblockActions = this.getUnblockActions();
+
     let startedAt: string | null = null;
     let completedAt: string | null = null;
     let firstNonBacklog: string | null = null;
@@ -260,27 +269,27 @@ export class AnalyticsService implements IAnalyticsService {
       if (!transition) continue;
 
       // Track first non-backlog transition for lead time
-      if (!firstNonBacklog && transition !== 'return') {
+      if (!firstNonBacklog && transition !== returnAction) {
         firstNonBacklog = event.timestamp;
       }
 
-      // Track start for cycle time
-      if (transition === 'start' && !startedAt) {
+      // Track start for cycle time — first transition into an active state
+      if (!startedAt && activeTargetActions.has(transition)) {
         startedAt = event.timestamp;
       }
 
-      // Track completion
-      if (transition === 'approve') {
+      // Track completion — closing transitions
+      if (closingActions.has(transition)) {
         completedAt = event.timestamp;
       }
 
       // Track blocking time
-      if (transition === 'block') {
+      if (transition === blockAction) {
         lastBlockedAt = event.timestamp;
         blockCount++;
       }
 
-      if (transition === 'unblock' && lastBlockedAt) {
+      if (unblockActions.has(transition) && lastBlockedAt) {
         blockingTimeMs += new Date(event.timestamp).getTime() - new Date(lastBlockedAt).getTime();
         lastBlockedAt = null;
       }
@@ -305,6 +314,36 @@ export class AnalyticsService implements IAnalyticsService {
       blockingTimeHours: Math.round(blockingTimeHours * 100) / 100,
       blockCount,
     };
+  }
+
+  /** Actions whose target state is an active state (cycle time starts here) */
+  private getActiveTargetActions(): Set<string> {
+    if (!this.profile) return new Set(['start']);
+    const activeKeys = new Set(this.profile.semantics.activeStates);
+    const actions = new Set<string>();
+    for (const t of this.profile.transitions) {
+      if (activeKeys.has(t.to)) actions.add(t.action);
+    }
+    return actions;
+  }
+
+  /** Closing transitions (task completion) */
+  private getClosingActions(): Set<string> {
+    if (!this.profile) return new Set(['approve']);
+    return new Set(this.profile.behaviors.closingTransitions);
+  }
+
+  /** Actions that transition FROM a blocked state (unblock) */
+  private getUnblockActions(): Set<string> {
+    if (!this.profile) return new Set(['unblock']);
+    const blockedKeys = new Set(this.profile.semantics.blockedStates);
+    const actions = new Set<string>();
+    for (const t of this.profile.transitions) {
+      if (t.from.some((f) => blockedKeys.has(f)) && !blockedKeys.has(t.to)) {
+        actions.add(t.action);
+      }
+    }
+    return actions;
   }
 
   private getCached<T>(key: string): T | null {

@@ -92,6 +92,9 @@ export class GitHubProjectRepository implements IProjectRepository {
     const waveTasks: TaskData[] = [];
     for (const item of items) {
       if (item.fieldValues.Wave === wave) {
+        const containers: Record<string, string> = { wave };
+        if (item.fieldValues.Epic) containers['epic'] = item.fieldValues.Epic;
+
         waveTasks.push({
           id: item.id,
           itemId: item.id,
@@ -99,8 +102,7 @@ export class GitHubProjectRepository implements IProjectRepository {
           title: item.content.title,
           body: item.content.body,
           status: item.fieldValues.Status ?? 'Unknown',
-          wave,
-          epic: item.fieldValues.Epic,
+          containers,
           dependencies: item.fieldValues.Dependencies,
           aiSuitability: item.fieldValues['AI Suitability'],
           riskLevel: item.fieldValues['Risk Level'],

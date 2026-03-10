@@ -1,9 +1,8 @@
 /**
  * TaskWorkflowService — Executes task state transitions.
  *
- * Single executeTransition() replaces 8 near-identical methods from CLI.
- * Returns raw WorkflowTransitionResult — no ToolResponse, no events, no suggestions.
- * The TaskService facade handles those concerns.
+ * Phase 3: Profile-driven. Uses WorkflowConfig semantic methods and profile behaviors
+ * instead of hardcoded switch statements.
  */
 
 import type {
@@ -16,6 +15,7 @@ import type {
 } from '../../container/interfaces.js';
 import type { ILogger } from '../../shared/logger.js';
 import type { TransitionType, ValidationResult } from './types.js';
+import type { MethodologyProfile } from '../../profiles/types.js';
 
 export interface WorkflowTransitionResult {
   issueNumber: number;
@@ -32,6 +32,7 @@ export class TaskWorkflowService {
     private readonly transitionValidator: ITaskTransitionValidator,
     private readonly workflowConfig: IWorkflowConfig,
     private readonly logger: ILogger,
+    private readonly profile: MethodologyProfile,
   ) {}
 
   async executeTransition(
@@ -58,7 +59,7 @@ export class TaskWorkflowService {
     // Fetch current task for fromStatus
     const task = await this.issueRepository.getTask(issueNumber);
     const fromStatus = task.status;
-    const toStatus = this.getTargetStatus(transition, request);
+    const toStatus = this.getTargetStatus(transition, fromStatus, request);
 
     if (!validationResult.canProceed) {
       this.logger.debug('Transition blocked by validation', {
@@ -92,24 +93,24 @@ export class TaskWorkflowService {
     }
 
     // Phase 3: Execute
-    await this.issueRepository.updateTaskStatus(issueNumber, this.getTargetStatusKey(transition, request));
+    await this.issueRepository.updateTaskStatus(issueNumber, this.getTargetStatusKey(transition, fromStatus, request));
 
     if (request.message) {
       await this.issueRepository.addComment(issueNumber, request.message);
     }
 
     // Block reason as comment
-    if (transition === 'block' && 'reason' in request) {
+    if (this.isBlockTransition(transition) && 'reason' in request) {
       await this.issueRepository.addComment(issueNumber, `Blocked: ${(request as BlockTaskRequest).reason}`);
     }
 
     // Return reason as comment
-    if (transition === 'return' && 'reason' in request) {
+    if (this.isReturnTransition(transition) && 'reason' in request) {
       await this.issueRepository.addComment(issueNumber, `Returned: ${(request as ReturnTaskRequest).reason}`);
     }
 
-    // Close issue on approve
-    if (transition === 'approve') {
+    // Close issue on closing transitions
+    if (this.isClosingTransition(transition)) {
       await this.issueRepository.closeIssue(issueNumber);
     }
 
@@ -130,35 +131,50 @@ export class TaskWorkflowService {
     };
   }
 
-  private getTargetStatus(transition: TransitionType, request: TaskTransitionRequest | BlockTaskRequest | ReturnTaskRequest): string {
-    if (transition === 'return' && 'targetStatus' in request) {
+  private getTargetStatus(
+    transition: TransitionType,
+    fromStatus: string,
+    request: TaskTransitionRequest | BlockTaskRequest | ReturnTaskRequest,
+  ): string {
+    if (this.isReturnTransition(transition) && 'targetStatus' in request) {
       return (request as ReturnTaskRequest).targetStatus;
     }
-    const key = this.getTargetStatusKey(transition, request);
+    const key = this.getTargetStatusKey(transition, fromStatus, request);
     return this.workflowConfig.getStatusName(key);
   }
 
-  private getTargetStatusKey(transition: TransitionType, request: TaskTransitionRequest | BlockTaskRequest | ReturnTaskRequest): string {
-    switch (transition) {
-      case 'refine': return 'IN_REFINEMENT';
-      case 'ready': return 'READY_FOR_DEV';
-      case 'start': return 'IN_PROGRESS';
-      case 'review': return 'IN_REVIEW';
-      case 'approve': return 'DONE';
-      case 'complete': return 'DONE';
-      case 'block': return 'BLOCKED';
-      case 'unblock': return 'READY_FOR_DEV';
-      case 'return': {
-        // For return, we need to find the status key from the target status name
-        if ('targetStatus' in request) {
-          const targetName = (request as ReturnTaskRequest).targetStatus;
-          const allStatuses = this.workflowConfig.getAllStatusValues();
-          for (const [key, name] of Object.entries(allStatuses)) {
-            if (name === targetName) return key;
-          }
-        }
-        return 'READY_FOR_DEV';
-      }
+  private getTargetStatusKey(
+    transition: TransitionType,
+    fromStatus: string,
+    request: TaskTransitionRequest | BlockTaskRequest | ReturnTaskRequest,
+  ): string {
+    // Return transition: caller specifies target via request
+    if (this.isReturnTransition(transition) && 'targetStatus' in request) {
+      const targetName = (request as ReturnTaskRequest).targetStatus;
+      const key = this.workflowConfig.getStatusKey(targetName);
+      if (key) return key;
     }
+
+    // All other transitions: look up from profile via WorkflowConfig
+    const fromKey = this.workflowConfig.getStatusKey(fromStatus);
+    if (fromKey) {
+      const toKey = this.workflowConfig.getTargetStateKey(fromKey, transition);
+      if (toKey) return toKey;
+    }
+
+    // Fallback (shouldn't happen for valid transitions)
+    return transition;
+  }
+
+  private isBlockTransition(transition: string): boolean {
+    return this.profile.behaviors.blockTransition === transition;
+  }
+
+  private isReturnTransition(transition: string): boolean {
+    return this.profile.behaviors.returnTransition === transition;
+  }
+
+  private isClosingTransition(transition: string): boolean {
+    return this.profile.behaviors.closingTransitions.includes(transition);
   }
 }

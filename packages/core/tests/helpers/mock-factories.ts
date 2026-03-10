@@ -16,8 +16,7 @@ export function createMockTaskData(overrides: Partial<TaskData> = {}): TaskData 
     title: 'Test Task for Business Rule Validation',
     body: 'Task description with acceptance criteria and implementation details',
     status: 'Backlog',
-    wave: 'wave-001',
-    epic: undefined,
+    containers: { wave: 'wave-001' },
     dependencies: 'No dependencies',
     aiSuitability: 'ai-only',
     riskLevel: 'Low',
@@ -106,6 +105,11 @@ export function createMockWorkflowConfig(overrides: Partial<IWorkflowConfig> = {
     DONE: 'Done',
   };
 
+  const reverseStatusMap: Record<string, string> = {};
+  for (const [key, name] of Object.entries(statusMap)) {
+    reverseStatusMap[name] = key;
+  }
+
   const statusIdMap: Record<string, string> = {
     BACKLOG: 'opt_backlog',
     IN_REFINEMENT: 'opt_refinement',
@@ -159,6 +163,21 @@ export function createMockWorkflowConfig(overrides: Partial<IWorkflowConfig> = {
     }
   }
 
+  // Transition action lookup (mirrors HYDRO_PROFILE transitions)
+  const transitionDefs = [
+    { action: 'refine', from: ['BACKLOG'], to: 'IN_REFINEMENT' },
+    { action: 'ready', from: ['IN_REFINEMENT', 'BACKLOG'], to: 'READY_FOR_DEV' },
+    { action: 'start', from: ['READY_FOR_DEV'], to: 'IN_PROGRESS' },
+    { action: 'review', from: ['IN_PROGRESS'], to: 'IN_REVIEW' },
+    { action: 'approve', from: ['IN_REVIEW'], to: 'DONE' },
+    { action: 'complete', from: ['DONE'], to: 'DONE' },
+    { action: 'block', from: ['BACKLOG', 'IN_REFINEMENT', 'READY_FOR_DEV', 'IN_PROGRESS', 'IN_REVIEW'], to: 'BLOCKED' },
+    { action: 'unblock', from: ['BLOCKED'], to: 'READY_FOR_DEV' },
+    { action: 'return', from: ['READY_FOR_DEV'], to: 'IN_REFINEMENT' },
+    { action: 'return', from: ['IN_PROGRESS'], to: 'READY_FOR_DEV' },
+    { action: 'return', from: ['IN_REVIEW'], to: 'IN_PROGRESS' },
+  ];
+
   return {
     getStatusId(key: string): string {
       return statusIdMap[key] ?? '';
@@ -177,6 +196,33 @@ export function createMockWorkflowConfig(overrides: Partial<IWorkflowConfig> = {
     },
     getValidNextTransitions(fromStatus: string): string[] {
       return nextMap.get(fromStatus) ?? [];
+    },
+    getTargetStateKey(fromStateKey: string, action: string): string | undefined {
+      for (const t of transitionDefs) {
+        if (t.action === action && t.from.includes(fromStateKey)) {
+          return t.to;
+        }
+      }
+      return undefined;
+    },
+    isTerminalStatus(statusName: string): boolean {
+      const key = reverseStatusMap[statusName];
+      return key === 'DONE';
+    },
+    isBlockedStatus(statusName: string): boolean {
+      const key = reverseStatusMap[statusName];
+      return key === 'BLOCKED';
+    },
+    isReadyStatus(statusName: string): boolean {
+      const key = reverseStatusMap[statusName];
+      return key === 'READY_FOR_DEV';
+    },
+    isActiveStatus(statusName: string): boolean {
+      const key = reverseStatusMap[statusName];
+      return key === 'IN_PROGRESS' || key === 'IN_REVIEW';
+    },
+    getStatusKey(statusName: string): string | undefined {
+      return reverseStatusMap[statusName];
     },
     ...overrides,
   };

@@ -4,6 +4,8 @@ import type { IAuditService } from '../../../src/domains/audit/audit-service.js'
 import type { IAnalyticsService } from '../../../src/domains/analytics/analytics-service.js';
 import type { PersistedAuditEvent } from '../../../src/domains/audit/audit-store.js';
 import type { TaskCycleTime } from '../../../src/domains/analytics/analytics-service.js';
+import type { MethodologyProfile } from '../../../src/profiles/types.js';
+import { HYDRO_PROFILE } from '../../../src/profiles/hydro.js';
 import { InMemoryEventBus } from '../../../src/shared/events/in-memory-event-bus.js';
 import { TestLogger } from '../../helpers/test-logger.js';
 
@@ -101,7 +103,7 @@ describe('ComplianceService', () => {
     analyticsService = createMockAnalyticsService();
     eventBus = new InMemoryEventBus();
     logger = new TestLogger();
-    service = new ComplianceService(auditService, analyticsService, eventBus, logger);
+    service = new ComplianceService(auditService, analyticsService, eventBus, logger, HYDRO_PROFILE);
   });
 
   describe('empty state', () => {
@@ -262,7 +264,7 @@ describe('ComplianceService', () => {
 
       const result = await service.computeComplianceScore();
       expect(result.categories.qualityGates.score).toBe(100);
-      expect(result.categories.qualityGates.detail).toContain('No approve transitions');
+      expect(result.categories.qualityGates.detail).toContain('No closing transitions');
     });
 
     it('counts as pass when quality gate steps not in pipeline', async () => {
@@ -708,6 +710,92 @@ describe('ComplianceService', () => {
 
       const result = await service.computeComplianceScore();
       expect(result.summary).toContain('needs attention');
+    });
+  });
+
+  describe('cross-profile: non-standard closing transitions', () => {
+    /**
+     * These tests verify methodology-agnosticism by creating a profile where
+     * the closing transition is 'finish' instead of 'approve'. If the engine
+     * still hardcodes 'approve', these tests will fail.
+     */
+    const customProfile: MethodologyProfile = {
+      ...HYDRO_PROFILE,
+      id: 'test-custom',
+      behaviors: {
+        ...HYDRO_PROFILE.behaviors,
+        closingTransitions: ['finish'],
+      },
+      compliance: {
+        lifecycle: ['plan', 'start', 'review', 'finish'],
+        weights: HYDRO_PROFILE.compliance.weights,
+      },
+    };
+    let customService: ComplianceService;
+
+    beforeEach(() => {
+      customService = new ComplianceService(
+        auditService, analyticsService, eventBus, logger, customProfile,
+      );
+    });
+
+    it('recognizes "finish" (not "approve") as closing transition for quality gates', async () => {
+      const events = [
+        makeTransitionEvent({
+          issueNumber: 42, transition: 'finish',
+          validationResult: {
+            stepsRun: 3, stepsPassed: 3, stepsFailed: 0, stepsWarned: 0,
+            details: [
+              { stepName: 'PRReviewValidation', passed: true },
+              { stepName: 'TestCoverageValidation', passed: true },
+              { stepName: 'SecurityScanValidation', passed: true },
+            ],
+          },
+        }),
+      ];
+      vi.mocked(auditService.queryEvents).mockResolvedValue({ events, total: 1, query: {} });
+
+      const result = await customService.computeComplianceScore();
+      expect(result.categories.qualityGates.score).toBe(100);
+      expect(result.categories.qualityGates.detail).toContain('1/1');
+    });
+
+    it('ignores "approve" events when closing transition is "finish"', async () => {
+      const events = [
+        makeTransitionEvent({ issueNumber: 42, transition: 'approve' }),
+        makeTransitionEvent({ issueNumber: 43, transition: 'start' }),
+      ];
+      vi.mocked(auditService.queryEvents).mockResolvedValue({ events, total: 2, query: {} });
+
+      const result = await customService.computeComplianceScore();
+      // 'approve' is NOT a closing transition in this profile, so quality gates should show "no closing transitions"
+      expect(result.categories.qualityGates.detail).toContain('No closing transitions');
+    });
+
+    it('evaluates process adherence using "finish" as closing transition', async () => {
+      const events = [
+        makeTransitionEvent({ issueNumber: 42, transition: 'plan' }),
+        makeTransitionEvent({ issueNumber: 42, transition: 'start' }),
+        makeTransitionEvent({ issueNumber: 42, transition: 'review' }),
+        makeTransitionEvent({ issueNumber: 42, transition: 'finish' }),
+      ];
+      vi.mocked(auditService.queryEvents).mockResolvedValue({ events, total: 4, query: {} });
+
+      const result = await customService.computeComplianceScore();
+      // Full lifecycle: plan, start, review, finish — all present = 100%
+      expect(result.categories.processAdherence.score).toBe(100);
+    });
+
+    it('does not evaluate process adherence for tasks with only "approve" (not "finish")', async () => {
+      const events = [
+        makeTransitionEvent({ issueNumber: 42, transition: 'start' }),
+        makeTransitionEvent({ issueNumber: 42, transition: 'approve' }),
+      ];
+      vi.mocked(auditService.queryEvents).mockResolvedValue({ events, total: 2, query: {} });
+
+      const result = await customService.computeComplianceScore();
+      // Task 42 has 'approve' but not 'finish' → not considered complete → excluded
+      expect(result.categories.processAdherence.detail).toContain('No completed tasks');
     });
   });
 });

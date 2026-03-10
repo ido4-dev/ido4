@@ -12,6 +12,7 @@ import { registerAllBuiltinSteps } from '../../src/domains/tasks/validation-step
 import type { StepDependencies } from '../../src/domains/tasks/validation-step-registry.js';
 import type { ValidationContext } from '../../src/domains/tasks/types.js';
 import type { IIssueRepository, IRepositoryRepository } from '../../src/container/interfaces.js';
+import { HYDRO_PROFILE } from '../../src/profiles/hydro.js';
 
 function createMinimalContext(issueNumber: number): ValidationContext {
   return {
@@ -62,6 +63,7 @@ describe('Quality Gates Integration', () => {
       projectConfig: {} as any,
       workflowConfig: {} as any,
       gitWorkflowConfig: {} as any,
+      profile: HYDRO_PROFILE,
     };
 
     const step = registry.create('PRReviewValidation', deps);
@@ -96,6 +98,7 @@ describe('Quality Gates Integration', () => {
       projectConfig: {} as any,
       workflowConfig: {} as any,
       gitWorkflowConfig: {} as any,
+      profile: HYDRO_PROFILE,
     };
 
     const step = registry.create('PRReviewValidation', deps);
@@ -130,6 +133,7 @@ describe('Quality Gates Integration', () => {
       projectConfig: {} as any,
       workflowConfig: {} as any,
       gitWorkflowConfig: {} as any,
+      profile: HYDRO_PROFILE,
     };
 
     const step = registry.create('TestCoverageValidation', deps);
@@ -154,6 +158,7 @@ describe('Quality Gates Integration', () => {
       projectConfig: {} as any,
       workflowConfig: {} as any,
       gitWorkflowConfig: {} as any,
+      profile: HYDRO_PROFILE,
     };
 
     const step = registry.create('SecurityScanValidation', deps);
@@ -180,6 +185,7 @@ describe('Quality Gates Integration', () => {
       projectConfig: {} as any,
       workflowConfig: {} as any,
       gitWorkflowConfig: {} as any,
+      profile: HYDRO_PROFILE,
     };
 
     const step = registry.create('SecurityScanValidation', deps);

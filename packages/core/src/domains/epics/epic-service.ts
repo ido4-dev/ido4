@@ -15,13 +15,20 @@ import type {
   IntegrityResult,
 } from '../../container/interfaces.js';
 import type { ILogger } from '../../shared/logger.js';
+import type { MethodologyProfile, SameContainerRule } from '../../profiles/types.js';
 import { EpicUtils } from '../../shared/utils/index.js';
 
 export class EpicService implements IEpicService {
+  private readonly epicField: string;
+
   constructor(
     private readonly projectRepository: IProjectRepository,
+    private readonly profile: MethodologyProfile,
     private readonly logger: ILogger,
-  ) {}
+  ) {
+    const epicContainer = profile.containers.find((c) => c.id === 'epic');
+    this.epicField = epicContainer?.taskField ?? 'Epic';
+  }
 
   async getTasksInEpic(epicName: string): Promise<TaskData[]> {
     const items = await this.projectRepository.getProjectItems();
@@ -29,7 +36,7 @@ export class EpicService implements IEpicService {
 
     const matched = items.filter((item) => {
       // Match by epic field value
-      const epicField = item.fieldValues['Epic'];
+      const epicField = item.fieldValues[this.epicField];
       if (epicField && EpicUtils.normalizeEpicName(epicField) === normalizedEpic) {
         return true;
       }
@@ -45,38 +52,78 @@ export class EpicService implements IEpicService {
   }
 
   async validateEpicIntegrity(task: TaskData): Promise<IntegrityResult> {
-    if (!task.epic) {
+    const sameContainerRules = this.profile.integrityRules.filter(
+      (r): r is SameContainerRule => r.type === 'same-container',
+    );
+
+    if (sameContainerRules.length === 0) {
       return { maintained: true, violations: [] };
     }
 
-    const epicTasks = await this.getTasksInEpic(task.epic);
+    const allViolations: string[] = [];
 
-    // Collect unique waves (excluding tasks with no wave)
-    const waves = new Set<string>();
-    for (const t of epicTasks) {
-      if (t.wave) {
-        waves.add(t.wave);
+    for (const rule of sameContainerRules) {
+      const groupByValue = task.containers[rule.groupBy];
+      if (!groupByValue) continue;
+
+      const groupTasks = await this.getTasksByContainer(rule.groupBy, groupByValue);
+
+      // Collect unique mustMatch values (excluding tasks with no assignment)
+      const mustMatchValues = new Set<string>();
+      for (const t of groupTasks) {
+        const value = t.containers[rule.mustMatch];
+        if (value) mustMatchValues.add(value);
       }
+
+      if (mustMatchValues.size <= 1) continue;
+
+      const containerList = [...mustMatchValues];
+      const containerDef = this.profile.containers.find((c) => c.id === rule.groupBy);
+      const groupLabel = containerDef?.singular ?? rule.groupBy;
+
+      allViolations.push(
+        `${groupLabel} "${groupByValue}" has tasks spread across ${mustMatchValues.size} ${rule.mustMatch}s: ${containerList.join(', ')}`,
+      );
+
+      this.logger.debug('Container integrity violation detected', {
+        ruleId: rule.id,
+        groupBy: groupByValue,
+        containers: containerList,
+      });
     }
 
-    if (waves.size <= 1) {
+    if (allViolations.length === 0) {
       return { maintained: true, violations: [] };
     }
 
-    const waveList = [...waves];
-    const violations = [
-      `Epic "${task.epic}" has tasks spread across ${waves.size} waves: ${waveList.join(', ')}`,
-    ];
+    return { maintained: false, violations: allViolations };
+  }
 
-    this.logger.debug('Epic integrity violation detected', {
-      epicName: task.epic,
-      waves: waveList,
+  /**
+   * Generic container-based task lookup: finds all tasks sharing a container value.
+   * Reads the field name from the profile's container definition.
+   */
+  private async getTasksByContainer(containerId: string, value: string): Promise<TaskData[]> {
+    const containerDef = this.profile.containers.find((c) => c.id === containerId);
+    if (!containerDef) return [];
+
+    const fieldName = containerDef.taskField;
+    const items = await this.projectRepository.getProjectItems();
+    const normalizedValue = EpicUtils.normalizeEpicName(value);
+
+    const matched = items.filter((item) => {
+      const fieldValue = item.fieldValues[fieldName];
+      return fieldValue !== undefined && EpicUtils.normalizeEpicName(fieldValue) === normalizedValue;
     });
 
-    return { maintained: false, violations };
+    return matched.map((item) => this.mapProjectItemToTaskData(item));
   }
 
   private mapProjectItemToTaskData(item: ProjectItem): TaskData {
+    const containers: Record<string, string> = {};
+    if (item.fieldValues['Wave']) containers['wave'] = item.fieldValues['Wave'];
+    if (item.fieldValues['Epic']) containers['epic'] = item.fieldValues['Epic'];
+
     return {
       id: '', // Issue node_id not available from project items
       itemId: item.id,
@@ -84,8 +131,7 @@ export class EpicService implements IEpicService {
       title: item.content.title,
       body: item.content.body,
       status: item.fieldValues['Status'] ?? '',
-      wave: item.fieldValues['Wave'] || undefined,
-      epic: item.fieldValues['Epic'] || undefined,
+      containers,
       dependencies: item.fieldValues['Dependencies'] || undefined,
       aiSuitability: item.fieldValues['AI Suitability'] || undefined,
       riskLevel: item.fieldValues['Risk Level'] || undefined,

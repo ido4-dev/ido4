@@ -16,9 +16,11 @@ import type {
   IAgentService,
   ITaskService,
   IAuditService,
+  IWorkflowConfig,
   TaskData,
   RegisteredAgent,
 } from '../../container/interfaces.js';
+import type { MethodologyProfile } from '../../profiles/types.js';
 import type { ILogger, ActorIdentity } from '../../shared/logger.js';
 import type { IEventBus } from '../../shared/events/index.js';
 import type {
@@ -45,6 +47,8 @@ export interface IWorkDistributionService {
 }
 
 export class WorkDistributionService implements IWorkDistributionService {
+  private readonly closingTransitions: readonly string[];
+
   constructor(
     private readonly containerService: IContainerService,
     private readonly agentService: IAgentService,
@@ -53,7 +57,11 @@ export class WorkDistributionService implements IWorkDistributionService {
     private readonly eventBus: IEventBus,
     private readonly sessionId: string,
     private readonly logger: ILogger,
-  ) {}
+    private readonly workflowConfig: IWorkflowConfig,
+    profile: MethodologyProfile,
+  ) {
+    this.closingTransitions = profile.behaviors.closingTransitions;
+  }
 
   async getNextTask(agentId: string, containerName?: string): Promise<WorkRecommendation> {
     const activeContainer = await this.resolveActiveContainer(containerName);
@@ -74,9 +82,9 @@ export class WorkDistributionService implements IWorkDistributionService {
       }
     }
 
-    // Filter candidates: Ready or Refinement, not locked by another agent
+    // Filter candidates: Ready or todo-category statuses, not locked by another agent
     const candidates = allTasks.filter((task) => {
-      const isActionable = task.status === 'Ready for Dev' || task.status === 'In Refinement';
+      const isActionable = this.isActionableStatus(task.status);
       if (!isActionable) return false;
       const lockOwner = lockMap.get(task.number);
       if (lockOwner && lockOwner !== agentId) return false;
@@ -108,7 +116,8 @@ export class WorkDistributionService implements IWorkDistributionService {
     const recentlyCompleted = new Set<number>();
     for (const entry of recentEvents) {
       const event = entry.event as Record<string, unknown>;
-      if (event.transition === 'approve' && typeof event.issueNumber === 'number') {
+      const transition = event.transition;
+      if (typeof transition === 'string' && this.closingTransitions.includes(transition) && typeof event.issueNumber === 'number') {
         recentlyCompleted.add(event.issueNumber as number);
       }
     }
@@ -171,10 +180,10 @@ export class WorkDistributionService implements IWorkDistributionService {
       const taskDeps = DependencyService.parseDependencies(depTask.dependencies);
       const allSatisfied = taskDeps.every((d) => {
         const depTaskData = allTasks.find((t) => t.number === d);
-        return depTaskData?.status === 'Done';
+        return depTaskData ? this.isTerminalStatus(depTaskData.status) : false;
       });
 
-      if (allSatisfied && (depTask.status === 'Blocked' || depTask.status === 'Ready for Dev')) {
+      if (allSatisfied && this.isBlockedOrReady(depTask.status)) {
         // Suggest which agent should pick it up
         const { agent: bestAgent, reasoning } = this.suggestAgentForTask(depTask, agents, agentId);
         newlyUnblocked.push({
@@ -243,7 +252,7 @@ export class WorkDistributionService implements IWorkDistributionService {
       visited.add(num);
 
       const depTask = allTasks.find((t) => t.number === num);
-      if (!depTask || depTask.status === 'Done') continue;
+      if (!depTask || this.isTerminalStatus(depTask.status)) continue;
 
       // Depth-weighted: depth 1 = 15 points, depth 2 = 8 points, depth 3+ = 4 points
       if (depth === 1) score += 15;
@@ -267,16 +276,16 @@ export class WorkDistributionService implements IWorkDistributionService {
    * Higher completion ratio = higher score. Finishing an epic is high leverage.
    */
   private scoreEpicMomentum(task: TaskData, allTasks: TaskData[]): number {
-    if (!task.epic) return 0;
+    if (!task.containers['epic']) return 0;
 
-    const epicTasks = allTasks.filter((t) => t.epic === task.epic);
+    const epicTasks = allTasks.filter((t) => t.containers['epic'] === task.containers['epic']);
     if (epicTasks.length <= 1) return 5; // Solo task in epic — small bonus
 
-    const doneCount = epicTasks.filter((t) => t.status === 'Done').length;
+    const doneCount = epicTasks.filter((t) => this.isTerminalStatus(t.status)).length;
     const ratio = doneCount / epicTasks.length;
 
     // Last task in epic gets max score (finishing momentum)
-    const remaining = epicTasks.filter((t) => t.status !== 'Done').length;
+    const remaining = epicTasks.filter((t) => !this.isTerminalStatus(t.status)).length;
     if (remaining === 1) return MAX_EPIC_MOMENTUM;
 
     // Scale: 0% done = 0, 50% done = 12, 80% done = 20
@@ -330,6 +339,23 @@ export class WorkDistributionService implements IWorkDistributionService {
     return Math.min(Math.round(ratio * MAX_FRESHNESS), MAX_FRESHNESS);
   }
 
+  // ─── Status Helpers (profile-aware) ───
+
+  private isActionableStatus(status: string): boolean {
+    return this.workflowConfig.isReadyStatus(status) ||
+      (!this.workflowConfig.isTerminalStatus(status) &&
+       !this.workflowConfig.isBlockedStatus(status) &&
+       !this.workflowConfig.isActiveStatus(status));
+  }
+
+  private isBlockedOrReady(status: string): boolean {
+    return this.workflowConfig.isBlockedStatus(status) || this.workflowConfig.isReadyStatus(status);
+  }
+
+  private isTerminalStatus(status: string): boolean {
+    return this.workflowConfig.isTerminalStatus(status);
+  }
+
   // ─── Helpers ───
 
   private buildReverseDependencyMap(tasks: TaskData[]): Map<number, number[]> {
@@ -356,15 +382,15 @@ export class WorkDistributionService implements IWorkDistributionService {
       const dependents = reverseDeps.get(task.number) ?? [];
       const nonDone = dependents.filter((d) => {
         const t = allTasks.find((at) => at.number === d);
-        return t && t.status !== 'Done';
+        return t && !this.isTerminalStatus(t.status);
       });
       parts.push(`Unblocks ${nonDone.length} downstream task${nonDone.length !== 1 ? 's' : ''} (${nonDone.map((d) => `#${d}`).join(', ')})`);
     }
 
-    if (breakdown.epicMomentum > 0 && task.epic) {
-      const epicTasks = allTasks.filter((t) => t.epic === task.epic);
-      const doneCount = epicTasks.filter((t) => t.status === 'Done').length;
-      parts.push(`Advances ${task.epic} epic (${doneCount}/${epicTasks.length} done)`);
+    if (breakdown.epicMomentum > 0 && task.containers['epic']) {
+      const epicTasks = allTasks.filter((t) => t.containers['epic'] === task.containers['epic']);
+      const doneCount = epicTasks.filter((t) => this.isTerminalStatus(t.status)).length;
+      parts.push(`Advances ${task.containers['epic']} epic (${doneCount}/${epicTasks.length} done)`);
     }
 
     if (breakdown.dependencyFreshness > 0) {

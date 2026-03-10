@@ -3,6 +3,7 @@ import { TaskTransitionValidator } from '../../../src/domains/tasks/task-transit
 import type { IIssueRepository, IProjectConfig, IWorkflowConfig, IIntegrityValidator, IRepositoryRepository, IGitWorkflowConfig } from '../../../src/container/interfaces.js';
 import { TestLogger } from '../../helpers/test-logger.js';
 import { createMockTaskData, createMockWorkflowConfig, createMockProjectConfig, createMockGitWorkflowConfig } from '../../helpers/mock-factories.js';
+import { HYDRO_PROFILE } from '../../../src/profiles/hydro.js';
 
 function createMockIssueRepo(): IIssueRepository {
   return {
@@ -46,6 +47,10 @@ describe('TaskTransitionValidator', () => {
       repoRepo,
       createMockGitWorkflowConfig(),
       logger,
+      undefined,
+      undefined,
+      undefined,
+      HYDRO_PROFILE,
     );
   });
 

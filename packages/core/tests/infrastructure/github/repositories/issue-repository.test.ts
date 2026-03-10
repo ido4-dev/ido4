@@ -34,7 +34,7 @@ describe('GitHubIssueRepository', () => {
       expect(task.number).toBe(42);
       expect(task.title).toBe('Test Task');
       expect(task.status).toBe('In Progress');
-      expect(task.wave).toBe('wave-001-test');
+      expect(task.containers['wave']).toBe('wave-001-test');
       expect(task.id).toBe('I_test_42');
       expect(task.itemId).toBe('PVTI_item_001');
     });
@@ -63,7 +63,7 @@ describe('GitHubIssueRepository', () => {
       }));
 
       const task = await repo.getTask(42);
-      expect(task.epic).toBe('epic-auth');
+      expect(task.containers['epic']).toBe('epic-auth');
       expect(task.riskLevel).toBe('Low');
       expect(task.effort).toBe('Medium');
       expect(task.aiSuitability).toBe('ai-only');

@@ -31,6 +31,7 @@ vi.mock('../../src/helpers/container-init.js', () => ({
 }));
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { HYDRO_PROFILE } from '@ido4/core';
 import { registerEpicTools } from '../../src/tools/epic-tools.js';
 
 describe('Epic Tools', () => {
@@ -41,7 +42,7 @@ describe('Epic Tools', () => {
     mockGetContainer.mockResolvedValue(mockContainer);
 
     server = new McpServer({ name: 'test', version: '0.1.0' });
-    registerEpicTools(server);
+    registerEpicTools(server, HYDRO_PROFILE);
   });
 
   describe('search_epics', () => {

@@ -35,6 +35,7 @@ import type { TaskTransitionEvent, ContainerAssignmentEvent } from '../../src/sh
 import type { IContainerService } from '../../src/container/interfaces.js';
 import type { AuditValidationResult } from '../../src/container/interfaces.js';
 import { TestLogger } from '../helpers/test-logger.js';
+import { HYDRO_PROFILE } from '../../src/profiles/hydro.js';
 
 // ─── Helpers ───
 
@@ -170,7 +171,7 @@ describe('Full Lifecycle Integration', () => {
     const containerService = createMockContainerService([40, 41, 42, 43, 44, 45]);
     analyticsService = new AnalyticsService(auditService, containerService, eventBus, logger);
 
-    complianceService = new ComplianceService(auditService, analyticsService, eventBus, logger);
+    complianceService = new ComplianceService(auditService, analyticsService, eventBus, logger, HYDRO_PROFILE);
 
     const agentStore = new FileAgentStore(tmpDir, logger);
     agentService = new AgentService(agentStore, logger);

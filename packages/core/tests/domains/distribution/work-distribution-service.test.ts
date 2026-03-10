@@ -8,10 +8,16 @@ import { WorkDistributionService } from '../../../src/domains/distribution/work-
 import { InMemoryEventBus } from '../../../src/shared/events/in-memory-event-bus.js';
 import { NoopLogger } from '../../../src/shared/noop-logger.js';
 import type { TaskData, RegisteredAgent } from '../../../src/container/interfaces.js';
+import { HYDRO_PROFILE } from '../../../src/profiles/hydro.js';
+import { createMockWorkflowConfig } from '../../helpers/mock-factories.js';
+import type { MethodologyProfile } from '../../../src/profiles/types.js';
 
 // ─── Helpers ───
 
-function makeTask(overrides: Partial<TaskData> & { number: number }): TaskData {
+function makeTask(overrides: Partial<TaskData> & { number: number; epic?: string }): TaskData {
+  const containers: Record<string, string> = { wave: 'wave-001', ...(overrides.containers ?? {}) };
+  if (overrides.epic) containers['epic'] = overrides.epic;
+
   return {
     id: `ID_${overrides.number}`,
     itemId: `ITEM_${overrides.number}`,
@@ -19,13 +25,11 @@ function makeTask(overrides: Partial<TaskData> & { number: number }): TaskData {
     body: '',
     status: overrides.status ?? 'Ready for Dev',
     number: overrides.number,
-    wave: overrides.wave ?? 'wave-001',
-    epic: overrides.epic,
+    containers,
     dependencies: overrides.dependencies,
     taskType: overrides.taskType,
     riskLevel: overrides.riskLevel,
     effort: overrides.effort,
-    ...overrides,
   };
 }
 
@@ -60,6 +64,8 @@ function createMocks() {
     queryEvents: vi.fn().mockResolvedValue({ events: [], total: 0, query: {} }),
   };
 
+  const workflowConfig = createMockWorkflowConfig();
+
   const service = new WorkDistributionService(
     containerService as any,
     agentService as any,
@@ -68,6 +74,8 @@ function createMocks() {
     eventBus,
     'test-session',
     logger,
+    workflowConfig,
+    HYDRO_PROFILE,
   );
 
   return { service, containerService, agentService, taskService, auditService, eventBus };
@@ -710,6 +718,129 @@ describe('WorkDistributionService', () => {
       expect(result.recommendation!.score).toBeGreaterThan(
         result.alternatives.find((a) => a.issueNumber === 11)?.score ?? 0,
       );
+    });
+  });
+
+  describe('cross-profile: non-standard closing transitions', () => {
+    /**
+     * Verifies that dependency freshness scoring recognizes 'finish' (not 'approve')
+     * as a closing transition when a custom profile defines it.
+     */
+    it('recognizes "finish" audit events for freshness scoring', async () => {
+      const customProfile: MethodologyProfile = {
+        ...HYDRO_PROFILE,
+        id: 'test-custom',
+        behaviors: { ...HYDRO_PROFILE.behaviors, closingTransitions: ['finish'] },
+      };
+      const eventBus = new InMemoryEventBus();
+      const logger = new NoopLogger();
+      const workflowConfig = createMockWorkflowConfig();
+
+      const containerService = {
+        listContainers: vi.fn().mockResolvedValue([
+          { name: 'wave-001', status: 'active', taskCount: 3, completedCount: 1, completionPercentage: 33 },
+        ]),
+        getContainerStatus: vi.fn().mockResolvedValue({
+          name: 'wave-001',
+          tasks: [
+            makeTask({ number: 1, status: 'Done' }),
+            makeTask({ number: 2, status: 'Ready for Dev', dependencies: '#1' }),
+            makeTask({ number: 3, status: 'Ready for Dev' }),
+          ],
+          metrics: {},
+        }),
+      };
+      const agentService = {
+        getAgent: vi.fn().mockResolvedValue(null),
+        getTaskLock: vi.fn().mockResolvedValue(null),
+        listAgents: vi.fn().mockResolvedValue([]),
+        releaseTask: vi.fn(),
+      };
+      const taskService = { approveTask: vi.fn(), getTask: vi.fn() };
+      const auditService = {
+        queryEvents: vi.fn().mockResolvedValue({
+          events: [{
+            id: 1,
+            event: {
+              type: 'task.transition', transition: 'finish', issueNumber: 1,
+              timestamp: new Date().toISOString(), sessionId: 'test', actor: { type: 'ai-agent', id: 'test' },
+            },
+            persistedAt: new Date().toISOString(),
+          }],
+          total: 1,
+          query: {},
+        }),
+      };
+
+      const service = new WorkDistributionService(
+        containerService as any, agentService as any, taskService as any,
+        auditService as any, eventBus, 'test-session', logger, workflowConfig, customProfile,
+      );
+
+      const result = await service.getNextTask('agent-alpha', 'wave-001');
+
+      // Task 2 depends on #1, and #1 was recently "finished" — should have freshness > 0
+      const task2 = [result.recommendation, ...result.alternatives].find((r) => r?.issueNumber === 2);
+      const task3 = [result.recommendation, ...result.alternatives].find((r) => r?.issueNumber === 3);
+      expect(task2!.scoreBreakdown.dependencyFreshness).toBeGreaterThan(0);
+      expect(task3!.scoreBreakdown.dependencyFreshness).toBe(0);
+    });
+
+    it('ignores "approve" audit events when profile uses "finish"', async () => {
+      const customProfile: MethodologyProfile = {
+        ...HYDRO_PROFILE,
+        id: 'test-custom',
+        behaviors: { ...HYDRO_PROFILE.behaviors, closingTransitions: ['finish'] },
+      };
+      const eventBus = new InMemoryEventBus();
+      const logger = new NoopLogger();
+      const workflowConfig = createMockWorkflowConfig();
+
+      const containerService = {
+        listContainers: vi.fn().mockResolvedValue([
+          { name: 'wave-001', status: 'active', taskCount: 2, completedCount: 1, completionPercentage: 50 },
+        ]),
+        getContainerStatus: vi.fn().mockResolvedValue({
+          name: 'wave-001',
+          tasks: [
+            makeTask({ number: 1, status: 'Done' }),
+            makeTask({ number: 2, status: 'Ready for Dev', dependencies: '#1' }),
+          ],
+          metrics: {},
+        }),
+      };
+      const agentService = {
+        getAgent: vi.fn().mockResolvedValue(null),
+        getTaskLock: vi.fn().mockResolvedValue(null),
+        listAgents: vi.fn().mockResolvedValue([]),
+        releaseTask: vi.fn(),
+      };
+      const taskService = { approveTask: vi.fn(), getTask: vi.fn() };
+      const auditService = {
+        queryEvents: vi.fn().mockResolvedValue({
+          events: [{
+            id: 1,
+            event: {
+              type: 'task.transition', transition: 'approve', issueNumber: 1,
+              timestamp: new Date().toISOString(), sessionId: 'test', actor: { type: 'ai-agent', id: 'test' },
+            },
+            persistedAt: new Date().toISOString(),
+          }],
+          total: 1,
+          query: {},
+        }),
+      };
+
+      const service = new WorkDistributionService(
+        containerService as any, agentService as any, taskService as any,
+        auditService as any, eventBus, 'test-session', logger, workflowConfig, customProfile,
+      );
+
+      const result = await service.getNextTask('agent-alpha', 'wave-001');
+
+      // 'approve' is NOT a closing transition in this profile, so #1 shouldn't be "recently completed"
+      const task2 = [result.recommendation, ...result.alternatives].find((r) => r?.issueNumber === 2);
+      expect(task2!.scoreBreakdown.dependencyFreshness).toBe(0);
     });
   });
 });

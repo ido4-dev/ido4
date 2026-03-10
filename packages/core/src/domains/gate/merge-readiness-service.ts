@@ -238,7 +238,7 @@ export class MergeReadinessService implements IMergeReadinessService {
   }
 
   private async checkEpicIntegrity(task: TaskData): Promise<MergeCheck> {
-    if (!task.epic) {
+    if (!task.containers['epic']) {
       return { name: 'Epic Integrity', passed: true, severity: 'warning', detail: 'Task has no epic — check not applicable.' };
     }
 

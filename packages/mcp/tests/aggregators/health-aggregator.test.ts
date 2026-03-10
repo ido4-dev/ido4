@@ -6,9 +6,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { aggregateHealthData } from '../../src/aggregators/health-aggregator.js';
 import type { ServiceContainer } from '@ido4/core';
+import { HYDRO_PROFILE } from '@ido4/core';
 
 function createMockContainer() {
   return {
+    profile: HYDRO_PROFILE,
     containerService: {
       listContainers: vi.fn().mockResolvedValue([
         { name: 'wave-001', status: 'active', taskCount: 8, completedCount: 6, completionPercentage: 75 },

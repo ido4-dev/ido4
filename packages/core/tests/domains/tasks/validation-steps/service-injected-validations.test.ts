@@ -44,12 +44,12 @@ describe('EpicIntegrityValidation', () => {
   });
 
   it('passes when task has no epic', async () => {
-    const result = await step.validate(makeContext({ epic: undefined }));
+    const result = await step.validate(makeContext({ containers: { wave: 'wave-001' } }));
     expect(result.passed).toBe(true);
   });
 
   it('passes when task has no container', async () => {
-    const result = await step.validate(makeContext({ epic: 'Auth Epic', wave: undefined }));
+    const result = await step.validate(makeContext({ containers: { epic: 'Auth Epic' } }));
     expect(result.passed).toBe(true);
   });
 
@@ -57,7 +57,7 @@ describe('EpicIntegrityValidation', () => {
     vi.mocked(integrityValidator.validateAssignmentIntegrity).mockResolvedValue({
       maintained: true, violations: [],
     });
-    const result = await step.validate(makeContext({ epic: 'Auth Epic', wave: 'wave-001' }));
+    const result = await step.validate(makeContext({ containers: { epic: 'Auth Epic', wave: 'wave-001' } }));
     expect(result.passed).toBe(true);
   });
 
@@ -65,7 +65,7 @@ describe('EpicIntegrityValidation', () => {
     vi.mocked(integrityValidator.validateAssignmentIntegrity).mockResolvedValue({
       maintained: false, violations: ['Epic split across wave-001, wave-002'],
     });
-    const result = await step.validate(makeContext({ epic: 'Auth Epic', wave: 'wave-001' }));
+    const result = await step.validate(makeContext({ containers: { epic: 'Auth Epic', wave: 'wave-001' } }));
     expect(result.passed).toBe(false);
     expect(result.severity).toBe('error');
     expect(result.message).toContain('Epic split');

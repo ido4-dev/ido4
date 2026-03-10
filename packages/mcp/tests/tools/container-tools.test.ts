@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { callTool } from '../helpers/test-utils.js';
+import { callTool, hasRegisteredTool } from '../helpers/test-utils.js';
 
 const mockContainerService = {
   listContainers: vi.fn(),
@@ -21,6 +21,7 @@ vi.mock('../../src/helpers/container-init.js', () => ({
 }));
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { HYDRO_PROFILE, SHAPE_UP_PROFILE, SCRUM_PROFILE } from '@ido4/core';
 import { registerContainerTools } from '../../src/tools/container-tools.js';
 
 describe('Container Tools', () => {
@@ -30,7 +31,7 @@ describe('Container Tools', () => {
     vi.clearAllMocks();
     mockGetContainer.mockResolvedValue(mockContainer);
     server = new McpServer({ name: 'test', version: '0.1.0' });
-    registerContainerTools(server);
+    registerContainerTools(server, HYDRO_PROFILE);
   });
 
   it('list_waves returns wave summaries', async () => {
@@ -87,5 +88,88 @@ describe('Container Tools', () => {
     const result = await callTool(server, 'validate_wave_completion', { waveName: 'Wave 1' }) as { content: Array<{ text: string }> };
     const parsed = JSON.parse(result.content[0]!.text);
     expect(parsed.canComplete).toBe(false);
+  });
+
+  describe('Hydro generates epic container tools', () => {
+    it('registers list_epics for epic container', () => {
+      expect(hasRegisteredTool(server, 'list_epics')).toBe(true);
+    });
+
+    it('registers get_epic_status for epic container', () => {
+      expect(hasRegisteredTool(server, 'get_epic_status')).toBe(true);
+    });
+
+    it('registers assign_task_to_epic for epic container', () => {
+      expect(hasRegisteredTool(server, 'assign_task_to_epic')).toBe(true);
+    });
+
+    it('does not register create_epic (no namePattern)', () => {
+      expect(hasRegisteredTool(server, 'create_epic')).toBe(false);
+    });
+
+    it('does not register validate_epic_completion (completionRule is none)', () => {
+      expect(hasRegisteredTool(server, 'validate_epic_completion')).toBe(false);
+    });
+
+    it('generates 8 container tools total for Hydro', () => {
+      // wave: list, get_status, assign, create, validate_completion = 5
+      // epic: list, get_status, assign = 3
+      const toolNames = [
+        'list_waves', 'get_wave_status', 'assign_task_to_wave', 'create_wave', 'validate_wave_completion',
+        'list_epics', 'get_epic_status', 'assign_task_to_epic',
+      ];
+      for (const name of toolNames) {
+        expect(hasRegisteredTool(server, name), `Missing tool: ${name}`).toBe(true);
+      }
+    });
+  });
+
+  describe('Shape Up container tools', () => {
+    let shapeUpServer: McpServer;
+
+    beforeEach(() => {
+      shapeUpServer = new McpServer({ name: 'test', version: '0.1.0' });
+      registerContainerTools(shapeUpServer, SHAPE_UP_PROFILE);
+    });
+
+    it('registers cycle tools', () => {
+      expect(hasRegisteredTool(shapeUpServer, 'list_cycles')).toBe(true);
+      expect(hasRegisteredTool(shapeUpServer, 'get_cycle_status')).toBe(true);
+      expect(hasRegisteredTool(shapeUpServer, 'assign_task_to_cycle')).toBe(true);
+      expect(hasRegisteredTool(shapeUpServer, 'create_cycle')).toBe(true);
+      expect(hasRegisteredTool(shapeUpServer, 'validate_cycle_completion')).toBe(true);
+    });
+
+    it('registers bet tools', () => {
+      expect(hasRegisteredTool(shapeUpServer, 'list_bets')).toBe(true);
+      expect(hasRegisteredTool(shapeUpServer, 'get_bet_status')).toBe(true);
+      expect(hasRegisteredTool(shapeUpServer, 'assign_task_to_bet')).toBe(true);
+    });
+
+    it('does not register scope tools (not managed)', () => {
+      expect(hasRegisteredTool(shapeUpServer, 'list_scopes')).toBe(false);
+    });
+  });
+
+  describe('Scrum container tools', () => {
+    let scrumServer: McpServer;
+
+    beforeEach(() => {
+      scrumServer = new McpServer({ name: 'test', version: '0.1.0' });
+      registerContainerTools(scrumServer, SCRUM_PROFILE);
+    });
+
+    it('registers sprint tools', () => {
+      expect(hasRegisteredTool(scrumServer, 'list_sprints')).toBe(true);
+      expect(hasRegisteredTool(scrumServer, 'get_sprint_status')).toBe(true);
+      expect(hasRegisteredTool(scrumServer, 'assign_task_to_sprint')).toBe(true);
+      expect(hasRegisteredTool(scrumServer, 'create_sprint')).toBe(true);
+      expect(hasRegisteredTool(scrumServer, 'validate_sprint_completion')).toBe(true);
+    });
+
+    it('does not register wave or epic tools', () => {
+      expect(hasRegisteredTool(scrumServer, 'list_waves')).toBe(false);
+      expect(hasRegisteredTool(scrumServer, 'list_epics')).toBe(false);
+    });
   });
 });

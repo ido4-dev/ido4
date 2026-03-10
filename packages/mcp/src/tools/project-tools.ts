@@ -7,6 +7,7 @@
  */
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { MethodologyProfile } from '@ido4/core';
 import { InitProjectSchema } from '../schemas/index.js';
 import { handleErrors, toCallToolResult, getContainer, resetContainer } from '../helpers/index.js';
 import {
@@ -16,7 +17,7 @@ import {
   ProjectInitService,
 } from '@ido4/core';
 
-export function registerProjectTools(server: McpServer): void {
+export function registerProjectTools(server: McpServer, _profile: MethodologyProfile): void {
   server.tool(
     'init_project',
     'Initialize ido4 governance for a GitHub repository — creates project, custom fields, and .ido4/ config files',
@@ -63,12 +64,18 @@ export function registerProjectTools(server: McpServer): void {
       for (const task of tasks) {
         const status = task.status ?? 'Unknown';
         statusDistribution[status] = (statusDistribution[status] ?? 0) + 1;
-        if (status === 'Blocked') blockedCount++;
+        if (container.workflowConfig.isBlockedStatus(status)) blockedCount++;
       }
 
+      // Derive primary execution container from profile
+      const execContainer = container.profile.containers.find(
+        (c) => c.managed && c.completionRule && c.completionRule !== 'none',
+      ) ?? container.profile.containers[0]!;
+      const execContainerId = execContainer.id;
+
       const activeWaves = waves.filter((w) => w.status === 'active');
-      const completedTasks = tasks.filter((t) => t.status === 'Done' || t.closed).length;
-      const unassignedTasks = tasks.filter((t) => !t.wave).length;
+      const completedTasks = tasks.filter((t) => container.workflowConfig.isTerminalStatus(t.status) || t.closed).length;
+      const unassignedTasks = tasks.filter((t) => !t.containers[execContainerId]).length;
 
       return toCallToolResult({
         success: true,

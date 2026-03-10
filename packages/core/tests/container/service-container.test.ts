@@ -57,6 +57,12 @@ async function createTestProject(): Promise<string> {
     detect_git_context: true,
   }));
 
+  // methodology-profile.json (required)
+  await fs.writeFile(path.join(ido4Dir, 'methodology-profile.json'), JSON.stringify({
+    extends: 'hydro',
+    id: 'test-hydro',
+  }));
+
   return testDir;
 }
 
