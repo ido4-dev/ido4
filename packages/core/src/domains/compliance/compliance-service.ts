@@ -43,7 +43,7 @@ export interface ComplianceScore {
     brePassRate: CategoryScore;
     qualityGates: CategoryScore;
     processAdherence: CategoryScore;
-    epicIntegrity: CategoryScore;
+    containerIntegrity: CategoryScore;
     flowEfficiency: CategoryScore;
   };
   /** Human-readable summary sentence */
@@ -97,6 +97,7 @@ export class ComplianceService implements IComplianceService {
   private readonly cacheTtlMs = 30_000;
   private readonly unsubscribe: Unsubscribe;
   private readonly lifecycle: readonly string[];
+  private readonly alternateLifecycles: Readonly<Record<string, string[]>>;
   private readonly weights: Record<string, number>;
   private readonly closingTransitions: readonly string[];
 
@@ -108,6 +109,7 @@ export class ComplianceService implements IComplianceService {
     profile: MethodologyProfile,
   ) {
     this.lifecycle = profile.compliance.lifecycle;
+    this.alternateLifecycles = profile.compliance.alternateLifecycles ?? {};
     this.weights = profile.compliance.weights;
     this.closingTransitions = profile.behaviors.closingTransitions;
     this.unsubscribe = eventBus.on('*', () => {
@@ -138,16 +140,16 @@ export class ComplianceService implements IComplianceService {
     const brePassRate = this.computeBrePassRate(transitionEvents);
     const qualityGates = this.computeQualityGates(transitionEvents);
     const processAdherence = this.computeProcessAdherence(transitionEvents);
-    const epicIntegrity = this.computeEpicIntegrity(containerAssignmentEvents);
+    const containerIntegrity = this.computeContainerIntegrity(containerAssignmentEvents);
     const flowEfficiency = await this.computeFlowEfficiency(transitionEvents);
 
     // 4. Weighted total
-    const categories = { brePassRate, qualityGates, processAdherence, epicIntegrity, flowEfficiency };
+    const categories = { brePassRate, qualityGates, processAdherence, containerIntegrity, flowEfficiency };
     const rawScore =
       brePassRate.contribution +
       qualityGates.contribution +
       processAdherence.contribution +
-      epicIntegrity.contribution +
+      containerIntegrity.contribution +
       flowEfficiency.contribution;
     const score = Math.max(0, Math.min(100, Math.round(rawScore)));
 
@@ -292,12 +294,17 @@ export class ComplianceService implements IComplianceService {
     let tasksEvaluated = 0;
 
     for (const [, transitions] of byIssue) {
-      const hasClosing = this.closingTransitions.some((ct) => transitions.has(ct));
-      if (!hasClosing) continue;
+      // Determine which closing transition this task used
+      const closingTransition = this.closingTransitions.find((ct) => transitions.has(ct));
+      if (!closingTransition) continue;
+
+      // Select the appropriate lifecycle for evaluation
+      const lifecycle = this.resolveLifecycle(closingTransition);
+      if (!lifecycle) continue; // Unknown closing transition — exclude
 
       tasksEvaluated++;
-      const stepsFollowed = this.lifecycle.filter((step) => transitions.has(step)).length;
-      totalAdherence += (stepsFollowed / this.lifecycle.length) * 100;
+      const stepsFollowed = lifecycle.filter((step) => transitions.has(step)).length;
+      totalAdherence += (stepsFollowed / lifecycle.length) * 100;
     }
 
     if (tasksEvaluated === 0) {
@@ -320,7 +327,25 @@ export class ComplianceService implements IComplianceService {
     };
   }
 
-  private computeEpicIntegrity(containerAssignmentEvents: PersistedAuditEvent[]): CategoryScore {
+  /**
+   * Resolve which lifecycle to evaluate a task against based on its closing transition.
+   * - If the closing transition is the last step in the primary lifecycle → use primary
+   * - If it matches a key in alternateLifecycles → use that alternate
+   * - Otherwise → null (exclude from evaluation)
+   */
+  private resolveLifecycle(closingTransition: string): readonly string[] | null {
+    const lastPrimaryStep = this.lifecycle[this.lifecycle.length - 1];
+    if (closingTransition === lastPrimaryStep) return this.lifecycle;
+
+    const alternate = this.alternateLifecycles[closingTransition];
+    if (alternate) return alternate;
+
+    // Closing transition recognized by the profile but not mapped to a lifecycle —
+    // fall back to the primary lifecycle for backward compatibility (e.g., Hydro's single closing transition)
+    return this.lifecycle;
+  }
+
+  private computeContainerIntegrity(containerAssignmentEvents: PersistedAuditEvent[]): CategoryScore {
     if (containerAssignmentEvents.length === 0) {
       return {
         score: 100,
@@ -488,7 +513,7 @@ export class ComplianceService implements IComplianceService {
         brePassRate: emptyCategory(this.w('brePassRate')),
         qualityGates: emptyCategory(this.w('qualityGates')),
         processAdherence: emptyCategory(this.w('processAdherence')),
-        epicIntegrity: emptyCategory(this.w('containerIntegrity')),
+        containerIntegrity: emptyCategory(this.w('containerIntegrity')),
         flowEfficiency: emptyCategory(this.w('flowEfficiency')),
       },
       summary: 'No governance events in the specified period. Score reflects clean baseline.',
@@ -523,12 +548,12 @@ export class ComplianceService implements IComplianceService {
           break;
         case 'processAdherence':
           recommendations.push(
-            'Tasks are skipping lifecycle steps. Follow the full refine → ready → start → review → approve workflow for governance compliance.',
+            `Tasks are skipping lifecycle steps. Follow the full ${this.lifecycle.join(' → ')} workflow for governance compliance.`,
           );
           break;
-        case 'epicIntegrity':
+        case 'containerIntegrity':
           recommendations.push(
-            'Epic integrity violations detected during wave assignments. Ensure all tasks within an epic are assigned to the same wave.',
+            'Container integrity violations detected during assignments. Ensure all tasks within a group are assigned to the same container.',
           );
           break;
         case 'flowEfficiency':

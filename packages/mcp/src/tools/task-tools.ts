@@ -7,6 +7,7 @@
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { MethodologyProfile } from '@ido4/core';
+import { formatIdo4ContextComment } from '@ido4/core';
 import { z } from 'zod';
 import {
   GetTaskSchema,
@@ -237,11 +238,21 @@ function registerDynamicTransitionTools(server: McpServer, profile: MethodologyP
           issueNumber: z.number().int().positive().describe(`GitHub issue number of the ${itemLabel}`),
           reason: z.string().describe(`Why the ${itemLabel} is blocked`),
           message: z.string().optional().describe('Comment to add to the issue'),
+          context: z.string().optional().describe('Structured development context (approach, decisions, interfaces created). Written as an ido4 context comment on the issue.'),
           skipValidation: z.boolean().optional().describe('Skip BRE validation (not recommended)'),
           dryRun: z.boolean().optional().describe('Validate without executing the transition'),
         },
         async (args) => handleErrors(async () => {
           const container = await getContainer();
+          // Write structured context comment if provided
+          if (args.context) {
+            const contextComment = formatIdo4ContextComment({
+              transition: action,
+              agent: createMcpActor().id,
+              content: args.context,
+            });
+            await container.issueRepository.addComment(args.issueNumber, contextComment);
+          }
           const result = await container.taskService.executeTransition(action, {
             issueNumber: args.issueNumber,
             actor: createMcpActor(),
@@ -263,11 +274,21 @@ function registerDynamicTransitionTools(server: McpServer, profile: MethodologyP
           targetStatus: z.string().describe('Target status to return to'),
           reason: z.string().describe(`Why the ${itemLabel} is being returned`),
           message: z.string().optional().describe('Comment to add to the issue'),
+          context: z.string().optional().describe('Structured development context (approach, decisions, interfaces created). Written as an ido4 context comment on the issue.'),
           skipValidation: z.boolean().optional().describe('Skip BRE validation (not recommended)'),
           dryRun: z.boolean().optional().describe('Validate without executing the transition'),
         },
         async (args) => handleErrors(async () => {
           const container = await getContainer();
+          // Write structured context comment if provided
+          if (args.context) {
+            const contextComment = formatIdo4ContextComment({
+              transition: action,
+              agent: createMcpActor().id,
+              content: args.context,
+            });
+            await container.issueRepository.addComment(args.issueNumber, contextComment);
+          }
           const result = await container.taskService.executeTransition(action, {
             issueNumber: args.issueNumber,
             actor: createMcpActor(),
@@ -288,11 +309,21 @@ function registerDynamicTransitionTools(server: McpServer, profile: MethodologyP
         {
           issueNumber: z.number().int().positive().describe(`GitHub issue number of the ${itemLabel}`),
           message: z.string().optional().describe('Comment to add to the issue'),
+          context: z.string().optional().describe('Structured development context (approach, decisions, interfaces created). Written as an ido4 context comment on the issue.'),
           skipValidation: z.boolean().optional().describe('Skip BRE validation (not recommended)'),
           dryRun: z.boolean().optional().describe('Validate without executing the transition'),
         },
         async (args) => handleErrors(async () => {
           const container = await getContainer();
+          // Write structured context comment if provided
+          if (args.context) {
+            const contextComment = formatIdo4ContextComment({
+              transition: action,
+              agent: createMcpActor().id,
+              content: args.context,
+            });
+            await container.issueRepository.addComment(args.issueNumber, contextComment);
+          }
           const result = await container.taskService.executeTransition(action, {
             issueNumber: args.issueNumber,
             actor: createMcpActor(),

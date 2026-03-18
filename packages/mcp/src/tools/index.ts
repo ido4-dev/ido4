@@ -12,3 +12,4 @@ export { registerSkillDataTools } from './skill-data-tools.js';
 export { registerDistributionTools } from './distribution-tools.js';
 export { registerCoordinationTools } from './coordination-tools.js';
 export { registerGateTools } from './gate-tools.js';
+export { registerIngestionTools } from './ingestion-tools.js';

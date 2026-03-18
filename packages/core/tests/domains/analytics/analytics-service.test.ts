@@ -5,6 +5,7 @@ import type { PersistedAuditEvent } from '../../../src/domains/audit/audit-store
 import type { IContainerService, ContainerStatusData, ContainerSummary, ContainerCreateResult, ContainerAssignResult, ContainerCompletionResult } from '../../../src/container/interfaces.js';
 import { InMemoryEventBus } from '../../../src/shared/events/in-memory-event-bus.js';
 import { TestLogger } from '../../helpers/test-logger.js';
+import { HYDRO_PROFILE } from '../../../src/profiles/index.js';
 
 function createMockAuditService(): IAuditService {
   return {
@@ -56,7 +57,7 @@ describe('AnalyticsService', () => {
     containerService = createMockContainerService();
     eventBus = new InMemoryEventBus();
     logger = new TestLogger();
-    service = new AnalyticsService(auditService, containerService, eventBus, logger);
+    service = new AnalyticsService(auditService, containerService, eventBus, logger, HYDRO_PROFILE);
   });
 
   describe('getTaskCycleTime', () => {

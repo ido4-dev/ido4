@@ -18,6 +18,7 @@ import { AnalyticsService } from '../../src/domains/analytics/analytics-service.
 import type { TaskTransitionEvent } from '../../src/shared/events/types.js';
 import type { IContainerService } from '../../src/container/interfaces.js';
 import { TestLogger } from '../helpers/test-logger.js';
+import { HYDRO_PROFILE } from '../../src/profiles/hydro.js';
 
 function createTransitionEvent(
   issueNumber: number,
@@ -73,7 +74,7 @@ describe('Audit + Analytics Integration', () => {
     const auditStore = new JsonlAuditStore(tmpDir, logger);
     auditService = new AuditService(auditStore, eventBus, logger);
     const containerService = createMockContainerService([42, 43, 44]);
-    analyticsService = new AnalyticsService(auditService, containerService, eventBus, logger);
+    analyticsService = new AnalyticsService(auditService, containerService, eventBus, logger, HYDRO_PROFILE);
   });
 
   afterEach(async () => {
@@ -87,10 +88,10 @@ describe('Audit + Analytics Integration', () => {
     const now = new Date();
 
     eventBus.emit(createTransitionEvent(42, 'start', 'READY_FOR_DEV', 'IN_PROGRESS', now.toISOString()));
+    await new Promise((r) => setTimeout(r, 30));
     eventBus.emit(createTransitionEvent(43, 'start', 'READY_FOR_DEV', 'IN_PROGRESS', new Date(now.getTime() + 1000).toISOString()));
 
-    // Wait for async persistence
-    await new Promise((r) => setTimeout(r, 50));
+    await new Promise((r) => setTimeout(r, 200));
 
     const result = await auditService.queryEvents({ eventType: 'task.transition' });
     expect(result.events).toHaveLength(2);
@@ -150,11 +151,14 @@ describe('Audit + Analytics Integration', () => {
     const t0 = new Date('2024-06-01T10:00:00Z');
     const t1 = new Date('2024-06-01T20:00:00Z'); // 10h later
 
+    // Stagger emits to avoid concurrent file write races in JSONL audit store
     eventBus.emit(createTransitionEvent(42, 'start', 'READY_FOR_DEV', 'IN_PROGRESS', t0.toISOString()));
+    await new Promise((r) => setTimeout(r, 30));
     eventBus.emit(createTransitionEvent(42, 'review', 'IN_PROGRESS', 'IN_REVIEW', new Date(t0.getTime() + 8 * 3600_000).toISOString()));
+    await new Promise((r) => setTimeout(r, 30));
     eventBus.emit(createTransitionEvent(42, 'approve', 'IN_REVIEW', 'DONE', t1.toISOString()));
 
-    await new Promise((r) => setTimeout(r, 50));
+    await new Promise((r) => setTimeout(r, 200));
 
     const cycleTime = await analyticsService.getTaskCycleTime(42);
     expect(cycleTime).not.toBeNull();
@@ -201,10 +205,12 @@ describe('Audit + Analytics Integration', () => {
     const now = Date.now();
 
     eventBus.emit(createTransitionEvent(42, 'start', 'READY_FOR_DEV', 'IN_PROGRESS', new Date(now).toISOString(), 'agent-alpha'));
+    await new Promise((r) => setTimeout(r, 30));
     eventBus.emit(createTransitionEvent(43, 'start', 'READY_FOR_DEV', 'IN_PROGRESS', new Date(now + 1000).toISOString(), 'agent-beta'));
+    await new Promise((r) => setTimeout(r, 30));
     eventBus.emit(createTransitionEvent(42, 'review', 'IN_PROGRESS', 'IN_REVIEW', new Date(now + 2000).toISOString(), 'agent-alpha'));
 
-    await new Promise((r) => setTimeout(r, 50));
+    await new Promise((r) => setTimeout(r, 200));
 
     // Query by actor
     const alphaEvents = await auditService.queryEvents({ actorId: 'agent-alpha' });

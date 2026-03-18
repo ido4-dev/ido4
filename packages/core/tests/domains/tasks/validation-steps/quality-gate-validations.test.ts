@@ -32,6 +32,7 @@ function createMockIssueRepo(): IIssueRepository {
   return {
     getTask: vi.fn(),
     getTaskWithDetails: vi.fn(),
+    getIssueComments: vi.fn(),
     createIssue: vi.fn(),
     updateTaskStatus: vi.fn(),
     updateTaskField: vi.fn(),

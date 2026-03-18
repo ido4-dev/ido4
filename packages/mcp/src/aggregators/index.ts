@@ -5,8 +5,13 @@ export type {
   BoardData,
   TaskAnnotation,
   ComplianceData,
-  EpicIntegrityCheck,
+  ContainerIntegrityCheck,
   HealthData,
+  TaskExecutionData,
+  UpstreamContext,
+  SiblingContext,
+  DownstreamContext,
+  EpicProgressData,
 } from './types.js';
 
 export { resolveActiveContainer } from './wave-detection.js';
@@ -20,3 +25,5 @@ export { aggregateHealthData } from './health-aggregator.js';
 export type { HealthAggregatorOptions } from './health-aggregator.js';
 export { aggregateCoordinationData } from './coordination-aggregator.js';
 export type { CoordinationAggregatorOptions, CoordinationData, AgentStatus } from './coordination-aggregator.js';
+export { aggregateTaskExecutionData } from './task-execution-aggregator.js';
+export type { TaskExecutionAggregatorOptions } from './task-execution-aggregator.js';

@@ -9,10 +9,10 @@ import type { ValidationResult, TransitionType } from '../../../src/domains/task
 
 function createMockIssueRepo(): IIssueRepository {
   return {
-    getTask: vi.fn(), getTaskWithDetails: vi.fn(), updateTaskStatus: vi.fn(),
-    updateTaskField: vi.fn(), updateTaskContainer: vi.fn(), assignTask: vi.fn(),
-    addComment: vi.fn(), closeIssue: vi.fn(), findPullRequestForIssue: vi.fn(),
-    getSubIssues: vi.fn().mockResolvedValue([]),
+    getTask: vi.fn(), getTaskWithDetails: vi.fn(), getIssueComments: vi.fn(),
+    updateTaskStatus: vi.fn(), updateTaskField: vi.fn(), updateTaskContainer: vi.fn(),
+    assignTask: vi.fn(), addComment: vi.fn(), closeIssue: vi.fn(),
+    findPullRequestForIssue: vi.fn(), getSubIssues: vi.fn().mockResolvedValue([]),
   };
 }
 

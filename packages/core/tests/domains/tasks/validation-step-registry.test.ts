@@ -108,12 +108,12 @@ describe('ValidationStepRegistry', () => {
   });
 
   describe('registerAllBuiltinSteps', () => {
-    it('registers all 31 built-in validation steps', () => {
+    it('registers all 34 built-in validation steps', () => {
       const registry = new ValidationStepRegistry();
       registerAllBuiltinSteps(registry);
 
       const names = registry.getRegisteredNames();
-      expect(names).toHaveLength(31);
+      expect(names).toHaveLength(34);
 
       // Verify key steps exist
       expect(registry.has('StatusTransitionValidation')).toBe(true);
@@ -127,6 +127,9 @@ describe('ValidationStepRegistry', () => {
       expect(registry.has('ContainerAssignmentValidation')).toBe(true);
       expect(registry.has('ContainerIntegrityValidation')).toBe(true);
       expect(registry.has('ContainerSingularityValidation')).toBe(true);
+      expect(registry.has('CircuitBreakerValidation')).toBe(true);
+      expect(registry.has('SpecCompletenessValidation')).toBe(true);
+      expect(registry.has('ContextCompletenessValidation')).toBe(true);
     });
 
     it('can create parameterized StatusTransitionValidation step', () => {

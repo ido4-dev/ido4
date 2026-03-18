@@ -6,7 +6,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { aggregateStandupData } from '../../src/aggregators/standup-aggregator.js';
 import type { ServiceContainer } from '@ido4/core';
-import { HYDRO_PROFILE } from '@ido4/core';
+import { HYDRO_PROFILE, SCRUM_PROFILE } from '@ido4/core';
 
 function createMockContainer(overrides: Record<string, unknown> = {}) {
   const defaults = {
@@ -91,7 +91,7 @@ describe('aggregateStandupData', () => {
 
     expect(container.containerService.listContainers).toHaveBeenCalled();
     expect(container.containerService.getContainerStatus).toHaveBeenCalledWith('wave-001');
-    expect(result.waveStatus.name).toBe('wave-001');
+    expect(result.containerStatus.name).toBe('wave-001');
   });
 
   it('uses provided containerName without listing containers', async () => {
@@ -211,5 +211,48 @@ describe('aggregateStandupData', () => {
     ]);
 
     await expect(aggregateStandupData(container)).rejects.toThrow('No active container found');
+  });
+});
+
+describe('aggregateStandupData — cross-profile (Scrum)', () => {
+  it('correctly identifies In Review tasks using Scrum profile', async () => {
+    const scrumContainer = createMockContainer({
+      profile: SCRUM_PROFILE,
+      workflowConfig: {
+        isBlockedStatus: (s: string) => s === 'Blocked',
+        isActiveStatus: (s: string) => s === 'In Progress',
+        isTerminalStatus: (s: string) => s === 'Done',
+      },
+      taskService: {
+        listTasks: vi.fn().mockResolvedValue({
+          data: {
+            tasks: [
+              { number: 1, title: 'Story 1', status: 'In Review', wave: 'Sprint 1' },
+              { number: 2, title: 'Story 2', status: 'In Progress', wave: 'Sprint 1' },
+            ],
+            total: 2,
+            filters: { wave: 'Sprint 1' },
+          },
+        }),
+      },
+      containerService: {
+        listContainers: vi.fn().mockResolvedValue([
+          { name: 'Sprint 1', status: 'active', taskCount: 2, completedCount: 0, completionPercentage: 0 },
+        ]),
+        getContainerStatus: vi.fn().mockResolvedValue({
+          name: 'Sprint 1',
+          tasks: [],
+          metrics: { total: 2, completed: 0, inProgress: 1, blocked: 0, ready: 1 },
+        }),
+      },
+    });
+
+    const result = await aggregateStandupData(scrumContainer);
+
+    expect(result.containerStatus.name).toBe('Sprint 1');
+    // Scrum has In Review as a review state
+    expect(result.reviewStatuses).toHaveLength(1);
+    expect(result.reviewStatuses[0]!.issueNumber).toBe(1);
+    expect(result.summary).toContain('Sprint 1');
   });
 });

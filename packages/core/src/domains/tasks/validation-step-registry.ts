@@ -15,6 +15,7 @@ import type {
   IGitWorkflowConfig,
 } from '../../container/interfaces.js';
 import type { IAgentService } from '../agents/agent-service.js';
+import type { IContainerMetadataService } from '../containers/container-metadata-service.js';
 import type { MethodologyProfile } from '../../profiles/types.js';
 import { NotFoundError } from '../../shared/errors/index.js';
 
@@ -27,6 +28,8 @@ export interface StepDependencies {
   gitWorkflowConfig: IGitWorkflowConfig;
   /** Optional — only available in multi-agent mode */
   agentService?: IAgentService;
+  /** Optional — required for CircuitBreakerValidation */
+  containerMetadataService?: IContainerMetadataService;
   /** Methodology profile — required for profile-aware validation steps */
   profile: MethodologyProfile;
 }

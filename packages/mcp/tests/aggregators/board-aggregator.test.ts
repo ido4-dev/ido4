@@ -74,7 +74,7 @@ describe('aggregateBoardData', () => {
   it('auto-detects active wave', async () => {
     const result = await aggregateBoardData(container);
     expect(container.containerService.getContainerStatus).toHaveBeenCalledWith('wave-001');
-    expect(result.waveStatus.name).toBe('wave-001');
+    expect(result.containerStatus.name).toBe('wave-001');
   });
 
   it('uses provided waveName', async () => {

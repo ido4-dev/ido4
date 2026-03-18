@@ -42,6 +42,9 @@ export class ProfileRegistry {
 
     if (file.extends) {
       base = ProfileRegistry.getBuiltin(file.extends);
+    } else if (BUILTIN_PROFILES.has(file.id)) {
+      // Built-in profile referenced by ID without extends — use it as base
+      base = ProfileRegistry.getBuiltin(file.id);
     }
 
     const profile: MethodologyProfile = base

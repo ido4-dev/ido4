@@ -14,7 +14,15 @@ export function createMockTaskData(overrides: Partial<TaskData> = {}): TaskData 
     itemId: 'PVTI_test_001',
     number: 42,
     title: 'Test Task for Business Rule Validation',
-    body: 'Task description with acceptance criteria and implementation details',
+    body: `## Acceptance Criteria
+
+- The system must validate user input against the schema
+- Error messages must include field name and constraint violated
+- Valid submissions must return a 200 response with the created resource
+
+## Implementation Notes
+
+Use the existing validation middleware from the auth module. Follow the error handling pattern established in #38.`,
     status: 'Backlog',
     containers: { wave: 'wave-001' },
     dependencies: 'No dependencies',

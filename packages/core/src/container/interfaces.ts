@@ -18,7 +18,8 @@ export interface IGraphQLClient {
 
 export interface IIssueRepository {
   getTask(issueNumber: number): Promise<TaskData>;
-  getTaskWithDetails(issueNumber: number, options?: TaskDetailOptions): Promise<TaskData>;
+  getTaskWithDetails(issueNumber: number, options?: TaskDetailOptions): Promise<TaskDataWithComments>;
+  getIssueComments(issueNumber: number): Promise<TaskComment[]>;
   createIssue(title: string, body?: string): Promise<{ id: string; number: number; url: string }>;
   updateTaskStatus(issueNumber: number, statusKey: string): Promise<void>;
   updateTaskField(issueNumber: number, fieldKey: string, value: string, fieldType?: string): Promise<void>;
@@ -135,14 +136,14 @@ export interface IProjectConfig {
   };
   fields: {
     status_field_id: string;
-    wave_field_id: string;
-    epic_field_id: string;
+    wave_field_id?: string;
+    epic_field_id?: string;
     dependencies_field_id: string;
     ai_suitability_field_id: string;
     risk_level_field_id: string;
     effort_field_id: string;
     ai_context_field_id: string;
-    [key: string]: string;
+    [key: string]: string | undefined;
   };
   status_options: Record<string, { name: string; id: string }>;
   ai_suitability_options?: Record<string, { name: string; id: string }>;
@@ -209,6 +210,18 @@ export interface TaskData {
 export interface TaskDetailOptions {
   includeComments?: boolean;
   includeTimeline?: boolean;
+}
+
+export interface TaskComment {
+  id: string;
+  body: string;
+  author: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TaskDataWithComments extends TaskData {
+  comments: TaskComment[];
 }
 
 export interface PaginationOptions {
@@ -447,8 +460,12 @@ export interface CreateTaskRequest {
   body?: string;
   /** Initial status key (defaults to 'BACKLOG') */
   initialStatus?: string;
+  /** @deprecated Use containers instead */
   wave?: string;
+  /** @deprecated Use containers instead */
   epic?: string;
+  /** Generic container assignments: containerTypeId → containerName */
+  containers?: Record<string, string>;
   aiContext?: string;
   dependencies?: string;
   /** Effort estimate key (XS, S, M, L, XL) */

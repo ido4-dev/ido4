@@ -296,6 +296,48 @@ export const STATUS_NAME_TO_KEY: Record<string, string> = {
   'Done': 'DONE',
 };
 
+// ─── Profile-Aware Builders ───
+
+import type { MethodologyProfile } from '../../../profiles/types.js';
+
+/** Color mapping for state categories → GitHub status field colors. */
+const STATE_CATEGORY_COLORS: Record<string, string[]> = {
+  todo: ['GRAY', 'BLUE', 'PURPLE', 'PINK'],
+  active: ['YELLOW', 'ORANGE'],
+  done: ['GREEN'],
+  blocked: ['RED'],
+};
+
+/**
+ * Build GitHub status field options from a MethodologyProfile.
+ * Assigns colors by state category with rotation within each category.
+ */
+export function buildStatusOptionsForProfile(profile: MethodologyProfile): FieldOptionInput[] {
+  const categoryCounters: Record<string, number> = {};
+  return profile.states.map((state) => {
+    const colors = STATE_CATEGORY_COLORS[state.category] ?? ['GRAY'];
+    const idx = categoryCounters[state.category] ?? 0;
+    categoryCounters[state.category] = idx + 1;
+    return {
+      name: state.name,
+      color: colors[idx % colors.length]!,
+      description: `${state.category} state`,
+    };
+  });
+}
+
+/**
+ * Build status name → config key mapping from a MethodologyProfile.
+ * Maps state.name → state.key from profile.states.
+ */
+export function buildStatusNameToKeyForProfile(profile: MethodologyProfile): Record<string, string> {
+  const mapping: Record<string, string> = {};
+  for (const state of profile.states) {
+    mapping[state.name] = state.key;
+  }
+  return mapping;
+}
+
 /** Mapping from single-select field display names to config keys */
 export const OPTION_NAME_TO_KEY: Record<string, Record<string, string>> = {
   'AI Suitability': {

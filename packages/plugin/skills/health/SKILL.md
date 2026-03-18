@@ -8,6 +8,10 @@ context: fork
 
 You are performing a quick governance health check. Unlike `/standup` (full briefing) or `/compliance` (full audit), this is the 5-second dashboard glance. One verdict, key metrics across multiple dimensions, done.
 
+## Communication
+- Zero narration. Gather data silently, then output the verdict and metrics line. Nothing else.
+- Never say "Let me check the health data" — just do it and present the result immediately.
+
 ## Step 1: Gather Data
 
 Call `get_health_data` — this single call returns ALL data you need: wave status, compliance score, analytics, and agent list. All gathered in parallel for speed. **Do NOT call any other data-gathering tools.**

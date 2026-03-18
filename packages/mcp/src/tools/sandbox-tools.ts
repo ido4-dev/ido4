@@ -12,7 +12,7 @@ import {
   ResetSandboxSchema,
   DestroySandboxSchema,
 } from '../schemas/sandbox-schemas.js';
-import { handleErrors, toCallToolResult, resetContainer } from '../helpers/index.js';
+import { handleErrors, toCallToolResult, resetContainer, activateMethodology } from '../helpers/index.js';
 import {
   GitHubGraphQLClient,
   CredentialManager,
@@ -34,7 +34,7 @@ function getProjectRoot(): string {
 export function registerSandboxTools(server: McpServer): void {
   server.tool(
     'create_sandbox',
-    'Create a governed sandbox project with embedded governance violations for skill validation and onboarding. Creates a GitHub Project V2 with 20 tasks, 5 epics, 4 waves, and deliberate violations (epic integrity, cascade blockers, false status, review bottleneck).',
+    'Create a governed sandbox project with embedded governance violations for skill validation and onboarding. Supports multiple methodologies: hydro-governance (Hydro: 20 tasks, waves, epics), scrum-sprint (Scrum: 15 tasks, sprints, type labels), shape-up-cycle (Shape Up: 16 tasks, cycles, bets, scopes). Each scenario has deliberate violations appropriate to its methodology.',
     CreateSandboxSchema,
     async (args) => handleErrors(async () => {
       const service = createSandboxService();
@@ -46,6 +46,8 @@ export function registerSandboxTools(server: McpServer): void {
       });
       // Reset container so next tool call picks up the new config
       resetContainer();
+      // Dynamically register methodology-specific tools (bootstrap mode only)
+      await activateMethodology(server);
       return toCallToolResult(result);
     }),
   );
@@ -84,6 +86,8 @@ export function registerSandboxTools(server: McpServer): void {
         scenarioId: args.scenarioId,
       });
       resetContainer();
+      // Dynamically register methodology-specific tools (bootstrap mode only)
+      await activateMethodology(server);
       return toCallToolResult(result);
     }),
   );

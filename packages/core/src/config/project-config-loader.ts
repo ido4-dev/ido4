@@ -22,8 +22,8 @@ const ProjectConfigSchema = z.object({
   }),
   fields: z.object({
     status_field_id: z.string().min(1),
-    wave_field_id: z.string().min(1),
-    epic_field_id: z.string().min(1),
+    wave_field_id: z.string().min(1).optional(),
+    epic_field_id: z.string().min(1).optional(),
     dependencies_field_id: z.string().min(1),
     ai_suitability_field_id: z.string().min(1),
     risk_level_field_id: z.string().min(1),
@@ -50,16 +50,6 @@ const ProjectConfigSchema = z.object({
     autoDetect: z.boolean(),
   }).optional(),
 });
-
-const REQUIRED_STATUSES = [
-  'BACKLOG',
-  'IN_REFINEMENT',
-  'READY_FOR_DEV',
-  'BLOCKED',
-  'IN_PROGRESS',
-  'IN_REVIEW',
-  'DONE',
-] as const;
 
 const CONFIG_FILE = '.ido4/project-info.json';
 
@@ -110,18 +100,6 @@ export class ProjectConfigLoader {
         message: `Invalid project configuration: ${issues}`,
         configFile: configPath,
         remediation: 'Fix the configuration file according to the schema',
-      });
-    }
-
-    // Validate required statuses
-    const missingStatuses = REQUIRED_STATUSES.filter(
-      (s) => !result.data.status_options[s],
-    );
-    if (missingStatuses.length > 0) {
-      throw new ConfigurationError({
-        message: `Missing required status options: ${missingStatuses.join(', ')}`,
-        configFile: configPath,
-        remediation: 'Add the missing status options to the configuration',
       });
     }
 

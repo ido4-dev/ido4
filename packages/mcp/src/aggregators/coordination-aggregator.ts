@@ -63,8 +63,8 @@ export async function aggregateCoordinationData(
     const waves = await container.containerService.listContainers();
     const active = waves.find((w) => w.status === 'active');
     if (active) {
-      const waveStatus = await container.containerService.getContainerStatus(active.name);
-      waveTasks = waveStatus.tasks;
+      const containerStatus = await container.containerService.getContainerStatus(active.name);
+      waveTasks = containerStatus.tasks;
     }
   } catch {
     // No active wave — continue without task titles

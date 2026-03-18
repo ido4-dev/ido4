@@ -111,8 +111,8 @@ describe('aggregateComplianceData', () => {
     const result = await aggregateComplianceData(container);
     // Auth and Data are 2 unique epics, task #4 has no epic
     expect(container.epicService.validateEpicIntegrity).toHaveBeenCalledTimes(2);
-    expect(result.epicIntegrityChecks).toHaveLength(2);
-    expect(result.epicIntegrityChecks.map((c) => c.epicName).sort()).toEqual(['Auth', 'Data']);
+    expect(result.containerIntegrityChecks).toHaveLength(2);
+    expect(result.containerIntegrityChecks.map((c) => c.epicName).sort()).toEqual(['Auth', 'Data']);
   });
 
   it('uses one representative task per epic for integrity check', async () => {
@@ -136,8 +136,8 @@ describe('aggregateComplianceData', () => {
       .mockRejectedValue(new Error('Epic error'));
 
     const result = await aggregateComplianceData(container);
-    expect(result.epicIntegrityChecks[0]!.result.maintained).toBe(false);
-    expect(result.epicIntegrityChecks[0]!.result.violations).toContain('Epic integrity check failed');
+    expect(result.containerIntegrityChecks[0]!.result.maintained).toBe(false);
+    expect(result.containerIntegrityChecks[0]!.result.violations).toContain('Epic integrity check failed');
   });
 
   it('uses active wave for analytics when no waveName specified', async () => {

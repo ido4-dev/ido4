@@ -75,3 +75,15 @@ export function hasRegisteredResourceTemplate(server: McpServer, name: string): 
 export function hasRegisteredPrompt(server: McpServer, name: string): boolean {
   return name in internals(server)._registeredPrompts;
 }
+
+export function getRegisteredResourceUris(server: McpServer): string[] {
+  return Object.keys(internals(server)._registeredResources);
+}
+
+export function getRegisteredResourceTemplateNames(server: McpServer): string[] {
+  return Object.keys(internals(server)._registeredResourceTemplates);
+}
+
+export function getRegisteredPromptNames(server: McpServer): string[] {
+  return Object.keys(internals(server)._registeredPrompts);
+}

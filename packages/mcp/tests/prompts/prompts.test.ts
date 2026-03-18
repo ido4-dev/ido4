@@ -10,6 +10,8 @@ import {
   generateCompliancePrompt,
   generateHealthPrompt,
   generateRetroPrompt,
+  generateReviewPrompt,
+  generateExecutePrompt,
   buildPromptContext,
 } from '../../src/prompts/index.js';
 
@@ -313,6 +315,124 @@ describe('Prompts', () => {
       expect(prompt).toContain('Velocity');
       expect(prompt).toContain('Recommendations');
       expect(prompt).toContain('Carry Forward');
+    });
+
+    it('review prompt includes deliverable assessment and stakeholder summary', () => {
+      const prompt = generateReviewPrompt(ctx);
+      expect(prompt).toContain('Deliverable Assessment');
+      expect(prompt).toContain('Stakeholder');
+      expect(prompt).toContain('Forward');
+    });
+  });
+
+  describe('review', () => {
+    it('is registered', () => {
+      expect(hasRegisteredPrompt(server, 'review')).toBe(true);
+    });
+
+    it('returns user message with review instructions', async () => {
+      const result = await callPrompt(server, 'review') as PromptResult;
+
+      expect(result.messages).toHaveLength(1);
+      expect(result.messages[0]!.role).toBe('user');
+      expect(result.messages[0]!.content.type).toBe('text');
+      expect(result.messages[0]!.content.text).toContain('Wave Review');
+    });
+
+    it('includes governance quality assessment', async () => {
+      const result = await callPrompt(server, 'review') as PromptResult;
+      expect(result.messages[0]!.content.text).toContain('Quality Assessment');
+    });
+
+    it('accepts waveName parameter', async () => {
+      const result = await callPrompt(server, 'review', { waveName: 'Wave-002' }) as PromptResult;
+      expect(result.messages[0]!.content.text).toContain('Wave to review: Wave-002');
+    });
+  });
+
+  describe('execute-task', () => {
+    it('is registered', () => {
+      expect(hasRegisteredPrompt(server, 'execute-task')).toBe(true);
+    });
+
+    it('returns user message with execution guidance', async () => {
+      const result = await callPrompt(server, 'execute-task', { issueNumber: 42 }) as PromptResult;
+
+      expect(result.messages).toHaveLength(1);
+      expect(result.messages[0]!.role).toBe('user');
+      expect(result.messages[0]!.content.type).toBe('text');
+    });
+
+    it('appends issue number to prompt', async () => {
+      const result = await callPrompt(server, 'execute-task', { issueNumber: 42 }) as PromptResult;
+      expect(result.messages[0]!.content.text).toContain('Task to execute: #42');
+    });
+
+    it('references get_task_execution_data tool', async () => {
+      const result = await callPrompt(server, 'execute-task', { issueNumber: 1 }) as PromptResult;
+      expect(result.messages[0]!.content.text).toContain('get_task_execution_data');
+    });
+
+    it('includes spec comprehension guidance', async () => {
+      const result = await callPrompt(server, 'execute-task', { issueNumber: 1 }) as PromptResult;
+      expect(result.messages[0]!.content.text).toContain('Specification Comprehension');
+    });
+
+    it('includes upstream context guidance', async () => {
+      const result = await callPrompt(server, 'execute-task', { issueNumber: 1 }) as PromptResult;
+      expect(result.messages[0]!.content.text).toContain('Upstream Context');
+    });
+
+    it('includes downstream awareness guidance', async () => {
+      const result = await callPrompt(server, 'execute-task', { issueNumber: 1 }) as PromptResult;
+      expect(result.messages[0]!.content.text).toContain('Downstream Awareness');
+    });
+
+    it('includes context capture instructions', async () => {
+      const result = await callPrompt(server, 'execute-task', { issueNumber: 1 }) as PromptResult;
+      expect(result.messages[0]!.content.text).toContain('Context Capture');
+      expect(result.messages[0]!.content.text).toContain('ido4:context');
+    });
+
+    it('includes completion verification', async () => {
+      const result = await callPrompt(server, 'execute-task', { issueNumber: 1 }) as PromptResult;
+      expect(result.messages[0]!.content.text).toContain('Completion Verification');
+      expect(result.messages[0]!.content.text).toContain('dryRun');
+    });
+  });
+
+  describe('execute prompt generator', () => {
+    it('includes methodology principles', () => {
+      const prompt = generateExecutePrompt(ctx);
+      expect(prompt).toContain('Epic Integrity');
+      expect(prompt).toContain('Dependency Coherence');
+    });
+
+    it('includes all 8 phases', () => {
+      const prompt = generateExecutePrompt(ctx);
+      expect(prompt).toContain('Phase 1: Specification Comprehension');
+      expect(prompt).toContain('Phase 2: Upstream Context Interpretation');
+      expect(prompt).toContain('Phase 3: Downstream Awareness');
+      expect(prompt).toContain('Phase 4: Pattern Detection');
+      expect(prompt).toContain('Phase 5: Work Execution');
+      expect(prompt).toContain('Phase 6: Escalation Protocol');
+      expect(prompt).toContain('Phase 7: Context Capture');
+      expect(prompt).toContain('Phase 8: Completion Verification');
+    });
+
+    it('includes escalation protocol and pattern detection', () => {
+      const prompt = generateExecutePrompt(ctx);
+      expect(prompt).toContain('Escalation Protocol');
+      expect(prompt).toContain('block_task');
+      expect(prompt).toContain('AI agents must not fill in missing requirements');
+      expect(prompt).toContain('Pattern Detection');
+      expect(prompt).toContain('Dependency Prioritization');
+    });
+
+    it('includes context capture template', () => {
+      const prompt = generateExecutePrompt(ctx);
+      expect(prompt).toContain('Context Capture Template');
+      expect(prompt).toContain('150-300 words');
     });
   });
 });

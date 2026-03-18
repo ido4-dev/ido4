@@ -1,18 +1,33 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { callTool } from '../helpers/test-utils.js';
 
-// Mock ProjectInitService
-const mockInitializeProject = vi.fn();
-const mockDetectRepository = vi.fn();
+// Hoist all mocks
+const {
+  mockInitializeProject,
+  mockDetectRepository,
+  MockProjectInitService,
+  mockResetContainer,
+  mockGetContainer,
+} = vi.hoisted(() => {
+  const mockInitializeProject = vi.fn();
+  const mockDetectRepository = vi.fn();
+  return {
+    mockInitializeProject,
+    mockDetectRepository,
+    MockProjectInitService: vi.fn().mockImplementation(() => ({
+      initializeProject: mockInitializeProject,
+      detectRepository: mockDetectRepository,
+    })),
+    mockResetContainer: vi.fn(),
+    mockGetContainer: vi.fn(),
+  };
+});
 
 vi.mock('@ido4/core', async (importOriginal) => {
   const original = await importOriginal() as Record<string, unknown>;
   return {
     ...original,
-    ProjectInitService: vi.fn().mockImplementation(() => ({
-      initializeProject: mockInitializeProject,
-      detectRepository: mockDetectRepository,
-    })),
+    ProjectInitService: MockProjectInitService,
     ConsoleLogger: vi.fn().mockImplementation(() => ({
       info: vi.fn(),
       debug: vi.fn(),
@@ -24,12 +39,6 @@ vi.mock('@ido4/core', async (importOriginal) => {
   };
 });
 
-// Mock container-init (for resetContainer and getContainer)
-const { mockResetContainer, mockGetContainer } = vi.hoisted(() => ({
-  mockResetContainer: vi.fn(),
-  mockGetContainer: vi.fn(),
-}));
-
 vi.mock('../../src/helpers/container-init.js', () => ({
   getContainer: mockGetContainer,
   resetContainer: mockResetContainer,
@@ -38,6 +47,13 @@ vi.mock('../../src/helpers/container-init.js', () => ({
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { HYDRO_PROFILE } from '@ido4/core';
 import { registerProjectTools } from '../../src/tools/project-tools.js';
+
+const INIT_RESULT = {
+  success: true,
+  project: { id: 'PVT_test', number: 1, title: 'Test', url: 'https://example.com', repository: 'user/repo' },
+  fieldsCreated: ['Status (configured)', 'Wave', 'Epic', 'Dependencies', 'AI Context'],
+  configPath: '/tmp/.ido4/project-info.json',
+};
 
 describe('Project Tools', () => {
   let server: McpServer;
@@ -49,12 +65,7 @@ describe('Project Tools', () => {
   });
 
   it('init_project calls ProjectInitService.initializeProject', async () => {
-    mockInitializeProject.mockResolvedValue({
-      success: true,
-      project: { id: 'PVT_test', number: 1, title: 'Test', url: 'https://example.com', repository: 'user/repo' },
-      fieldsCreated: ['Wave', 'Epic'],
-      configPath: '/tmp/.ido4/project-info.json',
-    });
+    mockInitializeProject.mockResolvedValue(INIT_RESULT);
 
     const result = await callTool(server, 'init_project', { mode: 'create', repository: 'user/repo' }) as {
       content: Array<{ text: string }>;
@@ -72,13 +83,97 @@ describe('Project Tools', () => {
     expect(parsed.project.id).toBe('PVT_test');
   });
 
+  it('init_project passes Hydro profile to ProjectInitService by default', async () => {
+    mockInitializeProject.mockResolvedValue(INIT_RESULT);
+
+    const result = await callTool(server, 'init_project', { mode: 'create', repository: 'user/repo' }) as {
+      content: Array<{ text: string }>;
+    };
+
+    // Verify profile passed to constructor
+    expect(MockProjectInitService).toHaveBeenCalledWith(
+      expect.anything(), // graphqlClient
+      expect.anything(), // logger
+      expect.objectContaining({ id: 'hydro' }),
+    );
+
+    const parsed = JSON.parse(result.content[0]!.text);
+    expect(parsed.methodology.id).toBe('hydro');
+    expect(parsed.methodology.name).toContain('Hydro');
+  });
+
+  it('init_project passes Scrum profile when methodology=scrum', async () => {
+    mockInitializeProject.mockResolvedValue(INIT_RESULT);
+
+    const result = await callTool(server, 'init_project', {
+      mode: 'create',
+      repository: 'user/repo',
+      methodology: 'scrum',
+    }) as { content: Array<{ text: string }> };
+
+    expect(MockProjectInitService).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.objectContaining({ id: 'scrum' }),
+    );
+
+    const parsed = JSON.parse(result.content[0]!.text);
+    expect(parsed.methodology.id).toBe('scrum');
+    expect(parsed.methodology.name).toBe('Scrum');
+    expect(parsed.methodology.containers).toContain('Sprint');
+  });
+
+  it('init_project passes Shape Up profile when methodology=shape-up', async () => {
+    mockInitializeProject.mockResolvedValue(INIT_RESULT);
+
+    const result = await callTool(server, 'init_project', {
+      mode: 'create',
+      repository: 'user/repo',
+      methodology: 'shape-up',
+    }) as { content: Array<{ text: string }> };
+
+    expect(MockProjectInitService).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.objectContaining({ id: 'shape-up' }),
+    );
+
+    const parsed = JSON.parse(result.content[0]!.text);
+    expect(parsed.methodology.id).toBe('shape-up');
+    expect(parsed.methodology.containers).toContain('Cycle');
+  });
+
+  it('init_project includes nextSteps in response', async () => {
+    mockInitializeProject.mockResolvedValue(INIT_RESULT);
+
+    const result = await callTool(server, 'init_project', { mode: 'create', repository: 'user/repo' }) as {
+      content: Array<{ text: string }>;
+    };
+
+    const parsed = JSON.parse(result.content[0]!.text);
+    expect(parsed.nextSteps).toBeDefined();
+    expect(parsed.nextSteps.length).toBeGreaterThan(0);
+    expect(parsed.nextSteps.some((s: string) => s.includes('create_sandbox'))).toBe(true);
+  });
+
+  it('init_project includes methodology states in response', async () => {
+    mockInitializeProject.mockResolvedValue(INIT_RESULT);
+
+    const result = await callTool(server, 'init_project', {
+      mode: 'create',
+      repository: 'user/repo',
+      methodology: 'scrum',
+    }) as { content: Array<{ text: string }> };
+
+    const parsed = JSON.parse(result.content[0]!.text);
+    expect(parsed.methodology.states).toBeDefined();
+    // Scrum states use display names (e.g., "Product Backlog" not "Backlog")
+    expect(parsed.methodology.states.some((s: string) => s.includes('Backlog'))).toBe(true);
+    expect(parsed.methodology.states).toContain('Done');
+  });
+
   it('init_project resets container after success', async () => {
-    mockInitializeProject.mockResolvedValue({
-      success: true,
-      project: { id: 'PVT_test', number: 1, title: 'Test', url: 'https://example.com', repository: 'user/repo' },
-      fieldsCreated: [],
-      configPath: '/tmp/.ido4/project-info.json',
-    });
+    mockInitializeProject.mockResolvedValue(INIT_RESULT);
 
     await callTool(server, 'init_project', { mode: 'create', repository: 'user/repo' });
     expect(mockResetContainer).toHaveBeenCalled();
@@ -86,10 +181,8 @@ describe('Project Tools', () => {
 
   it('init_project passes connect mode args', async () => {
     mockInitializeProject.mockResolvedValue({
-      success: true,
-      project: { id: 'PVT_existing', number: 5, title: 'Existing', url: 'https://example.com', repository: 'user/repo' },
-      fieldsCreated: [],
-      configPath: '/tmp/.ido4/project-info.json',
+      ...INIT_RESULT,
+      project: { ...INIT_RESULT.project, id: 'PVT_existing', number: 5, title: 'Existing' },
     });
 
     await callTool(server, 'init_project', {
@@ -124,10 +217,8 @@ describe('Project Tools', () => {
 
   it('init_project passes optional projectName', async () => {
     mockInitializeProject.mockResolvedValue({
-      success: true,
-      project: { id: 'PVT_test', number: 1, title: 'Custom Name', url: 'https://example.com', repository: 'user/repo' },
-      fieldsCreated: [],
-      configPath: '/tmp/.ido4/project-info.json',
+      ...INIT_RESULT,
+      project: { ...INIT_RESULT.project, title: 'Custom Name' },
     });
 
     await callTool(server, 'init_project', {

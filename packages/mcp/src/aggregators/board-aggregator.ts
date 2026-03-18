@@ -18,7 +18,7 @@ export async function aggregateBoardData(
   const containerName = await resolveActiveContainer(container, options?.containerName);
 
   // Parallel: all independent calls at once
-  const [waveStatus, taskResult, analytics, agents] = await Promise.all([
+  const [containerStatus, taskResult, analytics, agents] = await Promise.all([
     container.containerService.getContainerStatus(containerName),
     container.taskService.listTasks({ wave: containerName }),
     container.analyticsService.getContainerAnalytics(containerName),
@@ -60,11 +60,11 @@ export async function aggregateBoardData(
 
   const projectUrl = container.projectConfig.project.url ?? null;
 
-  const { metrics } = waveStatus;
+  const { metrics } = containerStatus;
   const summary = `${containerName}: ${metrics.total} tasks | ${metrics.completed} done, ${metrics.inProgress} in progress, ${metrics.blocked} blocked, ${metrics.ready} ready`;
 
   return {
-    waveStatus,
+    containerStatus,
     tasks,
     annotations,
     analytics,

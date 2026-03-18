@@ -61,8 +61,8 @@ describe('Sandbox Tools', () => {
       const createResult = {
         success: true,
         project: { id: 'PVT_1', number: 1, title: 'Sandbox', url: 'https://example.com', repository: 'owner/repo' },
-        scenario: 'governance-showcase',
-        created: { epics: 5, tasks: 20, subIssueRelationships: 20, closedTasks: 8, auditEvents: 28, registeredAgents: 2 },
+        scenario: 'hydro-governance',
+        created: { parentIssues: 5, containerInstances: 4, tasks: 20, subIssueRelationships: 20, closedTasks: 8, pullRequests: 1, contextComments: 5, auditEvents: 28, registeredAgents: 2 },
         configPath: '/test/.ido4/project-info.json',
       };
       mockCreateSandbox.mockResolvedValue(createResult);
@@ -135,7 +135,7 @@ describe('Sandbox Tools', () => {
 
       const resetResult = {
         destroyed: { success: true, projectId: 'PVT_1', issuesClosed: 5, projectDeleted: true, configRemoved: true },
-        created: { success: true, project: { id: 'PVT_2' }, scenario: 'governance-showcase', created: { epics: 5, tasks: 20 } },
+        created: { success: true, project: { id: 'PVT_2' }, scenario: 'hydro-governance', created: { epics: 5, tasks: 20 } },
       };
       mockResetSandbox.mockResolvedValue(resetResult);
 

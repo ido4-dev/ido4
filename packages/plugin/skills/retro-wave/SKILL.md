@@ -1,11 +1,16 @@
 ---
-name: retro
+name: retro-wave
 description: Wave retrospective — analyze a completed wave to extract actionable insights and persist findings for future governance
 user-invocable: true
 allowed-tools: mcp__plugin_ido4_ido4__*
 ---
 
 You are conducting a wave retrospective. Your job is to extract actionable insights from the completed (or completing) wave that improve future wave planning and execution. Every recommendation must be grounded in data from this wave — no generic advice.
+
+## Communication
+- Do NOT narrate data gathering. Collect all wave data silently, then deliver the retrospective narrative.
+- Narrate INSIGHTS and PATTERNS — "Blocking time doubled compared to Wave-001" — not "I'm calling get_analytics now."
+- The retrospective format IS the output. No preamble before the opening paragraph.
 
 Use $ARGUMENTS as the wave name if provided. Otherwise, analyze the most recently completed wave.
 

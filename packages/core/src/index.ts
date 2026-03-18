@@ -26,6 +26,8 @@ export type {
   IGitWorkflowConfig,
   TaskData,
   TaskDetailOptions,
+  TaskComment,
+  TaskDataWithComments,
   PaginationOptions,
   ProjectItem,
   PullRequestInfo,
@@ -167,6 +169,10 @@ export { FieldExtractor } from './shared/utils/index.js';
 export type { FieldValue, CommonFields } from './shared/utils/index.js';
 export { EpicUtils } from './shared/utils/index.js';
 export { DateFormatter } from './shared/utils/index.js';
+export { parseIdo4ContextBlocks, parseIdo4ContextComments, filterIdo4ContextComments } from './shared/utils/index.js';
+export type { Ido4ContextBlock } from './shared/utils/index.js';
+export { formatIdo4ContextComment } from './shared/utils/index.js';
+export type { FormatContextOptions } from './shared/utils/index.js';
 
 // Domain Services — Tasks
 export { TaskService } from './domains/tasks/index.js';
@@ -188,6 +194,8 @@ export { DependencyService } from './domains/dependencies/index.js';
 
 // Domain Services — Containers
 export { ContainerService } from './domains/containers/index.js';
+export type { IContainerMetadataService, ContainerMetadata } from './domains/containers/index.js';
+export { FileContainerMetadataService, InMemoryContainerMetadataService } from './domains/containers/index.js';
 
 // Domain Services — Projects
 export { ProjectInitService } from './domains/projects/index.js';
@@ -212,14 +220,39 @@ export { WorkDistributionService } from './domains/distribution/index.js';
 // Domain Services — Merge Gate
 export { MergeReadinessService } from './domains/gate/index.js';
 
+// Domain Services — Ingestion
+export { parseSpec, mapSpec, findGroupingContainer, topologicalSort, IngestionService } from './domains/ingestion/index.js';
+export type {
+  ParsedSpec,
+  ParsedProjectHeader,
+  ParsedGroup,
+  ParsedTask,
+  ParseError,
+  MappedSpec,
+  MappedGroupIssue,
+  MappedTask,
+  MappingError,
+  IngestSpecResult,
+  IngestSpecOptions,
+} from './domains/ingestion/index.js';
+
 // Domain Services — Sandbox
 export { SandboxService } from './domains/sandbox/index.js';
-export { GOVERNANCE_SHOWCASE } from './domains/sandbox/index.js';
+export { HYDRO_GOVERNANCE } from './domains/sandbox/index.js';
+export { SCRUM_SPRINT } from './domains/sandbox/index.js';
+export { SHAPE_UP_CYCLE } from './domains/sandbox/index.js';
 export type {
   SandboxScenario,
+  ContainerInstanceDefinition,
+  ParentIssueDefinition,
+  SandboxTaskDefinition,
+  AuditSeedEvent,
+  AgentSeedDefinition,
+  // Deprecated legacy types
   EpicDefinition,
   WaveDefinition,
   TaskDefinition,
+  // Service types
   SandboxCreateOptions,
   SandboxCreateResult,
   SandboxDestroyResult,

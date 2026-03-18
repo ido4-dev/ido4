@@ -49,7 +49,7 @@ export class ContainerService implements IContainerService {
       const counts = containerMap.get(container) ?? { total: 0, completed: 0 };
       counts.total++;
       const status = item.fieldValues['Status'];
-      if (status === this.workflowConfig.getStatusName('DONE')) {
+      if (status && this.workflowConfig.isTerminalStatus(status)) {
         counts.completed++;
       }
       containerMap.set(container, counts);
@@ -135,9 +135,7 @@ export class ContainerService implements IContainerService {
 
   async validateContainerCompletion(name: string): Promise<ContainerCompletionResult> {
     const containerStatus = await this.projectRepository.getContainerStatus(name);
-    const doneName = this.workflowConfig.getStatusName('DONE');
-
-    const nonDoneTasks = containerStatus.tasks.filter((t) => t.status !== doneName);
+    const nonDoneTasks = containerStatus.tasks.filter((t) => !this.workflowConfig.isTerminalStatus(t.status));
     const canComplete = nonDoneTasks.length === 0 && containerStatus.tasks.length > 0;
 
     const reasons: string[] = [];

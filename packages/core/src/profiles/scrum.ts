@@ -89,12 +89,14 @@ export const SCRUM_PROFILE: MethodologyProfile = {
     plan: {
       steps: [
         'SourceStatusValidation:BACKLOG',
+        'SpecCompletenessValidation',
         'StatusTransitionValidation:SPRINT',
       ],
     },
     start: {
       steps: [
         'SourceStatusValidation:SPRINT',
+        'SpecCompletenessValidation',
         'StatusTransitionValidation:IN_PROGRESS',
         'DependencyValidation',
         'ContainerAssignmentValidation:sprint',
@@ -111,6 +113,7 @@ export const SCRUM_PROFILE: MethodologyProfile = {
       steps: [
         'StatusTransitionValidation:DONE',
         'ApprovalRequirementValidation',
+        'ContextCompletenessValidation',
         'SubtaskCompletionValidation',
       ],
     },
@@ -122,6 +125,7 @@ export const SCRUM_PROFILE: MethodologyProfile = {
       steps: [
         'SourceStatusValidation:BACKLOG',
         'AcceptanceCriteriaValidation',
+        'SpecCompletenessValidation',
         'EffortEstimationValidation',
         'StatusTransitionValidation:SPRINT',
       ],
@@ -132,6 +136,7 @@ export const SCRUM_PROFILE: MethodologyProfile = {
       steps: [
         'SourceStatusValidation:BACKLOG',
         'BaseTaskFieldsValidation',
+        'SpecCompletenessValidation',
         'StatusTransitionValidation:SPRINT',
       ],
     },
@@ -148,6 +153,7 @@ export const SCRUM_PROFILE: MethodologyProfile = {
     'start:bug': {
       steps: [
         'SourceStatusValidation:SPRINT',
+        'SpecCompletenessValidation',
         'StatusTransitionValidation:IN_PROGRESS',
         'ContainerAssignmentValidation:sprint',
         'ContainerSingularityValidation:sprint',
@@ -166,6 +172,7 @@ export const SCRUM_PROFILE: MethodologyProfile = {
       steps: [
         'StatusTransitionValidation:DONE',
         'ApprovalRequirementValidation',
+        'ContextCompletenessValidation',
         'PRReviewValidation:2',
       ],
     },

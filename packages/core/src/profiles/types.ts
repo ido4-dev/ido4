@@ -40,6 +40,8 @@ export interface MethodologyProfile {
 
   compliance: {
     lifecycle: string[];
+    /** Alternate lifecycles for non-standard closing transitions (e.g., killed tasks). */
+    alternateLifecycles?: Record<string, string[]>;
     weights: Record<string, number>;
   };
 
@@ -78,6 +80,8 @@ export interface ContainerTypeDefinition {
   nameExample?: string;
   singularity?: boolean;
   completionRule?: 'all-terminal' | 'timebox-expires' | 'none';
+  /** Duration of this container's timebox in weeks (used by CircuitBreakerValidation). */
+  durationWeeks?: number;
   parent?: string;
   managed?: boolean;
 }

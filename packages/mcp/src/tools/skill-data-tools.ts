@@ -9,12 +9,14 @@ import {
   GetBoardDataSchema,
   GetComplianceDataSchema,
   GetHealthDataSchema,
+  GetTaskExecutionDataSchema,
 } from '../schemas/skill-data-schemas.js';
 import { handleErrors, toCallToolResult, getContainer } from '../helpers/index.js';
 import { aggregateStandupData } from '../aggregators/standup-aggregator.js';
 import { aggregateBoardData } from '../aggregators/board-aggregator.js';
 import { aggregateComplianceData } from '../aggregators/compliance-aggregator.js';
 import { aggregateHealthData } from '../aggregators/health-aggregator.js';
+import { aggregateTaskExecutionData } from '../aggregators/task-execution-aggregator.js';
 
 export function registerSkillDataTools(server: McpServer): void {
   server.tool(
@@ -68,6 +70,20 @@ export function registerSkillDataTools(server: McpServer): void {
       const container = await getContainer();
       const result = await aggregateHealthData(container, {
         containerName: args.waveName,
+      });
+      return toCallToolResult({ success: true, data: result });
+    }),
+  );
+
+  server.tool(
+    'get_task_execution_data',
+    'Gather all context needed to execute a task: full spec with comments, upstream dependency details (bodies + context comments), epic siblings with completion context, downstream dependents, and epic progress. Use before starting work on a task.',
+    GetTaskExecutionDataSchema,
+    async (args) => handleErrors(async () => {
+      const container = await getContainer();
+      const result = await aggregateTaskExecutionData(container, {
+        issueNumber: args.issueNumber,
+        includeComments: args.includeComments,
       });
       return toCallToolResult({ success: true, data: result });
     }),

@@ -97,6 +97,28 @@ export interface FindPRForIssueResponse {
   };
 }
 
+export interface GetIssueCommentsResponse {
+  repository: {
+    issue: {
+      comments: {
+        nodes: Array<{
+          id: string;
+          body: string;
+          author: {
+            login: string;
+          } | null;
+          createdAt: string;
+          updatedAt: string;
+        }>;
+        pageInfo: {
+          hasNextPage: boolean;
+          endCursor: string | null;
+        };
+      };
+    } | null;
+  };
+}
+
 export interface GetSubIssuesResponse {
   repository: {
     issue: {
@@ -313,6 +335,30 @@ export const GET_SUB_ISSUES = `
             title
             state
             url
+          }
+        }
+      }
+    }
+  }
+`;
+
+export const GET_ISSUE_COMMENTS = `
+  query GetIssueComments($owner: String!, $repo: String!, $issueNumber: Int!) {
+    repository(owner: $owner, name: $repo) {
+      issue(number: $issueNumber) {
+        comments(first: 100, orderBy: {field: UPDATED_AT, direction: ASC}) {
+          nodes {
+            id
+            body
+            author {
+              login
+            }
+            createdAt
+            updatedAt
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
           }
         }
       }

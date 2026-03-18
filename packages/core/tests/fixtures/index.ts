@@ -1,7 +1,7 @@
 export {
   transitionTestMatrix,
   dependencyTestScenarios,
-  epicIntegrityScenarios,
+  containerIntegrityScenarios,
   aiSuitabilityScenarios,
   riskLevelScenarios,
   workflowPathScenarios,

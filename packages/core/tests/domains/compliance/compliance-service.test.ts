@@ -118,7 +118,7 @@ describe('ComplianceService', () => {
       expect(result.categories.brePassRate.score).toBe(100);
       expect(result.categories.qualityGates.score).toBe(100);
       expect(result.categories.processAdherence.score).toBe(100);
-      expect(result.categories.epicIntegrity.score).toBe(100);
+      expect(result.categories.containerIntegrity.score).toBe(100);
       expect(result.categories.flowEfficiency.score).toBe(100);
     });
   });
@@ -358,7 +358,7 @@ describe('ComplianceService', () => {
         .mockResolvedValueOnce({ events: containerEvents, total: 2, query: {} }); // container assignments
 
       const result = await service.computeComplianceScore();
-      expect(result.categories.epicIntegrity.score).toBe(100);
+      expect(result.categories.containerIntegrity.score).toBe(100);
     });
 
     it('computes proportional score for mixed integrity', async () => {
@@ -374,7 +374,7 @@ describe('ComplianceService', () => {
         .mockResolvedValueOnce({ events: containerEvents, total: 10, query: {} });
 
       const result = await service.computeComplianceScore();
-      expect(result.categories.epicIntegrity.score).toBe(80);
+      expect(result.categories.containerIntegrity.score).toBe(80);
     });
 
     it('scores 100 when no container assignments exist', async () => {
@@ -385,8 +385,8 @@ describe('ComplianceService', () => {
         .mockResolvedValueOnce({ events: [], total: 0, query: {} }); // container assignments
 
       const result = await service.computeComplianceScore();
-      expect(result.categories.epicIntegrity.score).toBe(100);
-      expect(result.categories.epicIntegrity.detail).toContain('No container assignments');
+      expect(result.categories.containerIntegrity.score).toBe(100);
+      expect(result.categories.containerIntegrity.detail).toContain('No container assignments');
     });
   });
 
@@ -454,7 +454,7 @@ describe('ComplianceService', () => {
       expect(result.categories.brePassRate.contribution).toBe(40);
       expect(result.categories.qualityGates.contribution).toBe(20);
       expect(result.categories.processAdherence.contribution).toBe(20);
-      expect(result.categories.epicIntegrity.contribution).toBe(10);
+      expect(result.categories.containerIntegrity.contribution).toBe(10);
       expect(result.categories.flowEfficiency.contribution).toBe(10);
     });
 
@@ -464,7 +464,7 @@ describe('ComplianceService', () => {
         result.categories.brePassRate.weight +
         result.categories.qualityGates.weight +
         result.categories.processAdherence.weight +
-        result.categories.epicIntegrity.weight +
+        result.categories.containerIntegrity.weight +
         result.categories.flowEfficiency.weight;
       expect(totalWeight).toBe(1.0);
     });

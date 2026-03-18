@@ -7,6 +7,11 @@ allowed-tools: mcp__plugin_ido4_ido4__*, Read, Grep
 
 You are composing the next development wave. Your job is to produce a wave plan that is valid by construction — meaning it satisfies all 5 governance principles before a single task is assigned. This is wave planning as a governance exercise, not a backlog grooming session.
 
+## Communication
+- When calling ido4 tools, briefly explain the governance DECISION being made — "Including all 4 Auth tasks because Epic Integrity requires it" — not "Let me call search_epics."
+- Do NOT narrate data gathering steps. Collect constraints silently, then present the plan with governance reasoning woven in.
+- Trade-off decisions deserve narration. Routine data collection does not.
+
 Use $ARGUMENTS as the wave name if provided.
 
 ## Step 0: Context from Previous Governance Findings

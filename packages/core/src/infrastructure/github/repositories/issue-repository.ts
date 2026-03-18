@@ -5,7 +5,7 @@
  * Uses InputSanitizer for input validation.
  */
 
-import type { IIssueRepository, TaskData, TaskDetailOptions, PullRequestInfo, SubIssueData, IProjectConfig } from '../../../container/interfaces.js';
+import type { IIssueRepository, TaskData, TaskDataWithComments, TaskComment, TaskDetailOptions, PullRequestInfo, SubIssueData, IProjectConfig } from '../../../container/interfaces.js';
 import type { ILogger } from '../../../shared/logger.js';
 import type { GitHubGraphQLClient } from '../core/graphql-client.js';
 import { FieldExtractor } from '../../../shared/utils/index.js';
@@ -19,6 +19,7 @@ import {
   FIND_PR_FOR_ISSUE,
   ADD_SUB_ISSUE,
   GET_SUB_ISSUES,
+  GET_ISSUE_COMMENTS,
   CREATE_ISSUE,
   GET_REPOSITORY_ID,
   UPDATE_ITEM_FIELD_TEXT,
@@ -30,16 +31,25 @@ import type {
   FindPRForIssueResponse,
   AddSubIssueResponse,
   GetSubIssuesResponse,
+  GetIssueCommentsResponse,
   CreateIssueResponse,
   GetRepositoryIdResponse,
 } from '../queries/index.js';
 
 export class GitHubIssueRepository implements IIssueRepository {
+  private readonly containerDefs: ReadonlyArray<{ id: string; taskField: string }>;
+
   constructor(
     private readonly client: GitHubGraphQLClient,
     private readonly config: IProjectConfig,
     private readonly logger: ILogger,
-  ) {}
+    containerDefs?: ReadonlyArray<{ id: string; taskField: string }>,
+  ) {
+    this.containerDefs = containerDefs ?? [
+      { id: 'wave', taskField: 'Wave' },
+      { id: 'epic', taskField: 'Epic' },
+    ];
+  }
 
   private get owner(): string {
     return this.config.project.repository.split('/')[0]!;
@@ -68,9 +78,39 @@ export class GitHubIssueRepository implements IIssueRepository {
     return this.mapIssueToTaskData(issue);
   }
 
-  async getTaskWithDetails(issueNumber: number, _options?: TaskDetailOptions): Promise<TaskData> {
-    // For now, same as getTask. In future, could expand query with comments/timeline.
-    return this.getTask(issueNumber);
+  async getTaskWithDetails(issueNumber: number, options?: TaskDetailOptions): Promise<TaskDataWithComments> {
+    const task = await this.getTask(issueNumber);
+
+    let comments: TaskComment[] = [];
+    if (options?.includeComments) {
+      comments = await this.getIssueComments(issueNumber);
+    }
+
+    return { ...task, comments };
+  }
+
+  async getIssueComments(issueNumber: number): Promise<TaskComment[]> {
+    const data = await this.client.query<GetIssueCommentsResponse>(
+      GET_ISSUE_COMMENTS,
+      { owner: this.owner, repo: this.repo, issueNumber },
+    );
+
+    const issue = data.repository.issue;
+    if (!issue) {
+      throw new NotFoundError({
+        message: `Issue #${issueNumber} not found`,
+        resource: 'issue',
+        identifier: issueNumber,
+      });
+    }
+
+    return issue.comments.nodes.map((node) => ({
+      id: node.id,
+      body: node.body,
+      author: node.author?.login ?? 'unknown',
+      createdAt: node.createdAt,
+      updatedAt: node.updatedAt,
+    }));
   }
 
   async createIssue(title: string, body?: string): Promise<{ id: string; number: number; url: string }> {
@@ -148,8 +188,11 @@ export class GitHubIssueRepository implements IIssueRepository {
     this.logger.info('Task field updated', { issueNumber, fieldKey, fieldType });
   }
 
-  async updateTaskContainer(issueNumber: number, waveName: string): Promise<void> {
-    await this.updateTaskField(issueNumber, 'wave', waveName, 'text');
+  async updateTaskContainer(issueNumber: number, containerName: string): Promise<void> {
+    // Resolve the primary container field key from containerDefs
+    const primaryContainer = this.containerDefs[0];
+    const fieldKey = primaryContainer ? primaryContainer.id : 'wave';
+    await this.updateTaskField(issueNumber, fieldKey, containerName, 'text');
   }
 
   async assignTask(issueNumber: number, assignee: string): Promise<void> {
@@ -280,9 +323,9 @@ export class GitHubIssueRepository implements IIssueRepository {
       (item) => item.project.id === this.config.project.id,
     );
 
-    // Extract field values using FieldExtractor
+    // Extract field values using FieldExtractor (profile-aware)
     const fieldValues = (projectItem?.fieldValues.nodes ?? []) as FieldValue[];
-    const fields = FieldExtractor.extractCommonFields(fieldValues);
+    const fields = FieldExtractor.extractCommonFields(fieldValues, this.containerDefs);
 
     return {
       id: issue.id,

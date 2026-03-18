@@ -30,7 +30,7 @@ vi.mock('../../src/helpers/container-init.js', () => ({
 }));
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { HYDRO_PROFILE } from '@ido4/core';
+import { HYDRO_PROFILE, SCRUM_PROFILE, SHAPE_UP_PROFILE } from '@ido4/core';
 import { registerResources, PRINCIPLES_BUILDER, WORKFLOW_BUILDER } from '../../src/resources/index.js';
 
 describe('Resources', () => {
@@ -179,6 +179,91 @@ describe('Resources', () => {
         expect(p.description).toBeDefined();
         expect(p.enforcement).toBeDefined();
       }
+    });
+  });
+
+  describe('cross-profile: Scrum', () => {
+    it('PRINCIPLES_BUILDER produces 1 principle for Scrum', () => {
+      const principles = PRINCIPLES_BUILDER(SCRUM_PROFILE);
+      expect(principles.principles).toHaveLength(1);
+      expect(principles.principles[0]!.name).toBe('Sprint Singularity');
+    });
+
+    it('WORKFLOW_BUILDER produces Scrum transitions', () => {
+      const workflow = WORKFLOW_BUILDER(SCRUM_PROFILE);
+      expect(workflow.transitionTypes).toContain('plan');
+      expect(workflow.transitionTypes).toContain('approve');
+      expect(workflow.transitionTypes).not.toContain('refine');
+      expect(workflow.transitionTypes).not.toContain('ready');
+      expect(workflow.statuses).toContain('Product Backlog');
+      expect(workflow.statuses).toContain('Done');
+    });
+
+    it('registers sprint-status template (not wave-status)', () => {
+      const scrumServer = new McpServer({ name: 'test', version: '0.1.0' });
+      registerResources(scrumServer, SCRUM_PROFILE);
+      expect(hasRegisteredResourceTemplate(scrumServer, 'sprint-status')).toBe(true);
+      expect(hasRegisteredResourceTemplate(scrumServer, 'wave-status')).toBe(false);
+    });
+
+    it('methodology-profile returns scrum profile', async () => {
+      const scrumServer = new McpServer({ name: 'test', version: '0.1.0' });
+      registerResources(scrumServer, SCRUM_PROFILE);
+      const result = await readResource(scrumServer, 'ido4://methodology/profile') as {
+        contents: Array<{ text: string }>;
+      };
+      const parsed = JSON.parse(result.contents[0]!.text);
+      expect(parsed.id).toBe('scrum');
+    });
+
+    it('methodology-work-item-types returns User Story', async () => {
+      const scrumServer = new McpServer({ name: 'test', version: '0.1.0' });
+      registerResources(scrumServer, SCRUM_PROFILE);
+      const result = await readResource(scrumServer, 'ido4://methodology/work-item-types') as {
+        contents: Array<{ text: string }>;
+      };
+      const parsed = JSON.parse(result.contents[0]!.text);
+      expect(parsed.primary.singular).toBe('User Story');
+    });
+  });
+
+  describe('cross-profile: Shape Up', () => {
+    it('PRINCIPLES_BUILDER produces 4 principles for Shape Up', () => {
+      const principles = PRINCIPLES_BUILDER(SHAPE_UP_PROFILE);
+      expect(principles.principles).toHaveLength(4);
+      const names = principles.principles.map((p: { name: string }) => p.name);
+      expect(names).toContain('Bet Integrity');
+      expect(names).toContain('Circuit Breaker');
+    });
+
+    it('WORKFLOW_BUILDER produces Shape Up transitions', () => {
+      const workflow = WORKFLOW_BUILDER(SHAPE_UP_PROFILE);
+      expect(workflow.transitionTypes).toContain('shape');
+      expect(workflow.transitionTypes).toContain('bet');
+      expect(workflow.transitionTypes).toContain('ship');
+      expect(workflow.transitionTypes).toContain('kill');
+      expect(workflow.transitionTypes).not.toContain('approve');
+      expect(workflow.statuses).toContain('Raw Idea');
+      expect(workflow.statuses).toContain('Shipped');
+      expect(workflow.statuses).toContain('Killed');
+    });
+
+    it('registers cycle-status and bet-status templates', () => {
+      const suServer = new McpServer({ name: 'test', version: '0.1.0' });
+      registerResources(suServer, SHAPE_UP_PROFILE);
+      expect(hasRegisteredResourceTemplate(suServer, 'cycle-status')).toBe(true);
+      expect(hasRegisteredResourceTemplate(suServer, 'bet-status')).toBe(true);
+      expect(hasRegisteredResourceTemplate(suServer, 'wave-status')).toBe(false);
+    });
+
+    it('methodology-profile returns shape-up profile', async () => {
+      const suServer = new McpServer({ name: 'test', version: '0.1.0' });
+      registerResources(suServer, SHAPE_UP_PROFILE);
+      const result = await readResource(suServer, 'ido4://methodology/profile') as {
+        contents: Array<{ text: string }>;
+      };
+      const parsed = JSON.parse(result.contents[0]!.text);
+      expect(parsed.id).toBe('shape-up');
     });
   });
 });

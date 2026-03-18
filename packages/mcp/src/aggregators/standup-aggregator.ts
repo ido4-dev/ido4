@@ -21,7 +21,7 @@ export async function aggregateStandupData(
   const since = new Date(Date.now() - hoursBack * 60 * 60 * 1000).toISOString();
 
   // Step 1: Parallel batch — all independent calls at once
-  const [waveStatus, taskResult, auditTrail, analytics, agents, compliance] = await Promise.all([
+  const [containerStatus, taskResult, auditTrail, analytics, agents, compliance] = await Promise.all([
     container.containerService.getContainerStatus(containerName),
     container.taskService.listTasks({ wave: containerName }),
     container.auditService.queryEvents({ since }),
@@ -76,7 +76,7 @@ export async function aggregateStandupData(
   const summary = `${containerName}: ${tasks.length} tasks (${statusParts.join(', ')}), ${auditTrail.total} audit events (${hoursBack}h), ${agents.length} agents, compliance ${compliance.score}/${compliance.grade}`;
 
   return {
-    waveStatus,
+    containerStatus,
     tasks,
     reviewStatuses,
     blockerAnalyses,

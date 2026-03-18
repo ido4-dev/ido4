@@ -64,6 +64,7 @@ import { ValidationStepRegistry } from '../domains/tasks/validation-step-registr
 import { registerAllBuiltinSteps } from '../domains/tasks/validation-steps/index.js';
 import { WorkDistributionService } from '../domains/distribution/work-distribution-service.js';
 import { MergeReadinessService } from '../domains/gate/merge-readiness-service.js';
+import { FileContainerMetadataService } from '../domains/containers/container-metadata-service.js';
 import type { MethodologyProfile } from '../profiles/types.js';
 import { ProfileConfigLoader } from '../config/profile-loader.js';
 
@@ -176,15 +177,16 @@ export class ServiceContainer {
     const credentialManager = new CredentialManager(logger, config.githubToken);
     const graphqlClient = new GitHubGraphQLClient(credentialManager, logger);
 
-    // Layer 4: Repositories
-    const issueRepository = new GitHubIssueRepository(graphqlClient, projectConfig, logger);
+    // Layer 4: Methodology Profile (needed before repositories for container defs)
+    const profile = await ProfileConfigLoader.load(config.projectRoot);
+    const workflowConfig = new WorkflowConfig(profile, projectConfig);
+
+    // Layer 4.5: Repositories (profile-aware container definitions)
+    const containerDefs = profile.containers.map(c => ({ id: c.id, taskField: c.taskField }));
+    const issueRepository = new GitHubIssueRepository(graphqlClient, projectConfig, logger, containerDefs);
     const projectRepository = new GitHubProjectRepository(graphqlClient, projectConfig, logger);
     const repositoryRepository = new GitHubRepositoryRepository(graphqlClient, projectConfig, logger);
     const epicRepository = new GitHubEpicRepository(graphqlClient, projectConfig, logger);
-
-    // Layer 4.5: Methodology Profile + Workflow Config
-    const profile = await ProfileConfigLoader.load(config.projectRoot);
-    const workflowConfig = new WorkflowConfig(profile, projectConfig);
 
     // Layer 5: Domain Services
     const epicService = new EpicService(projectRepository, profile, logger);
@@ -199,14 +201,17 @@ export class ServiceContainer {
     const agentStore = new FileAgentStore(config.projectRoot, logger);
     const agentService = new AgentService(agentStore, logger);
 
-    // Layer 5c: BRE (profile-driven pipeline with all step dependencies)
+    // Layer 5c: Container metadata (for circuit breaker time-aware enforcement)
+    const containerMetadataService = new FileContainerMetadataService(config.projectRoot);
+
+    // Layer 5d: BRE (profile-driven pipeline with all step dependencies)
     const methodologyConfig = MethodologyConfig.fromProfile(profile);
     const stepRegistry = new ValidationStepRegistry();
     registerAllBuiltinSteps(stepRegistry);
     const taskTransitionValidator = new TaskTransitionValidator(
       issueRepository, projectConfig, workflowConfig,
       integrityValidator, repositoryRepository, gitWorkflowConfig, logger,
-      methodologyConfig, stepRegistry, agentService, profile,
+      methodologyConfig, stepRegistry, agentService, profile, containerMetadataService,
     );
 
     // Layer 6: Facade

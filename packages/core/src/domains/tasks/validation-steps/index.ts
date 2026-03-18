@@ -46,6 +46,9 @@ export { SourceStatusValidation } from './source-status-validation.js';
 export { ContainerAssignmentValidation } from './container-assignment-validation.js';
 export { ContainerIntegrityValidation } from './container-integrity-validation.js';
 export { ContainerSingularityValidation } from './container-singularity-validation.js';
+export { CircuitBreakerValidation } from './circuit-breaker-validation.js';
+export { SpecCompletenessValidation } from './spec-completeness-validation.js';
+export { ContextCompletenessValidation } from './context-completeness-validation.js';
 
 // Registry registration helper
 import type { ValidationStepRegistry } from '../validation-step-registry.js';
@@ -80,6 +83,9 @@ import { SourceStatusValidation } from './source-status-validation.js';
 import { ContainerAssignmentValidation } from './container-assignment-validation.js';
 import { ContainerIntegrityValidation } from './container-integrity-validation.js';
 import { ContainerSingularityValidation } from './container-singularity-validation.js';
+import { CircuitBreakerValidation } from './circuit-breaker-validation.js';
+import { SpecCompletenessValidation } from './spec-completeness-validation.js';
+import { ContextCompletenessValidation } from './context-completeness-validation.js';
 
 /** Register all built-in validation steps with a registry */
 export function registerAllBuiltinSteps(registry: ValidationStepRegistry): void {
@@ -120,6 +126,9 @@ export function registerAllBuiltinSteps(registry: ValidationStepRegistry): void 
   registry.register('ContainerAssignmentValidation', (_deps, param) => new ContainerAssignmentValidation(param!));
   registry.register('ContainerIntegrityValidation', (deps, param) => new ContainerIntegrityValidation(param!, deps));
   registry.register('ContainerSingularityValidation', (deps, param) => new ContainerSingularityValidation(param!, deps));
+  registry.register('CircuitBreakerValidation', (deps, param) => new CircuitBreakerValidation(param!, deps));
+  registry.register('SpecCompletenessValidation', (deps, param) => new SpecCompletenessValidation(param, deps));
+  registry.register('ContextCompletenessValidation', (deps, param) => new ContextCompletenessValidation(param, deps));
 
   // Multi-agent steps (only active when agentService is available)
   registry.register('TaskLockValidation', (deps) => {

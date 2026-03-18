@@ -52,7 +52,7 @@ describe('aggregateHealthData', () => {
     const result = await aggregateHealthData(container);
     expect(container.containerService.listContainers).toHaveBeenCalled();
     expect(container.containerService.getContainerStatus).toHaveBeenCalledWith('wave-001');
-    expect(result.waveStatus.name).toBe('wave-001');
+    expect(result.containerStatus.name).toBe('wave-001');
   });
 
   it('uses provided waveName', async () => {
@@ -71,7 +71,7 @@ describe('aggregateHealthData', () => {
 
   it('returns all data fields', async () => {
     const result = await aggregateHealthData(container);
-    expect(result.waveStatus).toBeDefined();
+    expect(result.containerStatus).toBeDefined();
     expect(result.compliance).toBeDefined();
     expect(result.analytics).toBeDefined();
     expect(result.agents).toBeDefined();

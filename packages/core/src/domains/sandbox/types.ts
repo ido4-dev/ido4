@@ -1,21 +1,28 @@
 /**
  * Sandbox domain types — definitions for governed sandbox environments.
+ *
+ * These types are methodology-agnostic. Container types, parent issues,
+ * and task structures are expressed generically and resolved at runtime
+ * via the profile's container definitions.
  */
 
 // ─── Scenario Definition Types ───
 
+/** @deprecated Use ContainerInstanceDefinition instead */
 export interface WaveDefinition {
   name: string;
   description: string;
   state: 'completed' | 'active' | 'planned';
 }
 
+/** @deprecated Use ParentIssueDefinition instead */
 export interface EpicDefinition {
   ref: string;
   title: string;
   body: string;
 }
 
+/** @deprecated Use SandboxTaskDefinition instead */
 export interface TaskDefinition {
   ref: string;
   title: string;
@@ -28,19 +35,76 @@ export interface TaskDefinition {
   aiSuitability: string;
   dependencyRefs?: string[];
   governanceSignal?: string;
-  /** Seed a PR for this task — creates a branch and PR during sandbox setup */
   seedPR?: { branchName: string; prTitle: string };
-  /** Comments added to the issue during sandbox setup — use #T_REF placeholders for task cross-references */
   contextComments?: string[];
+}
+
+// ─── Generic Scenario Types ───
+
+export interface ContainerInstanceDefinition {
+  ref: string;
+  /** Matches a profile container type ID (wave, sprint, cycle, bet, scope) */
+  containerType: string;
+  /** Actual container name (wave-001-foundation, Sprint 14, cycle-003) */
+  name: string;
+  description?: string;
+  state: 'completed' | 'active' | 'planned' | 'killed';
+  /** Extra metadata, e.g. { startDate: '2026-02-04' } for circuit breaker */
+  metadata?: Record<string, unknown>;
+}
+
+export interface ParentIssueDefinition {
+  ref: string;
+  title: string;
+  body: string;
+}
+
+export interface SandboxTaskDefinition {
+  ref: string;
+  title: string;
+  body: string;
+  /** containerTypeId → containerInstanceName */
+  containers: Record<string, string>;
+  /** For sub-issue relationships (epicRef, betRef) */
+  parentRef?: string;
+  status: string;
+  /** For Scrum type labels (type:story, type:bug, etc.) */
+  labels?: string[];
+  effort?: string;
+  riskLevel?: string;
+  aiSuitability?: string;
+  dependencyRefs?: string[];
+  governanceSignal?: string;
+  seedPR?: { branchName: string; prTitle: string };
+  contextComments?: string[];
+}
+
+export interface AuditSeedEvent {
+  taskRef: string;
+  transition: string;
+  fromStatus: string;
+  toStatus: string;
+  daysAgo: number;
+  hoursOffset?: number;
+  actor?: string;
+}
+
+export interface AgentSeedDefinition {
+  agents: Array<{ agentId: string; name: string; role: 'coding'; capabilities: string[] }>;
+  locks?: Array<{ agentId: string; taskRef: string }>;
 }
 
 export interface SandboxScenario {
   id: string;
   name: string;
   description: string;
-  waves: WaveDefinition[];
-  epics: EpicDefinition[];
-  tasks: TaskDefinition[];
+  profileId: string;
+  containerInstances: ContainerInstanceDefinition[];
+  parentIssues: ParentIssueDefinition[];
+  tasks: SandboxTaskDefinition[];
+  auditEvents: AuditSeedEvent[];
+  agents?: AgentSeedDefinition;
+  memorySeed: string;
 }
 
 // ─── Service Types ───
@@ -50,7 +114,7 @@ export interface SandboxCreateOptions {
   repository: string;
   /** Absolute path to sandbox project root */
   projectRoot: string;
-  /** Scenario to use (defaults to 'governance-showcase') */
+  /** Scenario to use (defaults to 'hydro-governance') */
   scenarioId?: string;
 }
 
@@ -65,7 +129,8 @@ export interface SandboxCreateResult {
   };
   scenario: string;
   created: {
-    epics: number;
+    parentIssues: number;
+    containerInstances: number;
     tasks: number;
     subIssueRelationships: number;
     closedTasks: number;

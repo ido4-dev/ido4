@@ -7,27 +7,31 @@
  */
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import type { MethodologyProfile } from '@ido4/core';
 import { InitProjectSchema } from '../schemas/index.js';
-import { handleErrors, toCallToolResult, getContainer, resetContainer } from '../helpers/index.js';
+import { handleErrors, toCallToolResult, getContainer, resetContainer, activateMethodology } from '../helpers/index.js';
 import {
   ConsoleLogger,
   CredentialManager,
   GitHubGraphQLClient,
   ProjectInitService,
+  ProfileRegistry,
 } from '@ido4/core';
 
-export function registerProjectTools(server: McpServer, _profile: MethodologyProfile): void {
+export function registerProjectTools(server: McpServer): void {
   server.tool(
     'init_project',
-    'Initialize ido4 governance for a GitHub repository — creates project, custom fields, and .ido4/ config files',
+    'Initialize ido4 governance for a GitHub repository — creates project, custom fields, and .ido4/ config files. Supports methodologies: hydro (wave-based), scrum (sprint-based), shape-up (cycle-based).',
     InitProjectSchema,
     async (args) => handleErrors(async () => {
+      // Resolve the methodology profile before creating the service
+      const methodologyId = args.methodology ?? 'hydro';
+      const profile = ProfileRegistry.getBuiltin(methodologyId);
+
       // Bootstrap standalone client — cannot use getContainer() because config doesn't exist yet
       const logger = new ConsoleLogger({ component: 'init-project' });
       const credentialManager = new CredentialManager(logger);
       const graphqlClient = new GitHubGraphQLClient(credentialManager, logger);
-      const initService = new ProjectInitService(graphqlClient, logger);
+      const initService = new ProjectInitService(graphqlClient, logger, profile);
 
       const projectRoot = process.env.IDO4_PROJECT_ROOT ?? process.cwd();
       const result = await initService.initializeProject({
@@ -41,7 +45,23 @@ export function registerProjectTools(server: McpServer, _profile: MethodologyPro
       // Reset container so subsequent tool calls pick up the new config
       resetContainer();
 
-      return toCallToolResult(result);
+      // Dynamically register methodology-specific tools (bootstrap mode only)
+      await activateMethodology(server);
+
+      return toCallToolResult({
+        ...result,
+        methodology: {
+          id: profile.id,
+          name: profile.name,
+          containers: profile.containers.map(c => c.taskField),
+          states: profile.states.map(s => s.name),
+        },
+        nextSteps: [
+          `${profile.name} governance initialized successfully.`,
+          'Explore: run create_sandbox to see governance in action with a demo project.',
+          'Or start directly: use get_project_status, create_task, and other tools to manage your project.',
+        ],
+      });
     }),
   );
 

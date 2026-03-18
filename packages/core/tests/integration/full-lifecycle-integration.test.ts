@@ -169,7 +169,7 @@ describe('Full Lifecycle Integration', () => {
     auditService = new AuditService(auditStore, eventBus, logger);
 
     const containerService = createMockContainerService([40, 41, 42, 43, 44, 45]);
-    analyticsService = new AnalyticsService(auditService, containerService, eventBus, logger);
+    analyticsService = new AnalyticsService(auditService, containerService, eventBus, logger, HYDRO_PROFILE);
 
     complianceService = new ComplianceService(auditService, analyticsService, eventBus, logger, HYDRO_PROFILE);
 
@@ -371,8 +371,8 @@ describe('Full Lifecycle Integration', () => {
     const compliance = await complianceService.computeComplianceScore();
 
     // 2/3 maintained = 66.67%
-    expect(compliance.categories.epicIntegrity.score).toBeCloseTo(66.67, 0);
-    expect(compliance.categories.epicIntegrity.detail).toContain('2/3');
+    expect(compliance.categories.containerIntegrity.score).toBeCloseTo(66.67, 0);
+    expect(compliance.categories.containerIntegrity.detail).toContain('2/3');
   });
 
   // ─── Test 7: Multi-Agent Actor Breakdown ───
@@ -516,7 +516,7 @@ describe('Full Lifecycle Integration', () => {
     expect(compliance.categories.processAdherence.score).toBeCloseTo(86.67, 0);
 
     // Epic integrity: 3/3 maintained = 100%
-    expect(compliance.categories.epicIntegrity.score).toBe(100);
+    expect(compliance.categories.containerIntegrity.score).toBe(100);
 
     // Flow efficiency: task 41 had 12h blocked out of 46h cycle
     // Task 40: 100%, Task 41: (46-12)/46 = 73.9%, Task 42: 100%
@@ -562,10 +562,11 @@ describe('Full Lifecycle Integration', () => {
   // ─── Test 10: Compliance Score Shape for Skills ───
 
   it('compliance score has all fields that skills and prompts consume', async () => {
-    // Minimal workflow to produce a score
+    // Minimal workflow to produce a score — stagger emits to avoid JSONL write races
     eventBus.emit(transitionEvent(40, 'start', 'READY_FOR_DEV', 'IN_PROGRESS', timestamp(DAY_0, 0), 'agent-alpha', PASSING_VALIDATION));
+    await new Promise((r) => setTimeout(r, 30));
     eventBus.emit(transitionEvent(40, 'approve', 'IN_REVIEW', 'DONE', timestamp(DAY_0, 8 * HOUR), 'agent-alpha', APPROVE_WITH_QUALITY_GATES));
-    await new Promise((r) => setTimeout(r, 50));
+    await new Promise((r) => setTimeout(r, 200));
 
     const score = await complianceService.computeComplianceScore();
 

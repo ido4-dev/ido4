@@ -128,4 +128,56 @@ describe('ProfileConfigLoader', () => {
     await expect(ProfileConfigLoader.load(tmpDir))
       .rejects.toThrow(ConfigurationError);
   });
+
+  describe('init round-trip', () => {
+    // These test the exact formats that ProjectInitService.writeConfigFiles() produces
+
+    it('loads bare built-in id (format: { id: "scrum" })', async () => {
+      // ProjectInitService writes this when no extends is present
+      await fs.mkdir(path.join(tmpDir, '.ido4'), { recursive: true });
+      await fs.writeFile(
+        path.join(tmpDir, '.ido4', 'methodology-profile.json'),
+        JSON.stringify({ id: 'scrum' }),
+      );
+
+      const profile = await ProfileConfigLoader.load(tmpDir);
+      expect(profile.id).toBe('scrum');
+      expect(profile.states).toEqual(SCRUM_PROFILE.states);
+      expect(profile.transitions).toEqual(SCRUM_PROFILE.transitions);
+      expect(profile.containers).toEqual(SCRUM_PROFILE.containers);
+    });
+
+    it('loads self-extending built-in (format: { id: "scrum", extends: "scrum" })', async () => {
+      // ProjectInitService writes this format with the extends field
+      await fs.mkdir(path.join(tmpDir, '.ido4'), { recursive: true });
+      await fs.writeFile(
+        path.join(tmpDir, '.ido4', 'methodology-profile.json'),
+        JSON.stringify({ id: 'scrum', extends: 'scrum' }),
+      );
+
+      const profile = await ProfileConfigLoader.load(tmpDir);
+      expect(profile.id).toBe('scrum');
+      expect(profile.states).toEqual(SCRUM_PROFILE.states);
+    });
+
+    it('round-trips all three built-in profiles with bare id', async () => {
+      const profiles = [
+        { id: 'hydro', expected: HYDRO_PROFILE },
+        { id: 'scrum', expected: SCRUM_PROFILE },
+      ];
+
+      for (const { id, expected } of profiles) {
+        await fs.mkdir(path.join(tmpDir, '.ido4'), { recursive: true });
+        await fs.writeFile(
+          path.join(tmpDir, '.ido4', 'methodology-profile.json'),
+          JSON.stringify({ id }),
+        );
+
+        const profile = await ProfileConfigLoader.load(tmpDir);
+        expect(profile.id).toBe(id);
+        expect(profile.states.length).toBe(expected.states.length);
+        expect(profile.containers.length).toBe(expected.containers.length);
+      }
+    });
+  });
 });

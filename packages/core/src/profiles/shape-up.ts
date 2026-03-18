@@ -68,6 +68,7 @@ export const SHAPE_UP_PROFILE: MethodologyProfile = {
       nameExample: 'cycle-001-notifications',
       singularity: true,
       completionRule: 'all-terminal',
+      durationWeeks: 6,
       managed: true,
     },
     {
@@ -135,6 +136,7 @@ export const SHAPE_UP_PROFILE: MethodologyProfile = {
     shape: {
       steps: [
         'SourceStatusValidation:RAW',
+        'SpecCompletenessValidation',
         'StatusTransitionValidation:SHAPED',
       ],
     },
@@ -149,19 +151,23 @@ export const SHAPE_UP_PROFILE: MethodologyProfile = {
     start: {
       steps: [
         'SourceStatusValidation:BET',
+        'SpecCompletenessValidation',
         'StatusTransitionValidation:BUILDING',
         'ContainerSingularityValidation:cycle',
+        'CircuitBreakerValidation:cycle',
       ],
     },
     review: {
       steps: [
         'StatusTransitionValidation:QA',
+        'CircuitBreakerValidation:cycle',
       ],
     },
     ship: {
       steps: [
         'StatusTransitionValidation:SHIPPED',
         'ApprovalRequirementValidation',
+        'ContextCompletenessValidation',
       ],
     },
     block: {
@@ -174,6 +180,7 @@ export const SHAPE_UP_PROFILE: MethodologyProfile = {
       steps: [
         'TaskAlreadyCompletedValidation',
         'StatusTransitionValidation:BUILDING',
+        'CircuitBreakerValidation:cycle',
       ],
     },
     kill: {
@@ -186,12 +193,16 @@ export const SHAPE_UP_PROFILE: MethodologyProfile = {
       steps: [
         'TaskAlreadyCompletedValidation',
         'BackwardTransitionValidation',
+        'CircuitBreakerValidation:cycle',
       ],
     },
   },
 
   compliance: {
     lifecycle: ['shape', 'bet', 'start', 'review', 'ship'],
+    alternateLifecycles: {
+      kill: ['shape', 'bet', 'start', 'kill'],
+    },
     weights: {
       brePassRate: 0.35,
       qualityGates: 0.25,

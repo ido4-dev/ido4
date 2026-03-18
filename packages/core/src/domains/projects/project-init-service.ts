@@ -26,8 +26,9 @@ import {
   UPDATE_FIELD_SINGLE_SELECT,
   GET_PROJECT_WITH_FIELDS,
   FIELD_OPTIONS,
-  STATUS_NAME_TO_KEY,
   OPTION_NAME_TO_KEY,
+  buildStatusOptionsForProfile,
+  buildStatusNameToKeyForProfile,
 } from '../../infrastructure/github/queries/project-init-queries.js';
 import type {
   RepositoryOwnerResponse,
@@ -37,10 +38,9 @@ import type {
   UpdateFieldSingleSelectResponse,
   GetProjectWithFieldsResponse,
   ProjectFieldNode,
+  FieldOptionInput,
 } from '../../infrastructure/github/queries/project-init-queries.js';
-
-/** Fields created during init — text fields */
-const TEXT_FIELDS = ['Wave', 'Epic', 'Dependencies', 'AI Context'] as const;
+import type { MethodologyProfile } from '../../profiles/types.js';
 
 /** Fields created during init — single-select fields with options */
 const SINGLE_SELECT_FIELDS = [
@@ -64,10 +64,15 @@ const FIELD_NAME_TO_CONFIG_KEY: Record<string, string> = {
 };
 
 export class ProjectInitService implements IProjectInitService {
+  private readonly profile: MethodologyProfile;
+
   constructor(
     private readonly graphqlClient: IGraphQLClient,
     private readonly logger: ILogger,
-  ) {}
+    profile: MethodologyProfile,
+  ) {
+    this.profile = profile;
+  }
 
   /**
    * Detect GitHub repository from git remote origin.
@@ -142,6 +147,9 @@ export class ProjectInitService implements IProjectInitService {
       repository,
     );
     const configPath = await this.writeConfigFiles(options.projectRoot, config);
+
+    // 7. Inject AI assistant onboarding
+    await this.injectAssistantOnboarding(options.projectRoot, projectUrl);
 
     this.logger.info('Project initialization complete', {
       projectId,
@@ -253,8 +261,11 @@ export class ProjectInitService implements IProjectInitService {
     await this.configureStatusField(projectId);
     fieldsCreated.push('Status (configured)');
 
+    // Determine text fields from profile container definitions
+    const textFields = [...this.profile.containers.map(c => c.taskField), 'Dependencies', 'AI Context'];
+
     // Create text fields
-    for (const fieldName of TEXT_FIELDS) {
+    for (const fieldName of textFields) {
       await this.createTextField(projectId, fieldName);
       fieldsCreated.push(fieldName);
     }
@@ -278,18 +289,21 @@ export class ProjectInitService implements IProjectInitService {
       });
     }
 
-    // Update the Status field with ido4's required options
+    // Build status options from the profile's state definitions
+    const statusOptions: FieldOptionInput[] = buildStatusOptionsForProfile(this.profile);
+
+    // Update the Status field with the resolved options
     await this.graphqlClient.mutate<UpdateFieldSingleSelectResponse>(
       UPDATE_FIELD_SINGLE_SELECT,
       {
         fieldId: statusField.id,
-        options: FIELD_OPTIONS.STATUS.map(opt => ({ name: opt.name, color: opt.color, description: opt.description })),
+        options: statusOptions,
       },
     );
 
     this.logger.info('Status field configured', {
       fieldId: statusField.id,
-      options: FIELD_OPTIONS.STATUS.map(o => o.name),
+      options: statusOptions.map(o => o.name),
     });
   }
 
@@ -330,14 +344,23 @@ export class ProjectInitService implements IProjectInitService {
     fields: ProjectFieldNode[],
     repository: string,
   ): Record<string, unknown> {
+    // Build field name → config key mapping from profile containers
+    const fieldNameToConfigKey: Record<string, string> = { ...FIELD_NAME_TO_CONFIG_KEY };
+    for (const container of this.profile.containers) {
+      fieldNameToConfigKey[container.taskField] = `${container.id}_field_id`;
+    }
+
     // Map field names to config field IDs
     const fieldIds: Record<string, string> = {};
     for (const field of fields) {
-      const configKey = FIELD_NAME_TO_CONFIG_KEY[field.name];
+      const configKey = fieldNameToConfigKey[field.name];
       if (configKey) {
         fieldIds[configKey] = field.id;
       }
     }
+
+    // Resolve status name → key mapping from profile
+    const statusNameToKey = buildStatusNameToKeyForProfile(this.profile);
 
     // Extract status options from the native Status field
     const statusField = fields.find(f => f.name === 'Status' && f.options);
@@ -345,7 +368,7 @@ export class ProjectInitService implements IProjectInitService {
 
     if (statusField?.options) {
       for (const option of statusField.options) {
-        const key = STATUS_NAME_TO_KEY[option.name];
+        const key = statusNameToKey[option.name];
         if (key) {
           statusOptions[key] = { name: option.name, id: option.id };
         }
@@ -382,10 +405,6 @@ export class ProjectInitService implements IProjectInitService {
       risk_level_options: extractFieldOptions('Risk Level'),
       effort_options: extractFieldOptions('Effort'),
       task_type_options: extractFieldOptions('Task Type'),
-      wave_config: {
-        format: 'wave-NNN-description',
-        autoDetect: true,
-      },
     };
   }
 
@@ -410,7 +429,118 @@ export class ProjectInitService implements IProjectInitService {
     };
     await fs.writeFile(gitWorkflowPath, JSON.stringify(gitWorkflowConfig, null, 2));
 
+    // Write methodology-profile.json
+    const profilePath = path.join(ido4Dir, 'methodology-profile.json');
+    await fs.writeFile(profilePath, JSON.stringify({ id: this.profile.id, extends: this.profile.id }, null, 2));
+    this.logger.info('Methodology profile written', { profilePath, profileId: this.profile.id });
+
     this.logger.info('Configuration files written', { configPath, gitWorkflowPath });
     return configPath;
+  }
+
+  /**
+   * Inject ido4 governance section into the project's CLAUDE.md.
+   * - If CLAUDE.md doesn't exist, creates it with the ido4 section
+   * - If it exists but has no ido4 section, appends it
+   * - If it exists with an ido4 section, updates it in place
+   * Also writes canonical .ido4/assistant-onboarding.md for multi-environment support.
+   */
+  private async injectAssistantOnboarding(projectRoot: string, projectUrl: string): Promise<void> {
+    const section = this.buildIdo4Section(projectUrl);
+
+    // Always write canonical version
+    const ido4Dir = path.join(projectRoot, '.ido4');
+    await fs.writeFile(path.join(ido4Dir, 'assistant-onboarding.md'), section, 'utf-8');
+
+    // Inject into CLAUDE.md
+    const claudeMdPath = path.join(projectRoot, 'CLAUDE.md');
+    const SECTION_START = '## ido4 Development Governance';
+    const SECTION_END = '<!-- /ido4 -->';
+
+    let content: string;
+    try {
+      content = await fs.readFile(claudeMdPath, 'utf-8');
+
+      const startIdx = content.indexOf(SECTION_START);
+      const endIdx = content.indexOf(SECTION_END);
+
+      if (startIdx !== -1 && endIdx !== -1) {
+        // Replace existing section (including end marker)
+        content = content.substring(0, startIdx) + section + content.substring(endIdx + SECTION_END.length);
+      } else if (startIdx !== -1) {
+        // Start marker found but no end marker — replace from start to EOF
+        content = content.substring(0, startIdx) + section;
+      } else {
+        // No ido4 section — append
+        content = content.trimEnd() + '\n\n' + section;
+      }
+    } catch {
+      // File doesn't exist — create with ido4 section only
+      content = section;
+    }
+
+    await fs.writeFile(claudeMdPath, content, 'utf-8');
+    this.logger.info('AI assistant onboarding injected', { claudeMdPath });
+  }
+
+  private buildIdo4Section(projectUrl: string): string {
+    const profile = this.profile;
+
+    // Find primary execution container (managed with completion rule)
+    const primaryContainer = profile.containers.find(c => c.managed) ?? profile.containers[0];
+    const containerLabel = primaryContainer?.id ?? 'container';
+    const containerSingular = primaryContainer?.singular ?? 'Container';
+
+    // Work item label
+    const itemLabel = profile.workItems.primary.singular.toLowerCase();
+
+    // Build principles list
+    const principlesList = profile.principles
+      .map(p => `- **${p.name}**: ${p.description}`)
+      .join('\n');
+
+    // Build container structure
+    const containerStructure = profile.containers
+      .map(c => `- **${c.singular}**: ${c.managed ? 'Execution' : 'Grouping'} container`)
+      .join('\n');
+
+    return `## ido4 Development Governance
+
+This project uses **ido4** for specs-driven development governance (${profile.name} methodology).
+
+### Workflow
+
+1. **Check the board** before starting work: use the \`get_${containerLabel}_status\` tool or the \`/ido4:board\` skill
+2. **Pick your next ${itemLabel}**: use \`get_next_task\` for a scored recommendation, or check the board
+3. **Start work**: call \`start_task\` — read the full briefing (spec, dependencies, downstream needs) before writing code
+4. **Work from the spec**: the GitHub issue body IS the specification — read it completely, understand acceptance criteria
+5. **Write context**: add comments on the issue at key decisions (what you decided, why, what interfaces you created)
+6. **Complete work**: verify acceptance criteria are met, tests pass, then call \`approve_task\`
+
+### Principles
+
+${principlesList}
+
+These are non-negotiable governance rules enforced by the Business Rule Engine (BRE).
+
+### ${containerSingular} Structure
+
+${containerStructure}
+
+### Available Skills
+
+- \`/ido4:standup\` — Governance-aware briefing with risk detection
+- \`/ido4:board\` — Flow intelligence and bottleneck analysis
+- \`/ido4:compliance\` — Governance audit with quantitative scoring
+- \`/ido4:health\` — Quick health check (RED/YELLOW/GREEN)
+- \`/ido4:plan-${containerLabel}\` — ${containerSingular} composition with principle validation
+- \`/ido4:retro-${containerLabel}\` — ${containerSingular} retrospective with data-backed analysis
+
+### Configuration
+
+- **Methodology**: ${profile.name} (\`.ido4/methodology-profile.json\`)
+- **Project**: [GitHub Project](${projectUrl})
+- **Audit trail**: \`.ido4/audit-log.jsonl\` (immutable governance events)
+<!-- /ido4 -->`;
   }
 }

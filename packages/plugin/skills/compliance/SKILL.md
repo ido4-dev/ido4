@@ -8,6 +8,11 @@ context: fork
 
 You are performing a comprehensive compliance assessment. This skill combines three perspectives: a quantitative behavioral score (from real event history), a structural principle audit (from current project state), and an intelligence synthesis (cross-referencing both with actor and temporal analysis). Together, these answer: "How governed are we — and what should we do about it?"
 
+## Communication
+- Do NOT narrate data gathering. Gather all data silently, then present the compliance report.
+- Narrate FINDINGS and INSIGHTS — "Epic Integrity violation detected: Auth split across waves" — not "I'm calling get_compliance_data now."
+- The report structure IS the narration. No preamble before Part 1.
+
 ## Part 1: Quantitative Compliance Score
 
 This is the reproducible number — the deterministic score from real behavioral data.
@@ -21,7 +26,7 @@ Call `get_compliance_data` — this single call returns ALL data needed for the 
 - **waves**: all waves and their states
 - **tasks**: all tasks with wave assignments and statuses
 - **blockerAnalyses**: dependency analysis for every blocked task
-- **epicIntegrityChecks**: integrity validation for every unique epic
+- **containerIntegrityChecks**: integrity validation for every unique epic
 
 **Use this data for ALL subsequent steps. Do NOT call any other data-gathering tools** — everything is in this single response.
 
@@ -57,7 +62,7 @@ The behavioral score measures what HAS happened. The structural audit catches wh
 All governance data was already returned by `get_compliance_data` in Step 1.1. Do NOT make additional tool calls. Use:
 - `waves` for wave state analysis
 - `tasks` for task/wave/epic assignments
-- `epicIntegrityChecks` for pre-computed epic integrity results
+- `containerIntegrityChecks` for pre-computed epic integrity results
 - `blockerAnalyses` for dependency information
 
 ### Step 2.2: Audit Each Principle
@@ -65,7 +70,7 @@ All governance data was already returned by `get_compliance_data` in Step 1.1. D
 #### Principle 1 — Epic Integrity
 "All tasks within an epic MUST be assigned to the same wave."
 
-Use the `epicIntegrityChecks` array from `get_compliance_data` — it contains pre-computed integrity results for every unique epic. Report any check where `maintained` is false, with the violation details and severity score.
+Use the `containerIntegrityChecks` array from `get_compliance_data` — it contains pre-computed integrity results for every unique epic. Report any check where `maintained` is false, with the violation details and severity score.
 
 #### Principle 2 — Active Wave Singularity
 "Only one wave can be active at a time."

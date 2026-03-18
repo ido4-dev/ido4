@@ -163,9 +163,21 @@ export class TaskService implements ITaskService {
 
     // 4. Set optional text fields
     const fieldsSet: string[] = ['status'];
+
+    // Merge deprecated wave/epic aliases into generic containers
+    const allContainers: Record<string, string> = { ...request.containers };
+    if (request.wave && !allContainers['wave']) allContainers['wave'] = request.wave;
+    if (request.epic && !allContainers['epic']) allContainers['epic'] = request.epic;
+
+    // Set container fields
+    for (const [key, value] of Object.entries(allContainers)) {
+      if (value) {
+        await this.issueRepository.updateTaskField(issue.number, key, value, 'text');
+        fieldsSet.push(key);
+      }
+    }
+
     const textFields = [
-      { key: 'wave', value: request.wave },
-      { key: 'epic', value: request.epic },
       { key: 'dependencies', value: request.dependencies },
       { key: 'ai_context', value: request.aiContext },
     ];

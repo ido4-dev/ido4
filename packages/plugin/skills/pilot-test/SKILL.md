@@ -9,6 +9,11 @@ You are running a structured end-to-end verification of the ido4 governance plat
 
 **Tone**: Test engineer — methodical, precise, reporting results not narrative. Every check has a pass/fail outcome.
 
+## Communication
+- When calling ido4 tools, briefly state what is being TESTED — "Testing BRE rejection: starting a blocked task should fail..." — not "Let me call start_task."
+- Do NOT narrate internal setup steps (reading config, discovering issue numbers). Just do them silently.
+- Report RESULTS (pass/fail with evidence), not process. The phase report format IS the output.
+
 ## Argument Detection
 
 - **`$ARGUMENTS` = a repository** (contains `/`, e.g. `b-coman/ido4-test`) → Full pilot test using that repository
@@ -124,7 +129,7 @@ Now verify that Phase 4 services contain real data from the operations in Phase 
 **Checks**:
 - Score is a number between 0 and 100
 - Grade is a letter (A-F)
-- Categories present: brePassRate, qualityGates, processAdherence, epicIntegrity, flowEfficiency
+- Categories present: brePassRate, qualityGates, processAdherence, containerIntegrity, flowEfficiency
 - BRE pass rate is < 100% (we generated 3 failures in Phase 2B)
 - Recommendations array is non-empty
 
@@ -308,7 +313,7 @@ Compile all phase reports into a single verification report:
 ═══════════════════════════════════════════════════
 
 Repository: [owner/repo]
-Scenario: governance-showcase
+Scenario: hydro-governance
 Date: [timestamp]
 
 PHASE 1: SETUP                          [PASS/FAIL]
@@ -356,7 +361,7 @@ After the automated report, tell the user:
 > 2. `/standup` — Should reference audit trail events, flag cycle time outliers, show agent activity
 > 3. `/board` — Should show kanban with flow analysis, blocked %, agent annotations
 > 4. `/compliance` — Should show 3-part report: quantitative score + structural audit + synthesis
-> 5. `/retro` — Should show real analytics (throughput, cycle time, blocking time), actor analysis
+> 5. `/retro-wave` — Should show real analytics (throughput, cycle time, blocking time), actor analysis
 > 6. `/plan-wave` — Should use analytics for capacity, compliance for constraints
 >
 > After verifying skills, run `/pilot-test cleanup` to destroy the sandbox.

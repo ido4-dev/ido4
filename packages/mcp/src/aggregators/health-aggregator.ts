@@ -18,19 +18,19 @@ export async function aggregateHealthData(
   const containerName = await resolveActiveContainer(container, options?.containerName);
 
   // All parallel — health is meant to be fast
-  const [waveStatus, compliance, analytics, agents] = await Promise.all([
+  const [containerStatus, compliance, analytics, agents] = await Promise.all([
     container.containerService.getContainerStatus(containerName),
     container.complianceService.computeComplianceScore({}),
     container.analyticsService.getContainerAnalytics(containerName),
     container.agentService.listAgents(),
   ]);
 
-  const { metrics } = waveStatus;
+  const { metrics } = containerStatus;
   const pct = metrics.total > 0 ? Math.round((metrics.completed / metrics.total) * 100) : 0;
   const summary = `${containerName}: ${pct}% complete (${metrics.completed}/${metrics.total}), ${metrics.blocked} blocked, compliance ${compliance.score}/${compliance.grade}, ${agents.length} agents`;
 
   return {
-    waveStatus,
+    containerStatus,
     compliance,
     analytics,
     agents,

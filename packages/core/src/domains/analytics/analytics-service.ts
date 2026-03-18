@@ -73,7 +73,7 @@ export class AnalyticsService implements IAnalyticsService {
     private readonly containerService: IContainerService,
     eventBus: IEventBus,
     _logger: ILogger,
-    private readonly profile?: MethodologyProfile,
+    private readonly profile: MethodologyProfile,
   ) {
     // Invalidate cache on any new event
     this.unsubscribe = eventBus.on('*', () => {
@@ -253,8 +253,8 @@ export class AnalyticsService implements IAnalyticsService {
     // Derive semantic transition sets from profile (fall back to Hydro defaults)
     const activeTargetActions = this.getActiveTargetActions();
     const closingActions = this.getClosingActions();
-    const blockAction = this.profile?.behaviors.blockTransition ?? 'block';
-    const returnAction = this.profile?.behaviors.returnTransition ?? 'return';
+    const blockAction = this.profile.behaviors.blockTransition;
+    const returnAction = this.profile.behaviors.returnTransition;
     const unblockActions = this.getUnblockActions();
 
     let startedAt: string | null = null;
@@ -318,7 +318,6 @@ export class AnalyticsService implements IAnalyticsService {
 
   /** Actions whose target state is an active state (cycle time starts here) */
   private getActiveTargetActions(): Set<string> {
-    if (!this.profile) return new Set(['start']);
     const activeKeys = new Set(this.profile.semantics.activeStates);
     const actions = new Set<string>();
     for (const t of this.profile.transitions) {
@@ -329,13 +328,11 @@ export class AnalyticsService implements IAnalyticsService {
 
   /** Closing transitions (task completion) */
   private getClosingActions(): Set<string> {
-    if (!this.profile) return new Set(['approve']);
     return new Set(this.profile.behaviors.closingTransitions);
   }
 
   /** Actions that transition FROM a blocked state (unblock) */
   private getUnblockActions(): Set<string> {
-    if (!this.profile) return new Set(['unblock']);
     const blockedKeys = new Set(this.profile.semantics.blockedStates);
     const actions = new Set<string>();
     for (const t of this.profile.transitions) {

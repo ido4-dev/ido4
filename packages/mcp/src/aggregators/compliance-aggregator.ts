@@ -4,7 +4,7 @@
  */
 
 import type { ServiceContainer, TaskData } from '@ido4/core';
-import type { ComplianceData, TaskBlockerAnalysis, EpicIntegrityCheck } from './types.js';
+import type { ComplianceData, TaskBlockerAnalysis, ContainerIntegrityCheck } from './types.js';
 
 export interface ComplianceAggregatorOptions {
   since?: string;
@@ -69,8 +69,8 @@ export async function aggregateComplianceData(
     }
   }
 
-  const epicIntegrityChecks: EpicIntegrityCheck[] = await Promise.all(
-    Array.from(epicMap.entries()).map(async ([epicName, task]): Promise<EpicIntegrityCheck> => {
+  const containerIntegrityChecks: ContainerIntegrityCheck[] = await Promise.all(
+    Array.from(epicMap.entries()).map(async ([epicName, task]): Promise<ContainerIntegrityCheck> => {
       try {
         const result = await container.epicService.validateEpicIntegrity(task);
         return { epicName, issueNumber: task.number, result };
@@ -84,7 +84,7 @@ export async function aggregateComplianceData(
     }),
   );
 
-  const violationCount = epicIntegrityChecks.filter((c) => !c.result.maintained).length;
+  const violationCount = containerIntegrityChecks.filter((c) => !c.result.maintained).length;
   const summary = `Compliance ${compliance.score}/${compliance.grade}, ${auditTrail.total} audit events, ${waves.length} waves, ${tasks.length} tasks, ${blockedTasks.length} blocked, ${epicMap.size} epics (${violationCount} violations)`;
 
   return {
@@ -94,7 +94,7 @@ export async function aggregateComplianceData(
     waves,
     tasks,
     blockerAnalyses,
-    epicIntegrityChecks,
+    containerIntegrityChecks,
     summary,
   };
 }

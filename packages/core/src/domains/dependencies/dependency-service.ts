@@ -124,12 +124,11 @@ export class DependencyService implements IDependencyService {
       // Still need to return a node but don't recurse
       try {
         const task = await this.issueRepository.getTask(issueNumber);
-        const doneStatus = this.workflowConfig.getStatusName('DONE');
         return {
           issueNumber,
           title: task.title,
           status: task.status,
-          satisfied: task.status === doneStatus,
+          satisfied: this.workflowConfig.isTerminalStatus(task.status),
           children: [],
         };
       } catch {
@@ -146,7 +145,6 @@ export class DependencyService implements IDependencyService {
 
     try {
       const task = await this.issueRepository.getTask(issueNumber);
-      const doneStatus = this.workflowConfig.getStatusName('DONE');
       const depNumbers = DependencyService.parseDependencies(task.dependencies);
 
       const children: DependencyNode[] = [];
@@ -170,7 +168,7 @@ export class DependencyService implements IDependencyService {
         issueNumber,
         title: task.title,
         status: task.status,
-        satisfied: task.status === doneStatus,
+        satisfied: this.workflowConfig.isTerminalStatus(task.status),
         children,
       };
     } catch (error) {

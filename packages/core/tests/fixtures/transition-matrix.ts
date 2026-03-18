@@ -121,7 +121,7 @@ export const dependencyTestScenarios = [
 ] as const;
 
 /** Epic Integrity test scenarios */
-export const epicIntegrityScenarios = [
+export const containerIntegrityScenarios = [
   {
     name: 'same_wave_in_epic',
     epic: 'Epic-Auth',

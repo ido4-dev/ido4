@@ -1,11 +1,14 @@
 import { describe, it, expect, vi } from 'vitest';
-import { HYDRO_PROFILE } from '@ido4/core';
+import { HYDRO_PROFILE, SCRUM_PROFILE, SHAPE_UP_PROFILE } from '@ido4/core';
 import {
   hasRegisteredTool,
   getRegisteredToolNames,
   hasRegisteredResource,
   hasRegisteredResourceTemplate,
   hasRegisteredPrompt,
+  getRegisteredResourceUris,
+  getRegisteredResourceTemplateNames,
+  getRegisteredPromptNames,
 } from './helpers/test-utils.js';
 
 const { mockGetContainer } = vi.hoisted(() => ({
@@ -17,7 +20,16 @@ vi.mock('../src/helpers/container-init.js', () => ({
   resetContainer: vi.fn(),
 }));
 
+vi.mock('../src/helpers/methodology-activation.js', () => ({
+  setActivationCallback: vi.fn(),
+  activateMethodology: vi.fn(),
+  resetMethodologyActivation: vi.fn(),
+}));
+
 import { createServer } from '../src/server.js';
+import { registerTaskTools, registerContainerTools, registerEpicTools } from '../src/tools/index.js';
+import { registerResources } from '../src/resources/index.js';
+import { registerPrompts } from '../src/prompts/index.js';
 
 describe('createServer', () => {
   it('returns an McpServer instance', () => {
@@ -133,9 +145,9 @@ describe('createServer', () => {
     expect(hasRegisteredTool(server, 'check_merge_readiness')).toBe(true);
   });
 
-  it('registers 55 tools total', () => {
+  it('registers 57 tools total', () => {
     const server = createServer(HYDRO_PROFILE);
-    expect(getRegisteredToolNames(server)).toHaveLength(55);
+    expect(getRegisteredToolNames(server)).toHaveLength(57);
   });
 
   it('registers resources', () => {
@@ -168,5 +180,265 @@ describe('createServer', () => {
     expect(hasRegisteredPrompt(server, 'compliance')).toBe(true);
     expect(hasRegisteredPrompt(server, 'health')).toBe(true);
     expect(hasRegisteredPrompt(server, 'retro')).toBe(true);
+    expect(hasRegisteredPrompt(server, 'review')).toBe(true);
+    expect(hasRegisteredPrompt(server, 'execute-task')).toBe(true);
+  });
+});
+
+describe('createServer — Scrum profile', () => {
+  it('registers 48 tools total', () => {
+    const server = createServer(SCRUM_PROFILE);
+    expect(getRegisteredToolNames(server)).toHaveLength(48);
+  });
+
+  it('registers 7 dynamic transition tools', () => {
+    const server = createServer(SCRUM_PROFILE);
+    const transitionTools = [
+      'plan_task', 'start_task', 'review_task', 'approve_task',
+      'block_task', 'unblock_task', 'return_task',
+    ];
+    for (const name of transitionTools) {
+      expect(hasRegisteredTool(server, name), `Missing tool: ${name}`).toBe(true);
+    }
+  });
+
+  it('registers 5 sprint container tools (no epic container)', () => {
+    const server = createServer(SCRUM_PROFILE);
+    expect(hasRegisteredTool(server, 'list_sprints')).toBe(true);
+    expect(hasRegisteredTool(server, 'get_sprint_status')).toBe(true);
+    expect(hasRegisteredTool(server, 'create_sprint')).toBe(true);
+    expect(hasRegisteredTool(server, 'assign_task_to_sprint')).toBe(true);
+    expect(hasRegisteredTool(server, 'validate_sprint_completion')).toBe(true);
+  });
+
+  it('does not register legacy epic tools', () => {
+    const server = createServer(SCRUM_PROFILE);
+    expect(hasRegisteredTool(server, 'search_epics')).toBe(false);
+    expect(hasRegisteredTool(server, 'validate_epic_integrity')).toBe(false);
+  });
+
+  it('does not register Hydro-specific tools', () => {
+    const server = createServer(SCRUM_PROFILE);
+    expect(hasRegisteredTool(server, 'refine_task')).toBe(false);
+    expect(hasRegisteredTool(server, 'ready_task')).toBe(false);
+    expect(hasRegisteredTool(server, 'complete_task')).toBe(false);
+  });
+
+  it('registers plan-sprint prompt (not plan-wave)', () => {
+    const server = createServer(SCRUM_PROFILE);
+    expect(hasRegisteredPrompt(server, 'plan-sprint')).toBe(true);
+    expect(hasRegisteredPrompt(server, 'plan-wave')).toBe(false);
+  });
+
+  it('registers 8 prompts', () => {
+    const server = createServer(SCRUM_PROFILE);
+    expect(getRegisteredPromptNames(server)).toHaveLength(8);
+  });
+
+  it('registers 9 static resources', () => {
+    const server = createServer(SCRUM_PROFILE);
+    expect(getRegisteredResourceUris(server)).toHaveLength(9);
+  });
+
+  it('registers sprint-status template (not wave-status)', () => {
+    const server = createServer(SCRUM_PROFILE);
+    expect(hasRegisteredResourceTemplate(server, 'sprint-status')).toBe(true);
+    expect(hasRegisteredResourceTemplate(server, 'wave-status')).toBe(false);
+  });
+
+  it('registers analytics-sprint template', () => {
+    const server = createServer(SCRUM_PROFILE);
+    expect(hasRegisteredResourceTemplate(server, 'analytics-sprint')).toBe(true);
+    expect(hasRegisteredResourceTemplate(server, 'analytics-wave')).toBe(false);
+  });
+});
+
+describe('createServer — Shape Up profile', () => {
+  it('registers 53 tools total', () => {
+    const server = createServer(SHAPE_UP_PROFILE);
+    expect(getRegisteredToolNames(server)).toHaveLength(53);
+  });
+
+  it('registers 9 dynamic transition tools', () => {
+    const server = createServer(SHAPE_UP_PROFILE);
+    const transitionTools = [
+      'shape_task', 'bet_task', 'start_task', 'review_task', 'ship_task',
+      'block_task', 'unblock_task', 'kill_task', 'return_task',
+    ];
+    for (const name of transitionTools) {
+      expect(hasRegisteredTool(server, name), `Missing tool: ${name}`).toBe(true);
+    }
+  });
+
+  it('registers 8 container tools (5 cycle + 3 bet)', () => {
+    const server = createServer(SHAPE_UP_PROFILE);
+    // Cycle tools (has namePattern and completionRule)
+    expect(hasRegisteredTool(server, 'list_cycles')).toBe(true);
+    expect(hasRegisteredTool(server, 'get_cycle_status')).toBe(true);
+    expect(hasRegisteredTool(server, 'create_cycle')).toBe(true);
+    expect(hasRegisteredTool(server, 'assign_task_to_cycle')).toBe(true);
+    expect(hasRegisteredTool(server, 'validate_cycle_completion')).toBe(true);
+    // Bet tools (no namePattern, completionRule=none)
+    expect(hasRegisteredTool(server, 'list_bets')).toBe(true);
+    expect(hasRegisteredTool(server, 'get_bet_status')).toBe(true);
+    expect(hasRegisteredTool(server, 'assign_task_to_bet')).toBe(true);
+  });
+
+  it('does not register legacy epic tools', () => {
+    const server = createServer(SHAPE_UP_PROFILE);
+    expect(hasRegisteredTool(server, 'search_epics')).toBe(false);
+    expect(hasRegisteredTool(server, 'validate_epic_integrity')).toBe(false);
+  });
+
+  it('does not register Hydro-specific transitions', () => {
+    const server = createServer(SHAPE_UP_PROFILE);
+    expect(hasRegisteredTool(server, 'refine_task')).toBe(false);
+    expect(hasRegisteredTool(server, 'ready_task')).toBe(false);
+    expect(hasRegisteredTool(server, 'approve_task')).toBe(false);
+    expect(hasRegisteredTool(server, 'complete_task')).toBe(false);
+  });
+
+  it('registers plan-cycle prompt (not plan-wave)', () => {
+    const server = createServer(SHAPE_UP_PROFILE);
+    expect(hasRegisteredPrompt(server, 'plan-cycle')).toBe(true);
+    expect(hasRegisteredPrompt(server, 'plan-wave')).toBe(false);
+  });
+
+  it('registers 8 prompts', () => {
+    const server = createServer(SHAPE_UP_PROFILE);
+    expect(getRegisteredPromptNames(server)).toHaveLength(8);
+  });
+
+  it('registers 9 static resources', () => {
+    const server = createServer(SHAPE_UP_PROFILE);
+    expect(getRegisteredResourceUris(server)).toHaveLength(9);
+  });
+
+  it('registers cycle-status and bet-status templates', () => {
+    const server = createServer(SHAPE_UP_PROFILE);
+    expect(hasRegisteredResourceTemplate(server, 'cycle-status')).toBe(true);
+    expect(hasRegisteredResourceTemplate(server, 'bet-status')).toBe(true);
+    expect(hasRegisteredResourceTemplate(server, 'wave-status')).toBe(false);
+  });
+
+  it('registers analytics-cycle template (not analytics-wave)', () => {
+    const server = createServer(SHAPE_UP_PROFILE);
+    expect(hasRegisteredResourceTemplate(server, 'analytics-cycle')).toBe(true);
+    expect(hasRegisteredResourceTemplate(server, 'analytics-wave')).toBe(false);
+  });
+});
+
+describe('createServer — bootstrap mode (null profile)', () => {
+  it('registers only profile-independent tools', () => {
+    const server = createServer(null);
+    const toolNames = getRegisteredToolNames(server);
+    expect(toolNames).toHaveLength(26);
+  });
+
+  it('registers project tools (init + status)', () => {
+    const server = createServer(null);
+    expect(hasRegisteredTool(server, 'init_project')).toBe(true);
+    expect(hasRegisteredTool(server, 'get_project_status')).toBe(true);
+  });
+
+  it('registers sandbox tools', () => {
+    const server = createServer(null);
+    expect(hasRegisteredTool(server, 'create_sandbox')).toBe(true);
+    expect(hasRegisteredTool(server, 'destroy_sandbox')).toBe(true);
+    expect(hasRegisteredTool(server, 'reset_sandbox')).toBe(true);
+  });
+
+  it('registers all other profile-independent tools', () => {
+    const server = createServer(null);
+    // Dependency
+    expect(hasRegisteredTool(server, 'analyze_dependencies')).toBe(true);
+    expect(hasRegisteredTool(server, 'validate_dependencies')).toBe(true);
+    // Audit
+    expect(hasRegisteredTool(server, 'query_audit_trail')).toBe(true);
+    expect(hasRegisteredTool(server, 'get_audit_summary')).toBe(true);
+    // Analytics
+    expect(hasRegisteredTool(server, 'get_analytics')).toBe(true);
+    expect(hasRegisteredTool(server, 'get_task_cycle_time')).toBe(true);
+    // Agent
+    expect(hasRegisteredTool(server, 'register_agent')).toBe(true);
+    expect(hasRegisteredTool(server, 'list_agents')).toBe(true);
+    expect(hasRegisteredTool(server, 'lock_task')).toBe(true);
+    expect(hasRegisteredTool(server, 'release_task')).toBe(true);
+    // Compliance
+    expect(hasRegisteredTool(server, 'compute_compliance_score')).toBe(true);
+    // Skill data
+    expect(hasRegisteredTool(server, 'get_standup_data')).toBe(true);
+    expect(hasRegisteredTool(server, 'get_board_data')).toBe(true);
+    expect(hasRegisteredTool(server, 'get_compliance_data')).toBe(true);
+    expect(hasRegisteredTool(server, 'get_health_data')).toBe(true);
+    expect(hasRegisteredTool(server, 'get_task_execution_data')).toBe(true);
+    // Distribution
+    expect(hasRegisteredTool(server, 'get_next_task')).toBe(true);
+    expect(hasRegisteredTool(server, 'complete_and_handoff')).toBe(true);
+    // Coordination
+    expect(hasRegisteredTool(server, 'get_coordination_state')).toBe(true);
+    // Gate
+    expect(hasRegisteredTool(server, 'check_merge_readiness')).toBe(true);
+  });
+
+  it('does NOT register any task transition tools', () => {
+    const server = createServer(null);
+    expect(hasRegisteredTool(server, 'start_task')).toBe(false);
+    expect(hasRegisteredTool(server, 'review_task')).toBe(false);
+    expect(hasRegisteredTool(server, 'approve_task')).toBe(false);
+    expect(hasRegisteredTool(server, 'block_task')).toBe(false);
+  });
+
+  it('does NOT register any container tools', () => {
+    const server = createServer(null);
+    expect(hasRegisteredTool(server, 'list_waves')).toBe(false);
+    expect(hasRegisteredTool(server, 'list_sprints')).toBe(false);
+    expect(hasRegisteredTool(server, 'list_cycles')).toBe(false);
+  });
+
+  it('does NOT register any epic tools', () => {
+    const server = createServer(null);
+    expect(hasRegisteredTool(server, 'search_epics')).toBe(false);
+    expect(hasRegisteredTool(server, 'validate_epic_integrity')).toBe(false);
+  });
+
+  it('registers bootstrap resource for capability pre-registration', () => {
+    const server = createServer(null);
+    expect(hasRegisteredResource(server, 'ido4://server/mode')).toBe(true);
+    expect(getRegisteredResourceUris(server)).toHaveLength(1);
+  });
+
+  it('registers no resource templates', () => {
+    const server = createServer(null);
+    expect(getRegisteredResourceTemplateNames(server)).toHaveLength(0);
+  });
+
+  it('registers bootstrap prompt for capability pre-registration', () => {
+    const server = createServer(null);
+    expect(hasRegisteredPrompt(server, 'setup')).toBe(true);
+    expect(getRegisteredPromptNames(server)).toHaveLength(1);
+  });
+
+  it('accepts methodology activation after bootstrap', () => {
+    // Verify that a bootstrap server can have methodology tools added dynamically
+    const server = createServer(null);
+    expect(getRegisteredToolNames(server)).toHaveLength(26);
+
+    // Simulate what activateMethodology does — register profile-dependent tools
+    registerTaskTools(server, HYDRO_PROFILE);
+    registerContainerTools(server, HYDRO_PROFILE);
+    registerEpicTools(server, HYDRO_PROFILE);
+    registerResources(server, HYDRO_PROFILE);
+    registerPrompts(server, HYDRO_PROFILE);
+
+    // Now should have full Hydro tool set + bootstrap entries
+    expect(getRegisteredToolNames(server)).toHaveLength(57);
+    expect(hasRegisteredTool(server, 'list_waves')).toBe(true);
+    expect(hasRegisteredTool(server, 'start_task')).toBe(true);
+    expect(hasRegisteredTool(server, 'search_epics')).toBe(true);
+    // 9 methodology resources + 1 bootstrap resource
+    expect(getRegisteredResourceUris(server)).toHaveLength(10);
+    // 8 methodology prompts + 1 bootstrap prompt
+    expect(getRegisteredPromptNames(server)).toHaveLength(9);
   });
 });

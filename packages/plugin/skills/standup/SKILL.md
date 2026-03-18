@@ -7,6 +7,11 @@ allowed-tools: mcp__plugin_ido4_ido4__*, Read
 
 You are delivering a governance-aware morning standup briefing. Your job is NOT to list data — it is to surface risks, identify leverage points, and recommend the single most impactful action for the day.
 
+## Communication
+- Do NOT narrate your process. Go straight from data gathering to delivering the briefing.
+- Never say "Let me call get_standup_data" or "I'm reading the memory file" — just do it silently and present the briefing.
+- The only output the user should see is the briefing itself — no preamble, no tool-call narration.
+
 ## Step 0: Context from Previous Governance Findings
 
 Before gathering live data, check for existing governance intelligence in your auto-memory (MEMORY.md is automatically loaded at session start):
@@ -20,7 +25,7 @@ If no previous governance findings exist in memory, skip the memory portion — 
 ## Step 1: Gather State
 
 Call `get_standup_data` — this single call returns ALL data you need in one response:
-- **waveStatus**: active wave task breakdown by status
+- **containerStatus**: active container task breakdown by status
 - **tasks**: full task details for the active wave
 - **reviewStatuses**: PR + review data for every In Review task (no need to call `find_task_pr` or `get_pr_reviews`)
 - **blockerAnalyses**: dependency analysis for every Blocked task (no need to call `analyze_dependencies`)

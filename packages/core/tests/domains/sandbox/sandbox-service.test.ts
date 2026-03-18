@@ -1,26 +1,28 @@
 /**
  * SandboxService unit tests — verifies create, destroy, and reset flows
- * using mocked dependencies.
+ * using mocked dependencies. Updated for generic scenario types.
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { SandboxService } from '../../../src/domains/sandbox/sandbox-service.js';
-import { GOVERNANCE_SHOWCASE } from '../../../src/domains/sandbox/scenarios/governance-showcase.js';
+import { HYDRO_GOVERNANCE } from '../../../src/domains/sandbox/scenarios/hydro-governance.js';
 import { NoopLogger } from '../../../src/shared/noop-logger.js';
-import { ValidationError, ConfigurationError } from '../../../src/shared/errors/index.js';
+import { ValidationError } from '../../../src/shared/errors/index.js';
 
 // Mock external dependencies
 vi.mock('node:fs/promises');
 vi.mock('../../../src/domains/projects/project-init-service.js');
 vi.mock('../../../src/container/service-container.js');
+vi.mock('../../../src/profiles/registry.js');
 
 const mockFs = vi.mocked(fs);
 
 // Import mocked modules
 const { ProjectInitService } = await import('../../../src/domains/projects/project-init-service.js');
 const { ServiceContainer } = await import('../../../src/container/service-container.js');
+const { ProfileRegistry } = await import('../../../src/profiles/registry.js');
 
 const mockGraphqlClient = {
   query: vi.fn(),
@@ -28,6 +30,24 @@ const mockGraphqlClient = {
 };
 
 const mockLogger = new NoopLogger();
+
+// Mock profile for Hydro
+const MOCK_HYDRO_PROFILE = {
+  id: 'hydro',
+  name: 'Hydro',
+  semantics: {
+    terminalStates: ['DONE'],
+    blockedStates: ['BLOCKED'],
+    activeStates: ['IN_PROGRESS'],
+    readyStates: ['READY_FOR_DEV'],
+    reviewStates: ['IN_REVIEW'],
+    initialState: 'BACKLOG',
+  },
+  containers: [
+    { id: 'wave', taskField: 'Wave' },
+    { id: 'epic', taskField: 'Epic' },
+  ],
+};
 
 describe('SandboxService', () => {
   let service: SandboxService;
@@ -64,6 +84,9 @@ describe('SandboxService', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+
+    // Mock ProfileRegistry
+    vi.mocked(ProfileRegistry.getBuiltin).mockReturnValue(MOCK_HYDRO_PROFILE as never);
 
     service = new SandboxService(mockGraphqlClient, mockLogger);
     // Override sleep to be instant
@@ -120,15 +143,32 @@ describe('SandboxService', () => {
       ).rejects.toThrow(ValidationError);
     });
 
-    it('rejects when sandbox already exists', async () => {
-      mockFs.readFile.mockResolvedValue(JSON.stringify({ sandbox: true }));
+    it('auto-destroys stale sandbox before creating new one', async () => {
+      // First read: stale sandbox config exists → triggers auto-destroy
+      mockFs.readFile.mockResolvedValueOnce(JSON.stringify({ sandbox: true, project: { id: 'PVT_old' } }));
+
+      // Mock destroySandbox to succeed without actual GitHub calls
+      const destroySpy = vi.spyOn(service, 'destroySandbox').mockResolvedValueOnce({
+        success: true,
+        projectId: 'PVT_old',
+        issuesClosed: 0,
+        projectDeleted: true,
+        configRemoved: true,
+      });
+
+      // After auto-destroy, ensureNoExistingSandbox returns (no more config)
+      // Then createSandbox proceeds and needs the full init flow — will fail
+      // on ProjectInitService, but we only care that destroySandbox was called.
+      vi.mocked(ProjectInitService).mockImplementation(() => ({
+        initializeProject: vi.fn().mockRejectedValue(new Error('stopped after destroy check')),
+      }) as unknown as InstanceType<typeof ProjectInitService>);
 
       await expect(
-        service.createSandbox({
-          repository: 'owner/repo',
-          projectRoot: '/tmp/test',
-        }),
-      ).rejects.toThrow(ValidationError);
+        service.createSandbox({ repository: 'owner/repo', projectRoot: '/tmp/test' }),
+      ).rejects.toThrow('stopped after destroy check');
+
+      // The key assertion: destroy was called automatically
+      expect(destroySpy).toHaveBeenCalledWith('/tmp/test');
     });
 
     it('rejects when real project exists', async () => {
@@ -152,7 +192,7 @@ describe('SandboxService', () => {
         project: {
           id: 'PVT_sandbox',
           number: 1,
-          title: 'ido4 Sandbox — Governance Showcase',
+          title: 'ido4 Sandbox — Hydro Governance',
           url: 'https://github.com/orgs/owner/projects/1',
           repository: 'owner/repo',
         },
@@ -177,11 +217,11 @@ describe('SandboxService', () => {
       };
       vi.mocked(ServiceContainer.create).mockResolvedValue(mockContainer as unknown as InstanceType<typeof ServiceContainer>);
 
-      // Mock epic creation
-      let epicCallCount = 0;
+      // Mock parent issue creation
+      let parentCallCount = 0;
       mockIssueRepo.createIssue.mockImplementation(async () => {
-        epicCallCount++;
-        return { id: `epic-id-${epicCallCount}`, number: epicCallCount, url: `https://github.com/owner/repo/issues/${epicCallCount}` };
+        parentCallCount++;
+        return { id: `parent-id-${parentCallCount}`, number: parentCallCount, url: `https://github.com/owner/repo/issues/${parentCallCount}` };
       });
       mockProjectRepo.addItemToProject.mockResolvedValue('item-id');
 
@@ -226,12 +266,14 @@ describe('SandboxService', () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.scenario).toBe('governance-showcase');
-      expect(result.created.epics).toBe(GOVERNANCE_SHOWCASE.epics.length);
-      expect(result.created.tasks).toBe(GOVERNANCE_SHOWCASE.tasks.length);
-      expect(result.created.subIssueRelationships).toBe(GOVERNANCE_SHOWCASE.tasks.length);
+      expect(result.scenario).toBe('hydro-governance');
+      expect(result.created.parentIssues).toBe(HYDRO_GOVERNANCE.parentIssues.length);
+      expect(result.created.tasks).toBe(HYDRO_GOVERNANCE.tasks.length);
+      // sub-issue relationships = tasks with parentRef
+      const tasksWithParent = HYDRO_GOVERNANCE.tasks.filter((t) => t.parentRef);
+      expect(result.created.subIssueRelationships).toBe(tasksWithParent.length);
 
-      // Verify init was called
+      // Verify init was called with profile
       expect(mockInitService.initializeProject).toHaveBeenCalledWith(
         expect.objectContaining({
           mode: 'create',
@@ -240,40 +282,40 @@ describe('SandboxService', () => {
         }),
       );
 
-      // Verify epics were created
-      expect(mockIssueRepo.createIssue).toHaveBeenCalledTimes(GOVERNANCE_SHOWCASE.epics.length);
+      // Verify parent issues were created
+      expect(mockIssueRepo.createIssue).toHaveBeenCalledTimes(HYDRO_GOVERNANCE.parentIssues.length);
 
       // Verify tasks were created
-      expect(mockTaskService.createTask).toHaveBeenCalledTimes(GOVERNANCE_SHOWCASE.tasks.length);
+      expect(mockTaskService.createTask).toHaveBeenCalledTimes(HYDRO_GOVERNANCE.tasks.length);
+
+      // Verify tasks use containers (not wave/epic)
+      const firstCreateCall = mockTaskService.createTask.mock.calls[0]![0];
+      expect(firstCreateCall.containers).toBeDefined();
 
       // Verify sub-issue relationships
-      expect(mockIssueRepo.addSubIssue).toHaveBeenCalledTimes(GOVERNANCE_SHOWCASE.tasks.length);
+      expect(mockIssueRepo.addSubIssue).toHaveBeenCalledTimes(tasksWithParent.length);
 
-      // Verify Done tasks were closed
-      const doneTasks = GOVERNANCE_SHOWCASE.tasks.filter((t) => t.status === 'DONE');
+      // Verify terminal tasks were closed
+      const doneTasks = HYDRO_GOVERNANCE.tasks.filter((t) => t.status === 'DONE');
       expect(mockIssueRepo.closeIssue).toHaveBeenCalledTimes(doneTasks.length);
 
       // Verify PR seeding (T12 has seedPR)
-      const tasksWithPR = GOVERNANCE_SHOWCASE.tasks.filter((t) => t.seedPR);
+      const tasksWithPR = HYDRO_GOVERNANCE.tasks.filter((t) => t.seedPR);
       expect(mockRepoRepo.getDefaultBranchInfo).toHaveBeenCalledTimes(1);
       expect(mockRepoRepo.createBranch).toHaveBeenCalledTimes(tasksWithPR.length);
       expect(mockRepoRepo.createPullRequest).toHaveBeenCalledTimes(tasksWithPR.length);
       expect(result.created.pullRequests).toBe(tasksWithPR.length);
 
       // Verify context comments
-      const tasksWithComments = GOVERNANCE_SHOWCASE.tasks.filter((t) => t.contextComments && t.contextComments.length > 0);
+      const tasksWithComments = HYDRO_GOVERNANCE.tasks.filter((t) => t.contextComments && t.contextComments.length > 0);
       const totalComments = tasksWithComments.reduce((sum, t) => sum + t.contextComments!.length, 0);
       expect(mockIssueRepo.addComment).toHaveBeenCalledTimes(totalComments);
       expect(result.created.contextComments).toBe(totalComments);
 
-      // Verify audit events were emitted (>20 transition events)
+      // Verify audit events were emitted from scenario data
       const emitCalls = mockEventBus.emit.mock.calls;
-      expect(emitCalls.length).toBeGreaterThan(20);
-      const transitionEvents = emitCalls.filter(
-        (call: unknown[]) => (call[0] as { type: string }).type === 'task.transition',
-      );
-      expect(transitionEvents.length).toBeGreaterThan(20);
-      expect(result.created.auditEvents).toBeGreaterThan(20);
+      expect(emitCalls.length).toBe(HYDRO_GOVERNANCE.auditEvents.length);
+      expect(result.created.auditEvents).toBe(HYDRO_GOVERNANCE.auditEvents.length);
 
       // Verify agents were registered and T7 locked
       expect(mockAgentService.registerAgent).toHaveBeenCalledTimes(2);
@@ -306,10 +348,13 @@ describe('SandboxService', () => {
   });
 
   describe('destroySandbox', () => {
-    it('refuses when config does not exist', async () => {
+    it('succeeds silently when config does not exist (nothing to destroy)', async () => {
       mockFs.readFile.mockRejectedValue(new Error('ENOENT'));
 
-      await expect(service.destroySandbox('/tmp/test')).rejects.toThrow(ConfigurationError);
+      const result = await service.destroySandbox('/tmp/test');
+      expect(result.success).toBe(true);
+      expect(result.projectDeleted).toBe(false);
+      expect(result.configRemoved).toBe(false); // Can't confirm it was a sandbox
     });
 
     it('refuses on non-sandbox projects', async () => {
@@ -327,6 +372,9 @@ describe('SandboxService', () => {
       }));
       mockFs.unlink.mockResolvedValue(undefined);
       mockFs.rmdir.mockResolvedValue(undefined);
+
+      // Verify sandbox project title check
+      mockGraphqlClient.query.mockResolvedValueOnce({ node: { title: 'ido4 Sandbox — Hydro Governance' } });
 
       const mockContainer = {
         issueRepository: mockIssueRepo,
@@ -368,6 +416,9 @@ describe('SandboxService', () => {
       mockFs.unlink.mockResolvedValue(undefined);
       mockFs.rmdir.mockResolvedValue(undefined);
 
+      // Verify sandbox project title check
+      mockGraphqlClient.query.mockResolvedValueOnce({ node: { title: 'ido4 Sandbox — Test' } });
+
       const mockContainer = {
         issueRepository: mockIssueRepo,
         projectRepository: mockProjectRepo,
@@ -386,6 +437,34 @@ describe('SandboxService', () => {
       expect(mockRepoRepo.closePullRequest).toHaveBeenCalledWith('pr-id-1');
       expect(mockRepoRepo.deleteBranch).toHaveBeenCalledWith('ref-id-1');
     });
+
+    it('refuses to delete project when title does not contain Sandbox', async () => {
+      mockFs.readFile.mockResolvedValue(JSON.stringify({
+        sandbox: true,
+        project: { id: 'PVT_sandbox' },
+      }));
+      mockFs.unlink.mockResolvedValue(undefined);
+      mockFs.rmdir.mockResolvedValue(undefined);
+
+      // Project title doesn't contain "Sandbox" — guardrail should prevent deletion
+      mockGraphqlClient.query.mockResolvedValueOnce({ node: { title: 'My Real Project' } });
+
+      const mockContainer = {
+        issueRepository: mockIssueRepo,
+        projectRepository: mockProjectRepo,
+        repositoryRepository: mockRepoRepo,
+      };
+      vi.mocked(ServiceContainer.create).mockResolvedValue(mockContainer as unknown as InstanceType<typeof ServiceContainer>);
+
+      mockProjectRepo.getProjectItems.mockResolvedValue([]);
+      mockProjectRepo.deleteProject.mockResolvedValue(undefined);
+
+      const result = await service.destroySandbox('/tmp/test');
+
+      expect(result.success).toBe(true);
+      expect(result.projectDeleted).toBe(false); // Guardrail prevented deletion
+      expect(mockProjectRepo.deleteProject).not.toHaveBeenCalled();
+    });
   });
 
   describe('resetSandbox', () => {
@@ -401,8 +480,18 @@ describe('SandboxService', () => {
       const createResult = {
         success: true,
         project: { id: 'PVT_new', number: 2, title: 'Sandbox', url: 'https://example.com', repository: 'owner/repo' },
-        scenario: 'governance-showcase',
-        created: { epics: 5, tasks: 20, subIssueRelationships: 20, closedTasks: 8, pullRequests: 1, contextComments: 5 },
+        scenario: 'hydro-governance',
+        created: {
+          parentIssues: 5,
+          containerInstances: 4,
+          tasks: 20,
+          subIssueRelationships: 20,
+          closedTasks: 8,
+          pullRequests: 1,
+          contextComments: 5,
+          auditEvents: 28,
+          registeredAgents: 2,
+        },
         configPath: '/tmp/test/.ido4/project-info.json',
       };
 

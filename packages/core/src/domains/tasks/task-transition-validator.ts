@@ -22,11 +22,13 @@ import type { ValidationResult, TransitionType, ValidationContext } from './type
 import type { IMethodologyConfig } from '../../config/methodology-config.js';
 import type { IValidationStepRegistry, StepDependencies } from './validation-step-registry.js';
 import type { IAgentService } from '../agents/agent-service.js';
+import type { IContainerMetadataService } from '../containers/container-metadata-service.js';
 import type { MethodologyProfile } from '../../profiles/types.js';
 import { ValidationPipeline } from './validation-pipeline.js';
 import { MethodologyConfig, DEFAULT_METHODOLOGY } from '../../config/methodology-config.js';
 import { ValidationStepRegistry } from './validation-step-registry.js';
 import { registerAllBuiltinSteps } from './validation-steps/index.js';
+import { resolveWorkItemType } from '../../profiles/work-item-resolver.js';
 
 export class TaskTransitionValidator implements ITaskTransitionValidator {
   private readonly methodologyConfig: IMethodologyConfig;
@@ -51,6 +53,7 @@ export class TaskTransitionValidator implements ITaskTransitionValidator {
     stepRegistry: IValidationStepRegistry | undefined,
     agentService: IAgentService | undefined,
     profile: MethodologyProfile,
+    containerMetadataService?: IContainerMetadataService,
   ) {
     this.issueRepository = issueRepository;
     this.projectConfig = projectConfig;
@@ -78,6 +81,7 @@ export class TaskTransitionValidator implements ITaskTransitionValidator {
       workflowConfig,
       gitWorkflowConfig,
       agentService,
+      containerMetadataService,
       profile,
     };
   }
@@ -93,7 +97,7 @@ export class TaskTransitionValidator implements ITaskTransitionValidator {
       gitWorkflowConfig: this.gitWorkflowConfig,
     };
 
-    const workItemType = this.profile.workItems.defaultType;
+    const workItemType = resolveWorkItemType(task.labels ?? [], this.profile);
     const pipeline = this.createPipeline(transition as TransitionType, workItemType);
     const result = await pipeline.execute(context);
 
@@ -115,7 +119,7 @@ export class TaskTransitionValidator implements ITaskTransitionValidator {
     // Derive all unique action names from profile transitions
     const allActions = [...new Set(this.profile.transitions.map((t) => t.action))];
 
-    const workItemType = this.profile.workItems.defaultType;
+    const workItemType = resolveWorkItemType(task.labels ?? [], this.profile);
 
     for (const transition of allActions) {
       const context: ValidationContext = {

@@ -19,3 +19,8 @@ export const GetComplianceDataSchema = {
 export const GetHealthDataSchema = {
   waveName: z.string().optional().describe('Wave name (auto-detects active wave if omitted)'),
 };
+
+export const GetTaskExecutionDataSchema = {
+  issueNumber: z.number().int().positive().describe('Issue number of the task to get execution context for'),
+  includeComments: z.boolean().optional().describe('Include GitHub issue comments (default: true)'),
+};

@@ -156,6 +156,7 @@ export const HYDRO_PROFILE: MethodologyProfile = {
         'SourceStatusValidation:IN_REFINEMENT,BACKLOG',
         'FastTrackValidation',
         'AcceptanceCriteriaValidation',
+        'SpecCompletenessValidation',
         'EffortEstimationValidation',
         'DependencyIdentificationValidation',
         'StatusTransitionValidation:READY_FOR_DEV',
@@ -165,6 +166,7 @@ export const HYDRO_PROFILE: MethodologyProfile = {
     start: {
       steps: [
         'SourceStatusValidation:READY_FOR_DEV',
+        'SpecCompletenessValidation',
         'StatusTransitionValidation:IN_PROGRESS',
         'DependencyValidation',
         'ContainerAssignmentValidation:wave',
@@ -185,6 +187,7 @@ export const HYDRO_PROFILE: MethodologyProfile = {
       steps: [
         'StatusTransitionValidation:DONE',
         'ApprovalRequirementValidation',
+        'ContextCompletenessValidation',
         'ContainerIntegrityValidation:epic-wave-integrity',
       ],
     },

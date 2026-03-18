@@ -11,6 +11,7 @@ import type {
   GetProjectWithFieldsResponse,
 } from '../../../src/infrastructure/github/queries/project-init-queries.js';
 import { FIELD_OPTIONS } from '../../../src/infrastructure/github/queries/project-init-queries.js';
+import { HYDRO_PROFILE } from '../../../src/profiles/hydro.js';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import * as os from 'node:os';
@@ -189,7 +190,7 @@ describe('ProjectInitService', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     client = createMockGraphQLClient();
-    service = new ProjectInitService(client, new NoopLogger());
+    service = new ProjectInitService(client, new NoopLogger(), HYDRO_PROFILE);
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'ido4-init-test-'));
   });
 
@@ -522,7 +523,7 @@ describe('ProjectInitService', () => {
       expect(stat.isDirectory()).toBe(true);
     });
 
-    it('config has wave_config section', async () => {
+    it('config does not hardcode wave_config (profile-driven)', async () => {
       setupFullCreateMocks(client);
 
       const result = await service.initializeProject({
@@ -532,7 +533,24 @@ describe('ProjectInitService', () => {
       });
 
       const config = JSON.parse(await fs.readFile(result.configPath, 'utf-8'));
-      expect(config.wave_config.autoDetect).toBe(true);
+      // wave_config is no longer emitted by default — container config is profile-driven
+      expect(config.wave_config).toBeUndefined();
+    });
+
+    it('writes methodology-profile.json with profile id', async () => {
+      setupFullCreateMocks(client);
+
+      await service.initializeProject({
+        mode: 'create',
+        repository: 'testuser/testrepo',
+        projectRoot: tempDir,
+      });
+
+      const profileConfig = JSON.parse(
+        await fs.readFile(path.join(tempDir, '.ido4', 'methodology-profile.json'), 'utf-8'),
+      );
+      expect(profileConfig.id).toBe('hydro');
+      expect(profileConfig.extends).toBe('hydro');
     });
 
     it('configPath points to .ido4/project-info.json', async () => {

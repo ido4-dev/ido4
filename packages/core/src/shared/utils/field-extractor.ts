@@ -83,13 +83,24 @@ export class FieldExtractor {
     return [...names];
   }
 
-  /** Extract all common project fields into a typed object. */
-  static extractCommonFields(fieldValues: readonly FieldValue[]): CommonFields {
-    const wave = FieldExtractor.getFieldValue(fieldValues, 'Wave');
-    const epic = FieldExtractor.getFieldValue(fieldValues, 'Epic');
+  /**
+   * Extract all common project fields into a typed object.
+   * @param containerDefs - Profile-aware container definitions. When provided,
+   *   uses them to extract container fields. Defaults to Wave/Epic (Hydro).
+   */
+  static extractCommonFields(
+    fieldValues: readonly FieldValue[],
+    containerDefs?: ReadonlyArray<{ id: string; taskField: string }>,
+  ): CommonFields {
+    const defs = containerDefs ?? [
+      { id: 'wave', taskField: 'Wave' },
+      { id: 'epic', taskField: 'Epic' },
+    ];
     const containers: Record<string, string> = {};
-    if (wave) containers['wave'] = wave;
-    if (epic) containers['epic'] = epic;
+    for (const def of defs) {
+      const value = FieldExtractor.getFieldValue(fieldValues, def.taskField);
+      if (value) containers[def.id] = value;
+    }
 
     return {
       status: FieldExtractor.getFieldValue(fieldValues, 'Status'),
