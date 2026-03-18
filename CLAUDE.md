@@ -27,7 +27,25 @@ The domain layer. Contains: task workflow services, BRE (Business Rule Engine) v
 The MCP server. Wraps @ido4/core domain services as MCP tools, resources, and prompts. Uses STDIO transport for Claude Code integration.
 
 ### plugin/
-Claude Code plugin bundle. Contains skills (/standup, /plan-wave, /board), the project-manager agent with persistent memory, and automation hooks.
+Claude Code plugin bundle. Contains skills (/standup, /plan-wave, /board, /spec-validate), the project-manager agent with persistent memory, and automation hooks.
+
+## Two-Artifact Architecture (Strategic Spec → Technical Spec)
+
+ido4 MCP participates in a two-artifact pipeline with ido4shape:
+
+```
+ido4shape (conversation) → strategic spec → ido4 MCP decomposition → technical spec → existing ingestion → GitHub issues
+```
+
+- **ido4shape** produces strategic specs — multi-stakeholder understanding (the WHAT) with minimal metadata (priority, strategic risk, depends_on) and rich prose (cross-cutting concerns, stakeholder attribution, constraints)
+- **ido4 MCP** will consume the strategic spec, explore the actual codebase, and produce a technical spec (the HOW) in the existing artifact format (effort, risk, type, ai, depends_on)
+- The existing **ingestion pipeline** (spec-parser.ts → spec-mapper.ts → GitHub issues) stays unchanged — it eats the technical spec
+
+**Current status:**
+- Strategic spec format: designed (in ido4shape repo: `references/strategic-spec-format.md`)
+- Transferred assets: `packages/plugin/skills/spec-quality/` and `packages/plugin/skills/spec-validate/` + `packages/plugin/agents/spec-reviewer.md`
+- Decomposition agent: not yet built — see `strategic-spec-mcp-plan.md` for the work plan
+- Strategic spec format reference in ido4shape: `references/example-strategic-notification-system.md`
 
 ## Architecture Principles
 
@@ -135,3 +153,47 @@ Both `@ido4/core` and `@ido4/mcp` are published to npm. CI auto-publishes on ver
 9. **Same value ≠ same concept.** Before abstracting, map every usage site to the concept it represents. If two sites use the same string but mean different things, they need different abstractions. Applies to refactoring, config extraction, DRY consolidation — any shared representation over concrete values.
 10. **"Behavior-preserving" requires behavior verification.** When a change claims zero behavioral impact, generate actual output and diff against the original. Tests passing is necessary but not sufficient. Make output diffing a mandatory step for behavior-preserving refactors.
 11. **Mechanical-looking tasks are the most dangerous.** When a task feels like find-and-replace, slow down and ask: "Is there a semantic distinction here that the mechanical approach would destroy?" Treat apparent simplicity as a risk indicator, not a green light.
+
+## ido4 Development Governance
+
+This project uses **ido4** for specs-driven development governance (Hydro — Wave-Based Governance methodology).
+
+### Workflow
+
+1. **Check the board** before starting work: use the `get_wave_status` tool or the `/ido4:board` skill
+2. **Pick your next task**: use `get_next_task` for a scored recommendation, or check the board
+3. **Start work**: call `start_task` — read the full briefing (spec, dependencies, downstream needs) before writing code
+4. **Work from the spec**: the GitHub issue body IS the specification — read it completely, understand acceptance criteria
+5. **Write context**: add comments on the issue at key decisions (what you decided, why, what interfaces you created)
+6. **Complete work**: verify acceptance criteria are met, tests pass, then call `approve_task`
+
+### Principles
+
+- **Epic Integrity**: All tasks within an epic MUST be assigned to the same wave
+- **Active Wave Singularity**: Only one wave can be active at a time
+- **Dependency Coherence**: A task's wave must be numerically >= its dependency tasks' waves
+- **Self-Contained Execution**: Each wave contains all dependencies needed for its tasks
+- **Atomic Completion**: A wave is complete only when ALL its tasks are in terminal state
+
+These are non-negotiable governance rules enforced by the Business Rule Engine (BRE).
+
+### Wave Structure
+
+- **Wave**: Execution container
+- **Epic**: Execution container
+
+### Available Skills
+
+- `/ido4:standup` — Governance-aware briefing with risk detection
+- `/ido4:board` — Flow intelligence and bottleneck analysis
+- `/ido4:compliance` — Governance audit with quantitative scoring
+- `/ido4:health` — Quick health check (RED/YELLOW/GREEN)
+- `/ido4:plan-wave` — Wave composition with principle validation
+- `/ido4:retro-wave` — Wave retrospective with data-backed analysis
+
+### Configuration
+
+- **Methodology**: Hydro — Wave-Based Governance (`.ido4/methodology-profile.json`)
+- **Project**: [GitHub Project](https://github.com/users/b-coman/projects/115)
+- **Audit trail**: `.ido4/audit-log.jsonl` (immutable governance events)
+<!-- /ido4 -->
