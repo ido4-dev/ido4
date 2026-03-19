@@ -99,6 +99,11 @@ export function topologicalSort(tasks: MappedTask[]): MappedTask[] | { cycle: st
 }
 
 // ─── Mapper ───
+//
+// Semantic transformation: the parser reads ## Capability: headings into ParsedGroup objects
+// (the internal type name is historical). The mapper converts these into capability issues
+// that map to the methodology's grouping container (epic in Hydro/Scrum, bet in Shape Up).
+// Groups from ido4shape's strategic spec provide context but don't become GitHub issues.
 
 export function mapSpec(parsed: ParsedSpec, profile: MethodologyProfile): MappedSpec {
   const errors: MappingError[] = [];

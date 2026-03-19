@@ -110,15 +110,17 @@ When omitted, ido4 defaults to `assisted` (AI executes, human reviews) — the s
 
 | Artifact concept | Hydro | Scrum | Shape Up |
 |-----------------|-------|-------|----------|
-| Capability | Epic | Epic | Bet |
-| Capability size | — | — | Appetite (S→S, M→M, L→L, XL→XL) |
-| Task | Task (issue) | Story / Spike / Task | Scope |
-| Task effort | Effort field (S→Small, M→Medium, L/XL→Large) | Story points (S→1, M→3, L→5, XL→8) | — |
+| Capability | Epic (parent issue) | Epic (parent issue, spans sprints) | Bet (parent issue) |
+| Capability size | Epic scope estimation | Epic scope estimation | Appetite (S→S, M→M, L→L, XL→XL) |
+| Task | Task (sub-issue of epic) | Story / Spike / Task (sub-issue of epic) | Task (sub-issue of bet) |
+| Task effort | Effort field (S→Small, M→Medium, L/XL→Large) | Story points (S→1, M→3, L→5, XL→8) | — (appetite is at bet level) |
 | Task risk | Risk field (low→Low, medium→Medium, high/critical→High) | Spike candidate if high/critical | Rabbit hole flag if high/critical |
 | Task type: research | Task with risk=high | Spike (separate type, relaxed pipeline) | Research scope |
 | Task ai | AI Suitability field (full→ai-only, assisted→ai-reviewed, pair→hybrid, human→human-only) | Same mapping | Same mapping |
 | Success conditions | Acceptance Criteria | Definition of Done items | "Done means" |
 | depends_on | Dependencies field | Dependencies field | Dependencies field |
+
+**Note:** ido4shape groups (organizational clusters of capabilities) provide context for decomposition ordering and capability descriptions. They do NOT become GitHub issues. Only capabilities and tasks become GitHub issues.
 
 ### Value Mapping Details
 

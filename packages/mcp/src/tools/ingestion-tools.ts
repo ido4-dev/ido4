@@ -35,7 +35,7 @@ export function registerIngestionTools(server: McpServer): void {
 
   server.tool(
     'parse_strategic_spec',
-    'Parse a strategic spec (from ido4shape) into a structured AST. Returns project context, cross-cutting concerns, groups, capabilities with priority/risk/dependencies, and validation errors. Use this before decomposition to get structured input for the code analysis agent.',
+    'Parse a strategic spec (from ido4shape) into a structured AST. Returns project context, cross-cutting concerns, groups (organizational context from ido4shape — priority and description for decomposition ordering, NOT GitHub issues), and capabilities within groups (functional requirements that become epic/bet GitHub issues). Use before decomposition to get structured input for the code analysis agent.',
     ParseStrategicSpecSchema,
     async (args) => handleErrors(async () => {
       const result = parseStrategicSpec(args.specContent);
