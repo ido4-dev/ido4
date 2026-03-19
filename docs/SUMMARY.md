@@ -21,7 +21,7 @@
 
 ## Tool Reference
 
-* [All 51 Tools](reference/tools.md)
+* [All 58 Tools](reference/tools.md)
 
 ## Skills & Intelligence
 

@@ -8,19 +8,20 @@ ido4 is a layered system where each layer has a clear responsibility and strict 
 ┌──────────────────────────────────────────────────────────────┐
 │  Layer 3: Experience (packages/plugin)                       │
 │                                                              │
-│  8 Skills          PM Agent          2 Governance Hooks      │
-│  /standup          Persistent        PostToolUse:            │
-│  /plan-wave        memory,           state transitions,      │
-│  /board            methodology       wave assignments        │
-│  /compliance       expert,                                   │
-│  /retro            multi-agent                               │
-│  /health           coordination                              │
-│  /sandbox                                                    │
+│  18 Skills         4 Agents          2 Governance Hooks      │
+│  /standup          PM Agent,         PostToolUse:            │
+│  /plan-wave        Spec Reviewer,    state transitions,      │
+│  /board            + 2 more          wave assignments        │
+│  /compliance       Persistent                                │
+│  /retro            memory,                                   │
+│  /health           methodology                               │
+│  /sandbox          expert                                    │
 │  /pilot-test                                                 │
+│  + 10 more                                                   │
 ├──────────────────────────────────────────────────────────────┤
 │  Layer 2: MCP Server (packages/mcp — @ido4/mcp)             │
 │                                                              │
-│  51 Tools          9 Resources       6 Prompts               │
+│  58 Tools          9 Resources       7 Prompts               │
 │  Task (18)         project://        standup                  │
 │  Wave (5)          methodology://    plan-wave                │
 │  Epic (4)          audit://          board                    │
@@ -48,7 +49,7 @@ ido4 is a layered system where each layer has a clear responsibility and strict 
 │  │  MergeReadinessService · SandboxService                │  │
 │  ├────────────────────────────────────────────────────────┤  │
 │  │ BRE Pipeline                                           │  │
-│  │  TaskTransitionValidator · 27 ValidationSteps          │  │
+│  │  TaskTransitionValidator · 32 ValidationSteps          │  │
 │  │  ValidationStepRegistry · MethodologyConfig            │  │
 │  ├────────────────────────────────────────────────────────┤  │
 │  │ Infrastructure                                         │  │
@@ -129,9 +130,9 @@ Zero dependencies on CLI frameworks, MCP SDK, or terminal formatting. Contains:
 ### @ido4/mcp
 
 Depends on `@ido4/core` and `@modelcontextprotocol/sdk`. Contains:
-- Tool registrations (51 tools with Zod schemas)
+- Tool registrations (58 tools with Zod schemas for Hydro; 56 for Scrum, 54 for Shape Up)
 - Resource providers (9 resources)
-- Prompt definitions (6 prompts)
+- Prompt definitions (7 prompts)
 - Aggregators (composite data fetchers for skills)
 - STDIO transport setup
 

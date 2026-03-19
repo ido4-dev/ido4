@@ -32,7 +32,9 @@ Status updated: Ready for Dev → In Progress
 Audit event recorded
 ```
 
-## The 27 Built-in Validation Steps
+## The 32 Built-in Validation Steps
+
+> The BRE ships with 32 validation steps. Each methodology profile activates a subset of these steps per transition type, so the effective number varies by profile (Hydro, Scrum, Shape Up).
 
 ### Workflow Steps
 

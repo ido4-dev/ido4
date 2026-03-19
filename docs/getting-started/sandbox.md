@@ -60,7 +60,7 @@ The sandbox offers three options:
 
 The sandbox demonstrates every layer of the governance stack:
 
-- **BRE validation** — Watch 27 validation steps evaluate transitions
+- **BRE validation** — Watch 32 validation steps evaluate transitions (configurable per methodology profile)
 - **Work distribution** — See 4-dimension scoring differentiate task recommendations
 - **Merge readiness** — See the 6-check gate catch process violations
 - **Audit trail** — Real event-sourced data powering analytics and compliance

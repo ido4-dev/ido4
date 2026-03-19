@@ -1,6 +1,6 @@
 # MCP Prompts
 
-ido4 provides 6 MCP prompts — portable intelligence frameworks that work with any MCP-compatible AI client, not just Claude Code.
+ido4 provides 7 MCP prompts — portable intelligence frameworks that work with any MCP-compatible AI client, not just Claude Code.
 
 ## Prompts vs Skills
 
@@ -9,7 +9,7 @@ ido4 provides 6 MCP prompts — portable intelligence frameworks that work with 
 | Platform | Claude Code only | Any MCP client |
 | Invocation | `/ido4:standup` | MCP prompt protocol |
 | Features | Memory, file access, hooks | Tool calls only |
-| Count | 8 | 6 |
+| Count | 18 | 7 |
 
 Prompts mirror the corresponding skills in a portable format. If you're using Claude Code with the plugin, use skills. If you're using another MCP client, use prompts.
 

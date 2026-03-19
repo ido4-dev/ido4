@@ -1,6 +1,6 @@
 # Tool Reference
 
-ido4 provides 51 MCP tools organized into 7 categories. Every write tool supports `dryRun`, goes through BRE validation, and creates an audit entry.
+ido4 provides 58 MCP tools for the Hydro profile (56 for Scrum, 54 for Shape Up), organized into 7 categories. The exact count varies by methodology profile. Every write tool supports `dryRun`, goes through BRE validation, and creates an audit entry.
 
 ## Task Governance (18 tools)
 

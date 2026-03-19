@@ -73,7 +73,7 @@ Some validation steps accept parameters via colon-separated syntax:
 
 ## Built-in Validation Steps
 
-All 27 steps are available for composition:
+All 32 steps are available for composition (each methodology profile activates a subset per transition):
 
 ### Workflow
 - `StartFromReadyForDev` — Task must be in Ready for Dev

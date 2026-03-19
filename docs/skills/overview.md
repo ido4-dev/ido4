@@ -35,9 +35,9 @@ ido4 provides both **skills** (Claude Code plugin) and **prompts** (MCP server):
 | Invocation | `/ido4:standup` | Via MCP prompt protocol |
 | Available in | Claude Code (with plugin) | Any MCP-compatible client |
 | Features | Full skill capabilities (tools, files, memory) | Tool calls + structured reasoning |
-| Count | 8 | 6 |
+| Count | 18 | 7 |
 
-The 6 prompts (standup, plan-wave, board, compliance, health, retro) mirror the corresponding skills in a portable format. Any MCP client can use them — not just Claude Code.
+The 7 prompts (standup, plan-wave, board, compliance, health, retro, and one more) mirror the corresponding skills in a portable format. Any MCP client can use them — not just Claude Code.
 
 ## Data Pipeline
 

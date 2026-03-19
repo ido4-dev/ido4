@@ -2,7 +2,7 @@
 
 **ido4** is a Development Governance Platform — an MCP server that provides deterministic methodology enforcement for AI-augmented development teams.
 
-It runs inside Claude Code (and any MCP-compatible AI environment), enforcing business rules through 27 validation steps that no agent can bypass. Every action is audited. Every transition is validated. Every agent is coordinated.
+It runs inside Claude Code (and any MCP-compatible AI environment), enforcing business rules through 32 validation steps that no agent can bypass. Every action is audited. Every transition is validated. Every agent is coordinated.
 
 ## What Makes ido4 Different
 
@@ -30,7 +30,7 @@ It runs inside Claude Code (and any MCP-compatible AI environment), enforcing bu
 
 ## Reference
 
-- **[51 MCP Tools](reference/tools.md)** — Complete tool reference
-- **[8 Skills](skills/overview.md)** — Intelligent governance workflows
+- **[58 MCP Tools](reference/tools.md)** — Complete tool reference (Hydro profile; varies by methodology)
+- **[18 Skills](skills/overview.md)** — Intelligent governance workflows
 - **[Architecture](architecture/overview.md)** — System design and decisions
 - **[Enterprise Features](enterprise/overview.md)** — Compliance, quality gates, configurable methodology
