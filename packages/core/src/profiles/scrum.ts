@@ -1,8 +1,8 @@
 /**
  * Scrum Methodology Profile — Sprint-Based Execution with Type-Scoped Pipelines.
  *
- * 6 states, 1 container (sprint), 5 work item types with different DoR/DoD
- * per type via type-scoped pipeline overrides.
+ * 6 states, 2 containers (sprint, epic), 5 work item types with different DoR/DoD
+ * per type via type-scoped pipeline overrides. Epics span sprints (no integrity rule).
  */
 
 import type { MethodologyProfile } from './types.js';
@@ -68,6 +68,14 @@ export const SCRUM_PROFILE: MethodologyProfile = {
       nameExample: 'Sprint 14',
       singularity: true,
       completionRule: 'all-terminal',
+      managed: true,
+    },
+    {
+      id: 'epic',
+      singular: 'Epic',
+      plural: 'Epics',
+      taskField: 'Epic',
+      completionRule: 'none',
       managed: true,
     },
   ],

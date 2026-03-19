@@ -114,15 +114,15 @@ export function mapSpec(parsed: ParsedSpec, profile: MethodologyProfile): Mapped
   }
   for (const task of parsed.orphanTasks) allRefs.add(task.ref);
 
-  // Map groups
+  // Map capabilities (level-2 grouping units from ## Capability: headings)
   const groupIssues: MappedGroupIssue[] = [];
   for (const group of parsed.groups) {
     if (group.tasks.length === 0) continue;
 
     groupIssues.push({
-      ref: `group:${group.name}`,
+      ref: `capability:${group.name}`,
       title: group.name,
-      body: group.description || `Group: ${group.name}`,
+      body: group.description || group.name,
       containerTypeId: groupingContainer?.id ?? null,
     });
   }
@@ -170,7 +170,7 @@ export function mapSpec(parsed: ParsedSpec, profile: MethodologyProfile): Mapped
     }
 
     const groupRef = task.groupName
-      ? `group:${task.groupName}`
+      ? `capability:${task.groupName}`
       : null;
 
     return {

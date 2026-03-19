@@ -71,9 +71,10 @@ describe('findGroupingContainer', () => {
     expect(container!.id).toBe('bet');
   });
 
-  it('returns null for Scrum profile (no grouping container)', () => {
+  it('returns epic for Scrum profile', () => {
     const container = findGroupingContainer(SCRUM_PROFILE);
-    expect(container).toBeNull();
+    expect(container).not.toBeNull();
+    expect(container!.id).toBe('epic');
   });
 });
 
@@ -252,10 +253,10 @@ describe('mapSpec', () => {
       expect(result.groupIssues[0]!.containerTypeId).toBe('bet');
     });
 
-    it('sets containerTypeId to null for Scrum', () => {
+    it('sets containerTypeId to epic for Scrum', () => {
       const parsed = makeParsedSpec();
       const result = mapSpec(parsed, SCRUM_PROFILE);
-      expect(result.groupIssues[0]!.containerTypeId).toBeNull();
+      expect(result.groupIssues[0]!.containerTypeId).toBe('epic');
     });
 
     it('skips empty groups', () => {

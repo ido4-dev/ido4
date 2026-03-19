@@ -167,9 +167,16 @@ describe('Container Tools', () => {
       expect(hasRegisteredTool(scrumServer, 'validate_sprint_completion')).toBe(true);
     });
 
-    it('does not register wave or epic tools', () => {
+    it('registers epic tools (list, status, assign — no create, no completion)', () => {
+      expect(hasRegisteredTool(scrumServer, 'list_epics')).toBe(true);
+      expect(hasRegisteredTool(scrumServer, 'get_epic_status')).toBe(true);
+      expect(hasRegisteredTool(scrumServer, 'assign_task_to_epic')).toBe(true);
+      expect(hasRegisteredTool(scrumServer, 'create_epic')).toBe(false);
+      expect(hasRegisteredTool(scrumServer, 'validate_epic_completion')).toBe(false);
+    });
+
+    it('does not register wave tools', () => {
       expect(hasRegisteredTool(scrumServer, 'list_waves')).toBe(false);
-      expect(hasRegisteredTool(scrumServer, 'list_epics')).toBe(false);
     });
   });
 });

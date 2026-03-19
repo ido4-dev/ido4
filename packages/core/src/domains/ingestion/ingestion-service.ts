@@ -2,7 +2,7 @@
  * IngestionService — Orchestrates spec artifact ingestion.
  *
  * Follows SandboxService pattern: on-demand creation, not wired into ServiceContainer.
- * Flow: parse → map → validate → [dry run] → create groups → create tasks → wire sub-issues.
+ * Flow: parse → map → validate → [dry run] → create capability issues → create tasks → wire sub-issues.
  */
 
 import type { ILogger } from '../../shared/logger.js';
@@ -79,7 +79,7 @@ export class IngestionService {
       return this.buildDryRunResult(parsed, mapped);
     }
 
-    // Step 6: Create group issues
+    // Step 6: Create capability issues (parent issues for tasks)
     const groupRefToIssue = new Map<string, { id: string; number: number; url: string }>();
     const createdGroups: Array<{ ref: string; issueNumber: number; title: string; url: string }> = [];
     const groupingContainer = findGroupingContainer(this.profile);
@@ -95,12 +95,12 @@ export class IngestionService {
           title: group.title,
           url: issue.url,
         });
-        this.logger.info('Group issue created', { ref: group.ref, issueNumber: issue.number });
+        this.logger.info('Capability issue created', { ref: group.ref, issueNumber: issue.number });
       } catch (err) {
         const error = err instanceof Error ? err : new Error(String(err));
-        this.logger.warn(`Failed to create group issue: ${group.ref} — ${error.message}`);
-        // Group creation failure is non-fatal — tasks will just not have container assignment
-        mapped.warnings.push(`Failed to create group "${group.title}": ${error.message}`);
+        this.logger.warn(`Failed to create capability issue: ${group.ref} — ${error.message}`);
+        // Capability creation failure is non-fatal — tasks will just not have container assignment
+        mapped.warnings.push(`Failed to create capability "${group.title}": ${error.message}`);
       }
     }
 
@@ -346,7 +346,7 @@ export class IngestionService {
 
     if (groupCount > 0 && containerSingular) {
       suggestions.push(
-        `Groups were created as ${containerSingular.toLowerCase()}s. Use container assignment tools to adjust if needed.`,
+        `Capabilities were created as ${containerSingular.toLowerCase()}s. Use container assignment tools to adjust if needed.`,
       );
     }
 

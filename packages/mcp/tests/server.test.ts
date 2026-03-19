@@ -186,9 +186,9 @@ describe('createServer', () => {
 });
 
 describe('createServer — Scrum profile', () => {
-  it('registers 48 tools total', () => {
+  it('registers 56 tools total', () => {
     const server = createServer(SCRUM_PROFILE);
-    expect(getRegisteredToolNames(server)).toHaveLength(49);
+    expect(getRegisteredToolNames(server)).toHaveLength(56);
   });
 
   it('registers 7 dynamic transition tools', () => {
@@ -202,7 +202,7 @@ describe('createServer — Scrum profile', () => {
     }
   });
 
-  it('registers 5 sprint container tools (no epic container)', () => {
+  it('registers sprint container tools', () => {
     const server = createServer(SCRUM_PROFILE);
     expect(hasRegisteredTool(server, 'list_sprints')).toBe(true);
     expect(hasRegisteredTool(server, 'get_sprint_status')).toBe(true);
@@ -211,10 +211,14 @@ describe('createServer — Scrum profile', () => {
     expect(hasRegisteredTool(server, 'validate_sprint_completion')).toBe(true);
   });
 
-  it('does not register legacy epic tools', () => {
+  it('registers epic container tools (no create, no completion validation)', () => {
     const server = createServer(SCRUM_PROFILE);
-    expect(hasRegisteredTool(server, 'search_epics')).toBe(false);
-    expect(hasRegisteredTool(server, 'validate_epic_integrity')).toBe(false);
+    expect(hasRegisteredTool(server, 'list_epics')).toBe(true);
+    expect(hasRegisteredTool(server, 'get_epic_status')).toBe(true);
+    expect(hasRegisteredTool(server, 'assign_task_to_epic')).toBe(true);
+    // No create_epic (no namePattern) and no validate_epic_completion (completionRule: 'none')
+    expect(hasRegisteredTool(server, 'create_epic')).toBe(false);
+    expect(hasRegisteredTool(server, 'validate_epic_completion')).toBe(false);
   });
 
   it('does not register Hydro-specific tools', () => {

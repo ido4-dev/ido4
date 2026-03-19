@@ -634,10 +634,10 @@ describe('Full Artifact Stress Test', () => {
 
     it('sets groupRef for all tasks', () => {
       const byRef = new Map(mapped.tasks.map(t => [t.ref, t]));
-      expect(byRef.get('NCO-01')!.groupRef).toBe('group:Notification Core');
-      expect(byRef.get('EML-01')!.groupRef).toBe('group:Email Channel');
-      expect(byRef.get('PSH-01')!.groupRef).toBe('group:Push Channel');
-      expect(byRef.get('PRF-01')!.groupRef).toBe('group:Preferences');
+      expect(byRef.get('NCO-01')!.groupRef).toBe('capability:Notification Core');
+      expect(byRef.get('EML-01')!.groupRef).toBe('capability:Email Channel');
+      expect(byRef.get('PSH-01')!.groupRef).toBe('capability:Push Channel');
+      expect(byRef.get('PRF-01')!.groupRef).toBe('capability:Preferences');
     });
 
     it('has zero warnings (no unknown values)', () => {
@@ -648,10 +648,10 @@ describe('Full Artifact Stress Test', () => {
   describe('Mapper — Scrum profile', () => {
     const mapped = mapSpec(parsed, SCRUM_PROFILE);
 
-    it('creates 4 group issues with null containerTypeId', () => {
+    it('creates 4 capability issues mapped to epic container', () => {
       expect(mapped.groupIssues).toHaveLength(4);
       for (const group of mapped.groupIssues) {
-        expect(group.containerTypeId).toBeNull();
+        expect(group.containerTypeId).toBe('epic');
       }
     });
 

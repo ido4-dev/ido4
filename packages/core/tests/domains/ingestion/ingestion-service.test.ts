@@ -282,7 +282,7 @@ describe('IngestionService', () => {
   });
 
   describe('Scrum profile', () => {
-    it('does not set container on tasks (no grouping container)', async () => {
+    it('sets epic container on tasks (Scrum now has epic)', async () => {
       const scrumService = new TestableIngestionService(
         mockTaskService as unknown as ITaskService,
         mockIssueRepo as unknown as IIssueRepository,
@@ -298,7 +298,7 @@ describe('IngestionService', () => {
       });
 
       const firstCall = mockTaskService.createTask.mock.calls[0]![0]!;
-      expect(Object.keys(firstCall.containers)).toHaveLength(0);
+      expect(firstCall.containers).toHaveProperty('epic');
     });
   });
 
