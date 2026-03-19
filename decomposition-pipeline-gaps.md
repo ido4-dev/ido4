@@ -120,7 +120,14 @@ Groups exist for ido4shape's conversation process (discovery, stakeholder priori
 - Group priority is redundant when capabilities have their own priority
 - The coherence groups represent is already encoded in capability dependencies
 
-ido4 MCP may use group priority for decomposition ordering (must-have groups first) but does NOT create group issues in GitHub.
+ido4 MCP does NOT create group issues in GitHub. However, group knowledge (name, priority, description) flows downstream:
+- **Into the technical canvas** — the code-analyzer uses group context when assessing capabilities
+- **Into epic/bet issue bodies** — the technical-spec-writer weaves relevant group context into capability descriptions ("Part of Notification Core — the backbone everything depends on")
+- **Into task descriptions** — when group coherence affects implementation decisions
+- **Into decomposition ordering** — must-have groups' capabilities are decomposed first
+- **Into metadata assessment** — group priority informs effort/risk calibration (must-have group → more conservative risk)
+
+Groups dissolve as GitHub artifacts but their knowledge persists in the artifacts that DO become issues.
 
 **Capabilities map to the methodology's grouping container.**
 Capabilities are the coherent deliverables — they have success conditions, stakeholder attributions, dependencies. They are analogous to epics (in the enriched, multi-stakeholder sense). The mapping:
