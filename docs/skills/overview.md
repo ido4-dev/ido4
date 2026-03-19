@@ -1,76 +1,92 @@
-# Skills Overview
+# Skills
 
-Skills are intelligent governance workflows that compose multiple MCP tools into actionable insights. Each skill gathers data, analyzes patterns, and presents findings — all grounded in real tool call results.
+Skills are where ido4's intelligence lives. Each skill composes multiple MCP tools into a governance workflow — gathering data, spotting patterns, and delivering actionable insights. Every claim is backed by a tool call result. Nothing is guessed.
 
-## Available Skills
+## At a glance
 
-| Skill | Invocation | Purpose |
+### Intelligence (works with any methodology)
+
+| Skill | What it tells you |
+|---|---|
+| `/ido4:standup` | What's blocked, what's stale, and the single highest-leverage action for the day |
+| `/ido4:board` | Whether work is actually flowing — cascade blockers, false statuses, review bottlenecks |
+| `/ido4:health` | GREEN / YELLOW / RED in 5 seconds |
+| `/ido4:compliance` | How governed are we? Score, principle audit, and what to fix first |
+
+### Planning (methodology-specific)
+
+| Skill | Methodology | What it produces |
 |---|---|---|
-| [Standup](standup.md) | `/ido4:standup` | Morning briefing with risks, blockers, and highest-impact recommendation |
-| [Plan Wave](plan-wave.md) | `/ido4:plan-wave` | Principle-aware wave composition engine |
-| [Board](board.md) | `/ido4:board` | Flow intelligence — blockers, cascades, false statuses |
-| [Compliance](compliance.md) | `/ido4:compliance` | Three-part compliance assessment |
-| [Retro](retro.md) | `/ido4:retro` | Data-backed wave retrospective |
-| [Health](health.md) | `/ido4:health` | 5-second RED/YELLOW/GREEN verdict |
-| [Sandbox](sandbox.md) | `/ido4:sandbox` | Interactive governance demo |
-| Pilot Test | `/ido4:pilot-test` | End-to-end verification of the governance stack |
+| `/ido4:plan-wave` | Hydro | Valid-by-construction wave plan respecting all 5 principles |
+| `/ido4:plan-sprint` | Scrum | Sprint backlog with DoR gates per work item type |
+| `/ido4:plan-cycle` | Shape Up | Betting table with appetite check and circuit breaker risk |
 
-## How Skills Work
+### Retrospectives (methodology-specific)
 
-Skills are Claude Code SKILL.md files — structured prompts that instruct the AI to:
+| Skill | Methodology | What it analyzes |
+|---|---|---|
+| `/ido4:retro-wave` | Hydro | Velocity, epic integrity, blocking time — real data from the audit trail |
+| `/ido4:retro-sprint` | Scrum | Sprint goal achievement, DoR effectiveness, carry-over trends |
+| `/ido4:retro-cycle` | Shape Up | Bet outcomes, appetite accuracy, circuit breaker decisions |
+
+### Decomposition
+
+| Skill | What it does |
+|---|---|
+| `/ido4:decompose` | Transforms a strategic spec into a technical spec with implementation tasks grounded in your codebase |
+| `/ido4:spec-validate` | Catches format and quality issues before ingestion |
+
+### Sandbox & Verification
+
+| Skill | What it demonstrates |
+|---|---|
+| `/ido4:sandbox` | Creates a real GitHub project with embedded violations — then discovers them live |
+| `/ido4:sandbox-hydro` | Hydro-specific demo: epic integrity violations, cascade blockers |
+| `/ido4:sandbox-scrum` | Scrum-specific demo: DoR violations, type mismatches |
+| `/ido4:sandbox-shape-up` | Shape Up-specific demo: circuit breaker countdown, scope creep |
+| `/ido4:pilot-test` | End-to-end verification that the full governance stack works |
+
+## How skills work
+
+Skills are SKILL.md files — structured prompts that tell the AI what to do, not how to think:
 
 1. Call specific MCP tools to gather data
-2. Analyze the results for patterns and anomalies
+2. Analyze results for patterns and anomalies
 3. Present findings in a consistent format
-4. Make recommendations grounded in evidence
+4. Recommend actions grounded in evidence
 
-Skills don't guess. Every insight comes from a tool call result. If a skill says "T12 has been in review for 4 days," it's because the audit trail shows a `review` transition 4 days ago with no subsequent `approve`.
+The key insight: skills call **composite data tools** (`get_standup_data`, `get_board_data`, etc.) that aggregate 5-12 individual tool calls into a single request. One call returns everything the skill needs.
 
 ## Skills vs Prompts
 
-ido4 provides both **skills** (Claude Code plugin) and **prompts** (MCP server):
-
-| Aspect | Skills | Prompts |
+| | Skills | Prompts |
 |---|---|---|
-| Invocation | `/ido4:standup` | Via MCP prompt protocol |
-| Available in | Claude Code (with plugin) | Any MCP-compatible client |
-| Features | Full skill capabilities (tools, files, memory) | Tool calls + structured reasoning |
-| Count | 18 | 7 |
+| Platform | Claude Code (with plugin) | Any MCP client |
+| Invocation | `/ido4:standup` | MCP prompt protocol |
+| Features | Memory, file access, hooks | Tool calls + reasoning |
+| Count | 18 (+ 1 auto-activating) | 8 |
 
-The 7 prompts (standup, plan-wave, board, compliance, health, retro, and one more) mirror the corresponding skills in a portable format. Any MCP client can use them — not just Claude Code.
+The 8 prompts (standup, plan-container, board, compliance, health, retro, review, execute-task) mirror the corresponding skills in a portable format. Use skills in Claude Code, prompts everywhere else.
 
-## Data Pipeline
+## Cross-skill intelligence
 
-Skills leverage 4 composite data tools that aggregate governance data in single calls:
+Skills share knowledge through Claude Code's memory:
 
-| Aggregator | Replaces | Used By |
-|---|---|---|
-| `get_standup_data` | 10-12 individual tool calls | /standup |
-| `get_board_data` | 5-6 individual tool calls | /board |
-| `get_compliance_data` | 7+ individual tool calls | /compliance |
-| `get_health_data` | 5 individual tool calls | /health |
+- **Retro** persists findings (velocity baselines, blocking patterns)
+- **Standup** reads previous retro findings for context
+- **Plan** uses velocity baselines for capacity estimation
+- **Compliance** tracks score trends across assessments
+- **PM Agent** bridges everything — persistent memory across sessions
 
-These aggregators fetch wave status, task lists, PR states, dependency graphs, audit trails, analytics, agent lists, and compliance scores — all in one call per skill.
-
-## Cross-Skill Intelligence
-
-Skills share intelligence through Claude Code's memory system:
-
-- **Retro** and **Compliance** persist findings to `MEMORY.md` in structured `--- FINDINGS ---` blocks
-- **Standup** and **Plan Wave** read `MEMORY.md` (auto-loaded) for historical context
-- **Sandbox** seeds memory with pre-built governance observations
-- **PM Agent** bridges everything — persists insights and references them across sessions
-
-This creates a governance intelligence layer that gets smarter over time.
+The governance intelligence layer gets smarter with every skill invocation.
 
 ## PM Agent
 
-The Project Manager agent (`/ido4:project-manager`) is a persistent governance brain:
+The Project Manager agent is a persistent governance brain with methodology expertise:
 
-- **Persistent memory** — Tracks velocity baselines, compliance trends, recurring blockers
-- **Data-backed decisions** — Uses audit trail, analytics, and compliance score instead of estimation
-- **Multi-agent coordination** — Detects lock contention, idle agents, work imbalance
-- **Leverage thinking** — Always asks "What single action creates the most downstream value?"
-- **Wave lifecycle awareness** — Recommendations differ by wave phase (early/mid/late)
+- Maintains velocity baselines, compliance trends, and blocker patterns across sessions
+- Grounds every recommendation in real data — audit trail, analytics, compliance score
+- Coordinates multiple agents — detects lock contention, idle agents, work imbalance
+- Cannot override the BRE — translates validation failures into actionable guidance
 
-The agent cannot override the BRE — it reports validation results and translates errors into actionable guidance.
+See [PM Agent](pm-agent.md) for details.

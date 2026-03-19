@@ -67,7 +67,7 @@ The `check_merge_readiness` tool runs 6 comprehensive checks:
 | Workflow Compliance | Task followed governance workflow | Audit trail shows proper transition sequence |
 | PR Review | Pull request has approving reviews | N approvals (default: 1) |
 | Dependency Completion | All upstream dependencies satisfied | All dependency tasks in Done status |
-| Epic Integrity | Epic is cohesive within its wave | No tasks from the same epic in different waves |
+| Container Integrity | Grouping container cohesion (epic in wave, bet in cycle) | No integrity rule violations |
 | Security Gates | No vulnerability alerts | Zero critical/high severity alerts |
 | Compliance Threshold | Project meets minimum score | Score >= minimum (default: 70) |
 
@@ -106,7 +106,7 @@ Governance doesn't prevent action — it ensures accountability.
 
 ## Configuring Gates
 
-Gates are configured as BRE steps in `.ido4/methodology.json`:
+Gates are configured as BRE steps in your methodology profile (`.ido4/methodology-profile.json`):
 
 ```json
 {

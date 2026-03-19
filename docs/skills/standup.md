@@ -12,7 +12,7 @@
 
 The standup skill gathers comprehensive governance data in a single composite call (`get_standup_data`), then analyzes it for patterns and anomalies:
 
-1. **Wave status** — Active wave progress, task distribution by status
+1. **Container status** — Active container progress (wave/sprint/cycle), task distribution by status
 2. **Blocker analysis** — Blocked tasks with cascade depth and dependency trees
 3. **Review bottlenecks** — In Review tasks with PR status and review counts
 4. **Temporal patterns** — Audit trail analysis for stale work, velocity trends
@@ -59,7 +59,7 @@ a specific blocker. This single action unblocks 30% of the wave.
 
 | Data | Tool |
 |---|---|
-| Wave tasks and metrics | `get_wave_status` |
+| Container tasks and metrics | Container status tool (e.g., `get_wave_status`) |
 | PR status for In Review tasks | `find_task_pr` per task |
 | Dependency chains for blocked tasks | `analyze_dependencies` per blocker |
 | Last 24h governance activity | `query_audit_trail` |

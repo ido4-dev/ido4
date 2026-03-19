@@ -61,7 +61,7 @@ The `compute_compliance_score` tool produces a deterministic 0-100 score across 
 | **BRE Pass Rate** | 40% | Percentage of transitions that passed BRE validation without overrides |
 | **Quality Gate Satisfaction** | 20% | PR reviews completed, test coverage met, security scans clean |
 | **Process Adherence** | 20% | Tasks following the full workflow (start → review → approve) vs shortcuts |
-| **Epic Integrity** | 10% | Percentage of epics that maintain wave cohesion |
+| **Container Integrity** | 10% | Grouping containers maintaining execution container cohesion (Hydro: 10%, Shape Up: 10%, Scrum: N/A — redistributed to other categories) |
 | **Flow Efficiency** | 10% | Ratio of active work time vs blocked/waiting time |
 
 ### Letter Grades
@@ -104,10 +104,10 @@ Analytics are computed from the audit trail — no separate data store, no manua
 | **Lead time** | Duration from first non-backlog status to `approve` |
 | **Throughput** | Tasks completed per day (from `approve` events) |
 | **Blocking time** | Duration between `block` and `unblock` events |
-| **Wave velocity** | Tasks completed per wave |
+| **Container velocity** | Tasks completed per execution container (wave/sprint/cycle) |
 
 ```
-get_analytics(waveName: "wave-002-core")
+get_analytics(waveName: "wave-002-core")  // or sprintName, cycleName
 → {
     cycleTime: { mean: 2.3, median: 1.8, p95: 5.1 },  // days
     throughput: { tasksPerDay: 1.4 },

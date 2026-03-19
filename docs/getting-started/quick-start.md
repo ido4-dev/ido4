@@ -1,112 +1,106 @@
 # Quick Start
 
-This guide walks you through initializing ido4 governance on a real GitHub repository and executing your first governed workflow.
+From zero to governed in under 5 minutes. This guide uses Hydro (wave-based) as the example — the flow is identical for Scrum and Shape Up, just with different terminology.
 
-## 1. Initialize a Project
-
-With Claude Code and the plugin loaded:
+## 1. Initialize
 
 ```
 > Initialize ido4 governance for my-org/my-project
 ```
 
-Claude will call `init_project`, which:
-- Creates a GitHub Project V2 linked to your repository
-- Sets up custom fields (Status, Wave, Epic, Dependencies, AI Suitability, Risk Level, Effort, Task Type)
-- Configures status options (Backlog, In Refinement, Ready for Dev, In Progress, In Review, Done, Blocked)
-- Writes `.ido4/project-info.json` with project metadata
+ido4 creates a GitHub Project V2 with methodology-appropriate fields and statuses. Want Scrum or Shape Up instead? Just say so:
 
-## 2. Create Tasks
+```
+> Initialize ido4 with Scrum for my-org/my-project
+> Initialize ido4 with Shape Up for my-org/my-project
+```
+
+**What gets created:**
+- GitHub Project V2 linked to your repo
+- Custom fields: Status, execution container (Wave/Sprint/Cycle), grouping container (Epic/Bet), Dependencies, AI Suitability, Risk Level, Effort, Task Type
+- Status options matching your methodology's state machine
+- `.ido4/` config directory
+
+## 2. Create a task
 
 ```
 > Create a task: "Build user authentication service"
 >   Epic: Authentication, Wave: wave-001, Effort: L, Risk: HIGH
 ```
 
-Claude calls `create_task` with the parameters. The task becomes a GitHub issue, linked to the project board with all governance fields populated.
+The task becomes a GitHub issue on your project board with all governance fields populated. It lives in GitHub — ido4 doesn't have its own database.
 
-## 3. Start Working
+## 3. Start working
 
-```
-> Start working on task #42
-```
-
-Before changing any status, ido4 runs the BRE validation pipeline:
+Here's where ido4 earns its keep. When an agent tries to start a task:
 
 ```
-BRE Validation for #42 → In Progress:
-  ✓ StartFromReadyForDev — task is in Ready for Dev
-  ✓ StatusTransition — Ready for Dev → In Progress is valid
-  ✓ DependencyValidation — all dependencies satisfied
-  ✓ WaveAssignment — assigned to active wave
-  ✓ EpicIntegrity — epic is cohesive
-  ⚠ AISuitability — ai-reviewed (human oversight recommended)
-  ✓ RiskLevel — HIGH risk, standard process applies
+> Start task #42
 
-All checks passed. Transitioning to In Progress.
+BRE Validation:
+  + Task is in Ready for Dev
+  + Dependencies #38, #41 both Done
+  + Assigned to active wave
+  + Epic integrity maintained
+  + AI suitability: assisted (human review recommended)
+
+Transitioning to In Progress.
 ```
 
-If any check fails, the transition is **blocked** — not warned, blocked. The BRE explains exactly what failed and what to do about it.
-
-## 4. The Governance Loop
-
-The typical workflow:
-
-```
-Ready for Dev → start_task → In Progress
-                               ↓ (do the work)
-In Progress   → review_task → In Review
-                               ↓ (PR review)
-In Review     → approve_task → Done
-```
-
-At every arrow, the BRE validates. At every transition, an audit event is recorded.
-
-### When Things Go Wrong
+If something's wrong, the transition is **blocked** — not warned, blocked:
 
 ```
 > Start task #43
 
-BRE: BLOCKED
-  ✗ DependencyValidation — dependency #42 not completed (In Progress)
+BLOCKED:
+  x Dependency #42 is In Progress, not Done
 
-  You cannot start #43 until #42 is Done.
-  Recommended: finish #42 first, or use block_task if #43 is
-  waiting on external factors.
+  You cannot start #43 until #42 is complete.
 ```
 
-## 5. Check Governance Status
+The BRE doesn't negotiate. Dependencies must be satisfied. Containers must be assigned. Integrity rules must hold. This is the point — governance you can't accidentally bypass.
+
+## 4. The workflow
+
+Work flows through your methodology's state machine. At every arrow, the BRE validates. At every transition, an audit event is recorded.
+
+```
+Ready for Dev --> In Progress --> In Review --> Done
+                       |
+                   Blocked
+```
+
+The exact states and transitions depend on your methodology — [Scrum has 6 states](../concepts/methodologies.md#scrum), [Shape Up has 8](../concepts/methodologies.md#shape-up). The governance pattern is the same.
+
+## 5. See what's happening
 
 ```
 > /ido4:standup
 ```
 
-The standup skill gathers wave status, blocked tasks, review bottlenecks, audit trail activity, and compliance score — then delivers a concise briefing with the single highest-leverage action for the day.
+A governance-aware morning briefing: what's blocked, what's in review too long, which task has the highest cascade value, and the single highest-leverage action for the day. Every insight backed by real audit trail data.
 
 ```
 > /ido4:health
 ```
 
-The health skill gives a 5-second verdict: GREEN (everything flowing), YELLOW (some concerns), or RED (action needed).
+Five-second verdict: **GREEN** (everything flowing), **YELLOW** (concerns), or **RED** (action needed).
 
-## 6. Multi-Agent Setup
+## 6. Multi-agent setup
 
-If you're deploying multiple AI agents:
+Running multiple AI agents? Register them:
 
 ```
-> Register agent "agent-alpha" as a coding agent with
->   capabilities: backend, data, API
+> Register agent "agent-alpha" with capabilities: backend, data, API
 ```
 
-Claude calls `register_agent`. Now when agent-alpha asks "what should I work on?", `get_next_task` scores all candidates and recommends the highest-leverage task based on:
+Now `get_next_task` scores candidates across four dimensions — cascade value, momentum, capability match, and dependency freshness — and recommends the highest-leverage assignment for each agent.
 
-- **Cascade value** — What does this task unblock?
-- **Epic momentum** — Is this epic close to completion?
-- **Capability match** — Does this agent's profile fit the task?
-- **Dependency freshness** — Was a dependency just completed?
+When an agent finishes, `complete_and_handoff` atomically approves the task, releases the lock, identifies what got unblocked, and suggests the next assignment.
 
-## Next Steps
+## What to try next
 
-- [Sandbox Demo](sandbox.md) — See governance discovering violations in a controlled environment
-- [The 5 Governance Principles](../concepts/governance-principles.md) — Understand the rules
-- [Business Rule Engine](../concepts/business-rule-engine.md) — How validation works under the hood
+- **[Sandbox Demo](sandbox.md)** — See governance discover 5 embedded violations in a real GitHub project. Available for [Hydro](sandbox.md#hydro-sandbox), [Scrum](sandbox.md#scrum-sandbox), and [Shape Up](sandbox.md#shape-up-sandbox).
+- **[Methodologies](../concepts/methodologies.md)** — Understand the differences between Hydro, Scrum, and Shape Up
+- **[Business Rule Engine](../concepts/business-rule-engine.md)** — The 32 validation steps under the hood
+- **[Skills](../skills/overview.md)** — 18 intelligent governance workflows

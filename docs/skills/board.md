@@ -16,7 +16,7 @@ The board skill analyzes whether work is actually flowing — not just what stat
 1. **Blocked cascades** — Tasks blocking multiple downstream tasks
 2. **False statuses** — Tasks in "In Review" with no PR
 3. **Review bottlenecks** — PRs with zero reviews for days
-4. **Epic fragmentation** — Epics split across waves
+4. **Container fragmentation** — Grouping containers (epics/bets) split across execution containers
 5. **Cycle time outliers** — Tasks exceeding expected duration
 6. **Agent coordination** — Lock contention, idle agents
 

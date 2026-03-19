@@ -1,149 +1,207 @@
 # Configurable Methodology
 
-ido4 ships with wave-based development as the default methodology, but the BRE pipeline is fully configurable. Teams can adopt ido4 with their existing process (Scrum, Kanban, SAFe) while getting deterministic enforcement.
+ido4 is methodology-agnostic. The governance engine reads methodology profiles that define everything: states, transitions, containers, integrity rules, validation pipelines, principles, and compliance scoring. Three built-in profiles ship with ido4, and teams can create custom profiles through inheritance.
 
-## Configuration File
+## Built-in Profiles
 
-Create `.ido4/methodology.json` in your project root:
+| Profile | ID | Tools | Key Feature |
+|---|---|---|---|
+| **Hydro** | `hydro` | 57 | Wave-based governance with epic integrity |
+| **Scrum** | `scrum` | 56 | Sprint-based with type-scoped pipelines |
+| **Shape Up** | `shape-up` | 53 | Fixed time, variable scope, circuit breaker |
+
+Select during initialization:
+
+```
+init_project({ mode: "create", repository: "org/repo", methodology: "scrum" })
+```
+
+This writes `.ido4/methodology-profile.json`:
 
 ```json
 {
-  "name": "my-methodology",
-  "transitions": {
-    "start": {
-      "steps": [
-        "StartFromReadyForDev",
-        "StatusTransition",
-        "Dependency",
-        "WaveAssignment",
-        "AISuitability",
-        "RiskLevel",
-        "EpicIntegrity",
-        "TaskLock"
-      ]
-    },
-    "review": {
-      "steps": [
-        "StatusTransition",
-        "RequiredFields"
-      ]
-    },
+  "id": "scrum",
+  "extends": "scrum"
+}
+```
+
+## Profile Inheritance
+
+Custom profiles extend a built-in profile and override only what they need:
+
+```json
+{
+  "extends": "hydro",
+  "id": "my-enterprise-hydro",
+  "name": "Enterprise Hydro",
+  "pipelines": {
     "approve": {
       "steps": [
-        "StatusTransition",
-        "PRReview:minApprovals=2",
-        "TestCoverage:threshold=80",
-        "SecurityScan"
+        "StatusTransitionValidation:DONE",
+        "ApprovalRequirementValidation",
+        "ContextCompletenessValidation",
+        "PRReviewValidation:2",
+        "TestCoverageValidation:90",
+        "SecurityScanValidation",
+        "ContainerIntegrityValidation:epic-wave-integrity"
       ]
-    },
-    "block": {
-      "steps": ["StatusTransition"]
-    },
-    "unblock": {
-      "steps": ["StatusTransition"]
-    },
-    "return": {
-      "steps": ["StatusTransition", "BackwardTransition"]
-    },
-    "refine": {
-      "steps": ["StatusTransition"]
-    },
-    "ready": {
-      "steps": ["StatusTransition"]
     }
-  },
-  "principles": {
-    "epicIntegrity": true,
-    "activeWaveSingularity": true,
-    "dependencyCoherence": true,
-    "selfContainedExecution": true,
-    "atomicCompletion": true
   }
 }
 ```
 
-## Parameterized Steps
+This inherits everything from the Hydro profile but replaces the `approve` pipeline with a stricter version requiring 2 PR reviewers, 90% test coverage, and security scan clearance.
 
-Some validation steps accept parameters via colon-separated syntax:
+### What Can Be Overridden
 
-| Step | Parameter | Default | Example |
-|---|---|---|---|
-| `PRReview` | `minApprovals` | 1 | `PRReview:minApprovals=3` |
-| `TestCoverage` | `threshold` | 80 | `TestCoverage:threshold=90` |
+| Section | Override Effect |
+|---|---|
+| `states` | Replace the entire state machine |
+| `transitions` | Replace all transition definitions |
+| `containers` | Replace container type definitions |
+| `integrityRules` | Replace integrity rule set |
+| `principles` | Replace principle definitions |
+| `pipelines` | Override individual pipelines (merge with base) |
+| `compliance` | Override lifecycle and weights |
+| `behaviors` | Override closing transitions, block/return |
+| `workItems` | Override work item types |
 
-## Built-in Validation Steps
+### Pipeline Override Behavior
 
-All 32 steps are available for composition (each methodology profile activates a subset per transition):
+Pipeline overrides are **per-key** — specifying `"approve"` in your custom profile replaces only the approve pipeline. All other pipelines inherit from the base profile.
 
-### Workflow
-- `StartFromReadyForDev` — Task must be in Ready for Dev
-- `StatusTransition` — Valid state machine transition
-- `RequiredFields` — Required fields are populated
-- `BackwardTransition` — Valid return target status
+## What the Profile Controls
 
-### Dependencies
-- `Dependency` — All dependencies are Done
-- `DependencyCompletion` — No blocked downstream tasks
+### Dynamic Tool Generation
 
-### Governance
-- `WaveAssignment` — Task in active wave
-- `EpicIntegrity` — Epic tasks in same wave
-- `ActiveWaveSingularity` — Single active wave
+MCP tools are generated from the profile at server startup:
+- Transition tools from `transitions` (e.g., `shape_task` only exists for Shape Up)
+- Container tools from `containers` (e.g., `list_waves` for Hydro, `list_sprints` for Scrum)
+- The exact tool count depends on the profile
 
-### Quality
-- `PRReview` — PR has approving reviews
-- `TestCoverage` — Coverage meets threshold
-- `SecurityScan` — No critical vulnerabilities
-- `TaskLock` — Warns if locked by another agent
+### Dynamic Prompt Generation
 
-### Risk
-- `AISuitability` — AI suitability assessment
-- `RiskLevel` — Risk level enforcement
+Prompts use the profile's terminology:
+- Hydro prompts reference Waves, Epics, and the 5 Principles
+- Scrum prompts reference Sprints, DoR/DoD, and Sprint Goals
+- Shape Up prompts reference Cycles, Bets, Appetite, and the Circuit Breaker
 
-## Default Methodology
+### BRE Pipeline Assembly
 
-If no `.ido4/methodology.json` exists, ido4 uses the built-in `DEFAULT_METHODOLOGY` — the full wave-based governance pipeline with all steps enabled. The default is backward-compatible and requires no configuration.
-
-## Adapting to Your Process
-
-### Lightweight (Startups)
-
-Minimal governance — fast execution, basic guards:
+The validation pipeline for each transition is assembled from the profile's `pipelines` section. Steps are parameterized:
 
 ```json
-{
-  "transitions": {
-    "start": { "steps": ["StatusTransition", "Dependency"] },
-    "approve": { "steps": ["StatusTransition"] }
-  },
-  "principles": {
-    "epicIntegrity": false,
-    "activeWaveSingularity": false,
-    "dependencyCoherence": true
-  }
+"start": {
+  "steps": [
+    "SourceStatusValidation:READY_FOR_DEV",
+    "SpecCompletenessValidation",
+    "StatusTransitionValidation:IN_PROGRESS",
+    "DependencyValidation",
+    "ContainerAssignmentValidation:wave",
+    "ContainerSingularityValidation:wave",
+    "AISuitabilityValidation",
+    "RiskLevelValidation",
+    "ContainerIntegrityValidation:epic-wave-integrity"
+  ]
 }
 ```
 
-### Strict (Enterprise / Regulated)
+### Compliance Scoring
+
+Each profile defines its own compliance weights:
+
+| Category | Hydro | Scrum | Shape Up |
+|---|---|---|---|
+| BRE Pass Rate | 40% | 40% | 35% |
+| Quality Gates | 20% | 25% | 25% |
+| Process Adherence | 20% | 25% | 20% |
+| Container Integrity | 10% | — | 10% |
+| Flow Efficiency | 10% | 10% | 10% |
+
+## Example: Enterprise Configurations
+
+### Strict Enterprise (Regulated Industry)
 
 Maximum governance — every quality gate enforced:
 
 ```json
 {
-  "transitions": {
+  "extends": "hydro",
+  "id": "enterprise-strict",
+  "pipelines": {
     "start": {
-      "steps": ["StatusTransition", "Dependency", "WaveAssignment", "EpicIntegrity", "TaskLock", "AISuitability", "RiskLevel"]
+      "steps": [
+        "SourceStatusValidation:READY_FOR_DEV",
+        "SpecCompletenessValidation",
+        "StatusTransitionValidation:IN_PROGRESS",
+        "DependencyValidation",
+        "ContainerAssignmentValidation:wave",
+        "ContainerSingularityValidation:wave",
+        "AISuitabilityValidation",
+        "RiskLevelValidation",
+        "ContainerIntegrityValidation:epic-wave-integrity",
+        "TaskLockValidation"
+      ]
     },
     "approve": {
-      "steps": ["StatusTransition", "PRReview:minApprovals=2", "TestCoverage:threshold=90", "SecurityScan", "DependencyCompletion"]
+      "steps": [
+        "StatusTransitionValidation:DONE",
+        "ApprovalRequirementValidation",
+        "ContextCompletenessValidation",
+        "PRReviewValidation:2",
+        "TestCoverageValidation:90",
+        "SecurityScanValidation",
+        "SubtaskCompletionValidation",
+        "ContainerIntegrityValidation:epic-wave-integrity"
+      ]
     }
-  },
-  "principles": {
-    "epicIntegrity": true,
-    "activeWaveSingularity": true,
-    "dependencyCoherence": true,
-    "selfContainedExecution": true,
-    "atomicCompletion": true
   }
 }
 ```
+
+### Lightweight Startup
+
+Minimal governance — fast execution, basic guards:
+
+```json
+{
+  "extends": "scrum",
+  "id": "startup-light",
+  "pipelines": {
+    "plan": {
+      "steps": ["SourceStatusValidation:BACKLOG", "StatusTransitionValidation:SPRINT"]
+    },
+    "start": {
+      "steps": ["SourceStatusValidation:SPRINT", "StatusTransitionValidation:IN_PROGRESS", "DependencyValidation"]
+    },
+    "approve": {
+      "steps": ["StatusTransitionValidation:DONE"]
+    }
+  }
+}
+```
+
+### Shape Up with Mandatory Context
+
+Shape Up with required completion context on every ship:
+
+```json
+{
+  "extends": "shape-up",
+  "id": "shape-up-documented",
+  "pipelines": {
+    "ship": {
+      "steps": [
+        "StatusTransitionValidation:SHIPPED",
+        "ApprovalRequirementValidation",
+        "ContextCompletenessValidation",
+        "PRReviewValidation:1"
+      ]
+    }
+  }
+}
+```
+
+## 32 Available Validation Steps
+
+All steps are available for composition in custom profiles. See the [Business Rule Engine](../concepts/business-rule-engine.md) documentation for the complete step reference with parameters.

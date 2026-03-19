@@ -1,10 +1,10 @@
 # PM Agent
 
-The Project Manager agent is a persistent governance brain that maintains context across sessions and provides data-backed project guidance.
+The Project Manager agent is a persistent governance brain that maintains context across sessions and provides data-backed project guidance. It adapts its reasoning to the active methodology.
 
 ## Activation
 
-The PM agent activates when you ask about project status, task management, wave planning, or development workflow in Claude Code with the plugin loaded.
+The PM agent activates when you ask about project status, task management, container planning, or development workflow in Claude Code with the plugin loaded.
 
 ## Core Competencies
 
@@ -17,9 +17,13 @@ The PM agent never guesses project state. It calls MCP tools to get real data:
 - Compliance score for governance health
 - Agent state for coordination awareness
 
-### The 5 Principles
+### Methodology Principles
 
-The agent understands and enforces the 5 governance principles. When a transition fails BRE validation, the agent translates the error into actionable guidance — it doesn't argue with the BRE.
+The agent understands and enforces the active methodology's governance principles. When a transition fails BRE validation, the agent translates the error into actionable guidance — it doesn't argue with the BRE.
+
+- **Hydro**: Enforces 5 principles (Epic Integrity, Wave Singularity, Dependency Coherence, Self-Contained Execution, Atomic Completion)
+- **Scrum**: Enforces Sprint Singularity and type-scoped DoR/DoD
+- **Shape Up**: Enforces Bet Integrity, Cycle Singularity, and the Circuit Breaker
 
 ### Leverage Thinking
 
@@ -27,7 +31,7 @@ The agent always asks: "What single action creates the most downstream value?"
 
 - Unblocking a cascade root > starting a new isolated task
 - Reviewing a stale PR > writing new code
-- Completing an in-progress epic > starting a new one
+- Completing an in-progress epic/bet > starting a new one
 
 ### Multi-Agent Coordination
 
@@ -37,18 +41,19 @@ When multiple agents are registered:
 - Recognizes work imbalance and redistributes
 - Coordinates handoffs between agents
 
-### Wave Lifecycle Awareness
+### Container Lifecycle Awareness
 
-Recommendations differ by wave phase:
-- **Early wave**: Focus on high-risk items, establish patterns
-- **Mid wave**: Focus on unblocking, maintain velocity
-- **Late wave**: Focus on completion, avoid new starts
+Recommendations differ by execution container phase:
+- **Early**: Focus on high-risk items, establish patterns
+- **Mid**: Focus on unblocking, maintain velocity
+- **Late**: Focus on completion, avoid new starts
+- **Shape Up late**: Circuit breaker assessment — recommend scope cuts or kills
 
 ## Persistent Memory
 
 The agent maintains `MEMORY.md` across sessions with:
 
-- Current active wave and progress
+- Current active container and progress
 - Real velocity baselines (from retro findings)
 - Cycle time patterns
 - Compliance score trends
@@ -60,27 +65,23 @@ The agent maintains `MEMORY.md` across sessions with:
 ```
 User: "What should I work on?"
 Agent: [calls get_project_status, get_next_task]
-  "wave-002 is at 20% with 2 blocked tasks. The highest-leverage
+  "Sprint 14 is at 40% with 1 blocked task. The highest-leverage
    action is reviewing PR #281 for session management — it's been
-   open 4 days and unblocks auth epic progress. Score: 47."
+   open 4 days and unblocks the auth epic. Score: 47."
 
 User: "Why can't I start task #268?"
 Agent: [calls validate_transition(#268, "start")]
-  "The BRE blocks it for 3 reasons:
-   1. Task is in Blocked status (must unblock first)
-   2. Dependency #267 is still In Progress
-   3. Status transition Blocked → In Progress isn't valid
-   The only valid action is 'unblock', but even after unblocking,
-   you'll need to wait for #267 to complete."
+  "The BRE blocks it because dependency #267 is still In Progress.
+   You need to wait for #267 to complete before starting #268.
+   Recommendation: check if agent-alpha needs help with #267."
 
-User: "How's our compliance?"
-Agent: [calls compute_compliance_score]
-  "Score: 92/A. Strong across all categories. The one gap is
-   flow efficiency (84%) — 2 tasks spent >3 days blocked. The
-   Auth epic integrity violation doesn't appear in the behavioral
-   score because no splitting transitions happened recently, but
-   it's still a structural issue that should be resolved in
-   wave-003 planning."
+User: "Should we kill this bet?"
+Agent: [calls get_cycle_status, get_bet_tasks]
+  "Cycle has 5 days remaining. The Search Redesign bet has 2/7
+   tasks shipped, 1 building, 4 not started. This bet won't ship
+   in time. Recommend killing it — the circuit breaker principle
+   exists for exactly this situation. The work returns to cooldown
+   for reshaping."
 ```
 
 ## Hard Constraints
@@ -90,5 +91,5 @@ The PM agent cannot:
 - Make financial or contractual decisions
 - Access systems outside MCP tools
 - Skip human review checkpoints
-- Mark a wave complete with undone tasks
+- Mark a container complete with undone tasks
 - Recommend tasks locked by other agents

@@ -9,7 +9,7 @@
 
 ## Option 1: Claude Code Plugin (Recommended)
 
-The plugin bundles the MCP server with 8 governance skills, a PM agent, and governance hooks.
+The plugin bundles the MCP server with 18 governance skills, 4 agents, and governance hooks.
 
 ```bash
 # Clone and build

@@ -1,6 +1,6 @@
 # Enterprise Features
 
-ido4 provides the governance infrastructure that enterprise software delivery requires — compliance documentation, configurable methodology, quality gates, and full audit trails.
+ido4 provides the governance infrastructure that enterprise software delivery requires — compliance documentation, configurable methodology, quality gates, and full audit trails. All features work across all three built-in methodologies (Hydro, Scrum, Shape Up) and custom profiles.
 
 ## Why Enterprise Teams Need Governance
 
@@ -17,63 +17,61 @@ ido4 addresses all four with deterministic enforcement, not guidelines.
 
 ### Deterministic Scoring
 
-The compliance score is a 0-100 number computed from audit trail data across 5 weighted categories:
+The compliance score is a 0-100 number computed from audit trail data. The category weights vary by methodology:
 
-| Category | Weight | What It Measures |
-|---|---|---|
-| BRE Pass Rate | 40% | Transitions that passed validation without overrides |
-| Quality Gates | 20% | PR reviews completed, test coverage met, scans clean |
-| Process Adherence | 20% | Tasks following full workflow (start → review → approve) |
-| Epic Integrity | 10% | Epics maintaining wave cohesion |
-| Flow Efficiency | 10% | Active work time vs blocked/waiting time |
+| Category | Hydro | Scrum | Shape Up |
+|---|---|---|---|
+| BRE Pass Rate | 40% | 40% | 35% |
+| Quality Gates | 20% | 25% | 25% |
+| Process Adherence | 20% | 25% | 20% |
+| Container Integrity | 10% | -- | 10% |
+| Flow Efficiency | 10% | 10% | 10% |
 
 ### Three-Part Assessment
 
 The `/ido4:compliance` skill provides a comprehensive report:
 
 1. **Quantitative**: Numerical score with per-category breakdown
-2. **Structural**: Audit of all 5 governance principles with severity scoring
+2. **Structural**: Audit of all governance principles with severity scoring
 3. **Synthesis**: Cross-referenced findings with actor pattern analysis and recommendations
 
 ### Client-Ready Output
 
-Every claim is backed by data. Every metric is derived from actual events. The compliance report provides the evidence that enterprise clients demand — who did what, when, and whether the rules were followed.
+Every claim is backed by data. Every metric is derived from actual events. The compliance report provides the evidence that enterprise clients demand.
 
 ## Configurable Methodology
 
-### Default: Wave-Based Development
+### Three Built-in Profiles
 
-ido4 ships with a wave-based methodology — tasks are organized into sequential waves with strict governance principles. This is the recommended approach for AI-augmented teams.
+| Profile | Key Feature | Tool Count |
+|---|---|---|
+| Hydro | Wave-based with epic integrity | 57 |
+| Scrum | Sprint-based with type-scoped DoR/DoD | 56 |
+| Shape Up | Cycle-based with circuit breaker | 53 |
 
-### Custom Methodologies
+### Profile Inheritance
 
-Teams can customize the BRE pipeline via `.ido4/methodology.json`:
+Custom profiles extend built-in ones:
 
 ```json
 {
-  "name": "custom-scrum",
-  "transitions": {
-    "start": {
-      "steps": ["StatusTransition", "Dependency", "WaveAssignment"]
-    },
+  "extends": "hydro",
+  "id": "enterprise-strict",
+  "pipelines": {
     "approve": {
       "steps": [
-        "StatusTransition",
-        "PRReview:minApprovals=2",
-        "TestCoverage:threshold=90",
-        "SecurityScan"
+        "StatusTransitionValidation:DONE",
+        "ApprovalRequirementValidation",
+        "PRReviewValidation:2",
+        "TestCoverageValidation:90",
+        "SecurityScanValidation"
       ]
     }
-  },
-  "principles": {
-    "epicIntegrity": true,
-    "activeWaveSingularity": true,
-    "dependencyCoherence": true
   }
 }
 ```
 
-This allows enterprises to adopt ido4 with their existing methodology (Scrum, Kanban, SAFe) while getting deterministic enforcement.
+Override only what you need. Everything else inherits from the base profile. See [Configurable Methodology](methodology.md) for full details.
 
 ## Quality Gates
 
@@ -81,10 +79,10 @@ This allows enterprises to adopt ido4 with their existing methodology (Scrum, Ka
 
 | Gate | What It Checks | Configurable |
 |---|---|---|
-| PR Review | Minimum approving reviews on linked PR | `PRReview:minApprovals=N` |
-| Test Coverage | Coverage threshold from CI status checks | `TestCoverage:threshold=N` |
-| Security Scan | Repository vulnerability alerts | `SecurityScan` |
-| Task Lock | Warns if locked by another agent | `TaskLock` |
+| PR Review | Minimum approving reviews on linked PR | `PRReviewValidation:minApprovals=N` |
+| Test Coverage | Coverage threshold from CI status checks | `TestCoverageValidation:threshold=N` |
+| Security Scan | Repository vulnerability alerts | `SecurityScanValidation` |
+| Task Lock | Warns if locked by another agent | `TaskLockValidation` |
 
 ### Merge Readiness Gate
 
@@ -93,17 +91,17 @@ The `check_merge_readiness` tool runs 6 checks before approving a merge:
 1. Workflow Compliance — full governance lifecycle followed
 2. PR Review — required approvals present
 3. Dependency Completion — all upstream work done
-4. Epic Integrity — epic is cohesive within its wave
+4. Container Integrity — epic/bet cohesion maintained
 5. Security Gates — no vulnerability alerts
 6. Compliance Threshold — project meets minimum score
 
 ### Emergency Overrides
 
-Overrides are available for emergency situations — but they're audited:
+Overrides are available — but audited:
 
 ```
 check_merge_readiness(#42, overrideReason: "Critical hotfix approved by CTO")
-→ READY (overridden) — audit event recorded, compliance score impacted
+-> READY (overridden) -- audit event recorded, compliance score impacted
 ```
 
 ## Audit Trail
@@ -124,20 +122,20 @@ Every governance action produces an immutable event:
 
 ### Analytics from Events
 
-Real metrics computed from the audit trail — no manual tracking:
-- Cycle time (start → approve)
-- Lead time (first activity → approve)
+Real metrics computed from the audit trail:
+- Cycle time (start -> approve/ship)
+- Lead time (first activity -> approve/ship)
 - Throughput (tasks per day)
-- Blocking time (block → unblock duration)
-- Wave velocity (delivery pace per wave)
+- Blocking time (block -> unblock duration)
+- Container velocity (delivery pace per wave/sprint/cycle)
 
 ## Multi-Agent Governance
 
 Deploy multiple AI agents with confidence:
 
 - **Unique identity** — Each agent has an ID, role, and capability profile
-- **Task locking** — Exclusive access prevents conflicts
-- **Work distribution** — 4-dimension scoring recommends optimal task assignments
+- **Task locking** — Exclusive access prevents conflicts (30min TTL)
+- **Work distribution** — 4-dimension scoring recommends optimal assignments
 - **Coordination state** — Full visibility into agent activity
 - **Audit attribution** — Every action traced to a specific agent
 
@@ -152,5 +150,4 @@ ido4 enables a new operating model: **2 senior humans + AI agents + governance =
 | Retrospective compliance reports | Real-time compliance scoring |
 | Single-agent workflows | Multi-agent coordination |
 | Trust-based quality | Gate-enforced quality |
-
-The competitive moat isn't the code — it's the methodology, the consulting model, and the institutional knowledge built through governance data over time.
+| One-size-fits-all methodology | Profile-driven, configurable |

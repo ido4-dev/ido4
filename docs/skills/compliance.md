@@ -23,15 +23,13 @@ Calls `compute_compliance_score` and presents the numerical breakdown:
 
 ### Part 2: Structural Principle Audit
 
-Examines each of the 5 governance principles against live project state:
+Examines each governance principle defined in the active methodology profile against live project state. The number and type of principles vary by methodology:
 
-| Principle | Check | Severity |
-|---|---|---|
-| Epic Integrity | Any epics split across waves? | PASS / WARN / FAIL |
-| Active Wave Singularity | Only one active wave? | PASS / FAIL |
-| Dependency Coherence | Any forward dependencies? | PASS / WARN / FAIL |
-| Self-Contained Execution | Any external blockers? | PASS / WARN |
-| Atomic Completion | Incomplete waves with leftover tasks? | PASS / WARN / FAIL |
+- **Hydro (5 principles)**: Epic Integrity, Wave Singularity, Dependency Coherence, Self-Contained Execution, Atomic Completion
+- **Scrum (1 principle)**: Sprint Singularity
+- **Shape Up (4 principles)**: Bet Integrity, Cycle Singularity, Circuit Breaker, Fixed Appetite
+
+Each principle is checked and rated PASS / WARN / FAIL with severity scoring.
 
 ### Part 3: Cross-Referenced Synthesis
 

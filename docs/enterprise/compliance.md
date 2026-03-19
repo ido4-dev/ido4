@@ -19,7 +19,7 @@ compute_compliance_score(waveName: "wave-002-core")
 | **BRE Pass Rate** | 40% | % of transitions passing BRE without overrides | Audit: `task.transition` events |
 | **Quality Gates** | 20% | PR reviews done, coverage met, scans clean | GitHub API via repositories |
 | **Process Adherence** | 20% | Tasks following full workflow (start→review→approve) | Audit: transition sequence analysis |
-| **Epic Integrity** | 10% | Epics maintaining wave cohesion | Project state: task-to-wave mapping |
+| **Container Integrity** | 0-10% | Grouping containers maintaining execution container cohesion (Hydro: 10%, Shape Up: 10%, Scrum: 0% — redistributed) | Project state: container mapping |
 | **Flow Efficiency** | 10% | Active work time vs blocked/waiting time | Audit: block/unblock intervals |
 
 ### Letter Grades
@@ -62,13 +62,11 @@ Calls `compute_compliance_score` and presents the numerical breakdown. This is t
 
 ### Part 2: Structural Audit
 
-Examines each of the 5 governance principles:
+Examines each governance principle defined in the active methodology profile:
 
-- **Epic Integrity** — Are any epics split across waves? Severity?
-- **Active Wave Singularity** — Is only one wave active?
-- **Dependency Coherence** — Any forward dependencies?
-- **Self-Contained Execution** — Any external blockers?
-- **Atomic Completion** — Any incomplete waves with tasks left behind?
+- **Hydro (5 principles)**: Epic Integrity, Active Wave Singularity, Dependency Coherence, Self-Contained Execution, Atomic Completion
+- **Scrum (1 principle)**: Sprint Singularity
+- **Shape Up (4 principles)**: Bet Integrity, Active Cycle Singularity, Circuit Breaker, Fixed Appetite
 
 Each principle gets a severity score: PASS, WARN, or FAIL.
 
@@ -85,7 +83,7 @@ Combines quantitative and structural findings:
 A compliance report for an enterprise client includes:
 
 1. **Score card** — 92/A with per-category breakdown
-2. **Principle audit** — All 5 principles assessed with evidence
+2. **Principle audit** — All active methodology principles assessed with evidence
 3. **Audit evidence** — Every transition with actor, timestamp, and validation results
 4. **Velocity metrics** — Real throughput and cycle time data
 5. **Recommendations** — Actionable items ranked by impact

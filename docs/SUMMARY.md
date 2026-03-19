@@ -9,11 +9,13 @@
 
 ## Core Concepts
 
-* [Waves & Epics](concepts/waves-and-epics.md)
-* [The 5 Governance Principles](concepts/governance-principles.md)
+* [Methodologies](concepts/methodologies.md)
+* [Containers](concepts/containers.md)
+* [Governance Principles](concepts/governance-principles.md)
 * [Business Rule Engine](concepts/business-rule-engine.md)
 * [Multi-Agent Governance](concepts/multi-agent.md)
 * [Audit Trail & Compliance](concepts/audit-compliance.md)
+* [Glossary](concepts/glossary.md)
 
 ## Architecture
 
@@ -21,18 +23,21 @@
 
 ## Tool Reference
 
-* [All 58 Tools](reference/tools.md)
+* [All Tools](reference/tools.md)
 
 ## Skills & Intelligence
 
 * [Skills Overview](skills/overview.md)
 * [/standup](skills/standup.md)
-* [/plan-wave](skills/plan-wave.md)
+* [/plan-wave, /plan-sprint, /plan-cycle](skills/planning.md)
 * [/board](skills/board.md)
 * [/compliance](skills/compliance.md)
-* [/retro](skills/retro.md)
+* [/retro, /retro-sprint, /retro-cycle](skills/retro.md)
 * [/health](skills/health.md)
-* [/sandbox](skills/sandbox.md)
+* [/sandbox, /sandbox-hydro, /sandbox-scrum, /sandbox-shape-up](skills/sandbox.md)
+* [/decompose](skills/decompose.md)
+* [/spec-validate](skills/spec-validate.md)
+* [/pilot-test](skills/pilot-test.md)
 * [MCP Prompts](skills/prompts.md)
 * [PM Agent](skills/pm-agent.md)
 

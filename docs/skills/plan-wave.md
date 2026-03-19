@@ -1,6 +1,6 @@
 # /plan-wave
 
-**Principle-aware wave composition engine** that produces a valid-by-construction wave plan respecting all 5 governance principles.
+**Principle-aware wave composition engine** that produces a valid-by-construction wave plan respecting all 5 Hydro governance principles. For Scrum sprint planning or Shape Up cycle planning, see [Planning Skills](planning.md).
 
 ## Invocation
 

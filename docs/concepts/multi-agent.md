@@ -45,13 +45,13 @@ How many downstream tasks does completing this task unblock? A task that unblock
 cascade = 15 (1 dependent at depth 1)
 ```
 
-### Epic Momentum (0-25 points)
+### Container Momentum (0-25 points)
 
-Is the task's epic close to completion? Finishing in-progress epics is more valuable than starting new ones.
+Is the task's grouping container (epic/bet) close to completion? Finishing in-progress epics or bets is more valuable than starting new ones.
 
 ```
 Epic "Data Pipeline": 2 of 7 tasks done (28%)
-epic momentum = 7
+momentum = 7
 ```
 
 ### Capability Match (0-20 points)
@@ -125,7 +125,7 @@ Two PostToolUse hooks monitor governance impact:
 
 1. **State Transition Hook** — After any task transition, checks: Did this unblock something? Did this create a new blocker? Is this a wave milestone?
 
-2. **Wave Assignment Hook** — After assigning a task to a wave, checks: Does this create an epic integrity issue? Does this introduce dependency problems?
+2. **Container Assignment Hook** — After assigning a task to a container (wave/sprint/cycle), checks: Does this create an integrity issue? Does this introduce dependency problems?
 
 ## Anti-Patterns ido4 Prevents
 
@@ -134,6 +134,6 @@ Two PostToolUse hooks monitor governance impact:
 | Two agents working on the same task | Task locking with exclusive access |
 | Agent starts a task with incomplete dependencies | DependencyValidation BRE step |
 | Agent bypasses code review | StatusTransitionValidation enforces the workflow |
-| Agent ignores epic integrity | EpicIntegrityValidation blocks split assignments |
+| Agent ignores container integrity | ContainerIntegrityValidation blocks split assignments |
 | No visibility into agent activity | Full audit trail with per-agent attribution |
 | Agents working on low-value tasks | Work distribution recommends highest-leverage work |
