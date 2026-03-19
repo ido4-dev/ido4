@@ -64,11 +64,7 @@ Agent infrastructure:
 Transition tools:
 - `start_task` is NOT a separate tool — transition tools (start, review, approve, etc.) are dynamically generated from the methodology profile. Context delivery happens through `get_task_execution_data` which agents call separately.
 
-**Terminology note:** "Capabilities" has two meanings in the codebase:
-1. **Agent capabilities** — `agent.capabilities: string[]` in WorkDistributionService (what an agent can do: `['backend', 'auth']`)
-2. **Strategic capabilities** — `StrategicCapability` in the strategic spec parser (functional requirements like NCO-01)
-
-These are different concepts. May need distinct terminology to avoid confusion.
+**Terminology note:** "Capabilities" is used in two different domains — agent capabilities (`agent.capabilities: string[]`) and strategic capabilities (`StrategicCapability`). Different domains, clear from context. Not a collision.
 
 ---
 
@@ -184,15 +180,144 @@ Note: traditional Shape Up limits bets to 2-3 per cycle — this was a human-era
 
 **One rule: capabilities → the methodology's grouping container.** Uniform across all methodologies.
 
-### Implementation impact
+### Implementation Plan
 
-**Ingestion pipeline changes:**
-- `findGroupingContainer()` currently maps groups → epic/bet. Needs to map capabilities → epic/bet instead.
-- `IngestionService` currently creates group issues then task sub-issues. Needs to create capability issues then task sub-issues. Group issues are no longer created.
-- The technical spec format may need adjustment — capabilities as the top-level grouping instead of groups.
+#### Already Done
+- **Technical spec format changed** — `spec-parser.ts` regex updated from `## Group:` to `## Capability:` (commit `142be39`)
+- **All test fixtures updated** — `spec-parser.test.ts`, `full-artifact-stress.test.ts`, `ingestion-service.test.ts` all use `## Capability:`
+- **Format reference updated** — `spec-artifact-format.md` uses `## Capability:` throughout
+- **Agent instructions updated** — `technical-spec-writer.md`, `decompose/SKILL.md`, `spec-validate/SKILL.md`, `spec-reviewer.md` all reference `## Capability:`
+- **MCP schema updated** — `ingest_spec` tool description references `## Capability:`
 
-**`findGroupingContainer` logic:**
-Currently finds containers with `completionRule: 'none'` AND `!parent`. This returns Epic (Hydro), Bet (Shape Up), and now Epic (Scrum). The logic doesn't change — what changes is WHAT maps to it (capabilities instead of groups).
+Since the parser reads `## Capability:` into `ParsedGroup` objects, and the mapper maps `ParsedGroup` to the grouping container, and the ingestion service creates parent issues from `ParsedGroup` — **the pipeline already works for Hydro and Shape Up**. The `ParsedGroup` internal type holds capability data; the pipeline is oblivious to the heading keyword.
+
+#### Remaining Implementation
+
+**1. Add Epic to Scrum profile** (`packages/core/src/profiles/scrum.ts`)
+
+Current Scrum containers: `[sprint]`. Add:
+```typescript
+{
+  id: 'epic',
+  singular: 'Epic',
+  plural: 'Epics',
+  taskField: 'Epic',
+  completionRule: 'none',
+  managed: true,
+}
+```
+No integrity rules — epics span sprints in Scrum.
+
+**Impact cascade:**
+- `findGroupingContainer(SCRUM_PROFILE)` returns `epic` instead of `null`
+- Scrum server integration tests: tool count increases (gets `create_epic`, `list_epics`, `assign_to_epic` container tools)
+- Scrum mapper tests: `containerTypeId` changes from `null` to `'epic'` for grouping units
+- Scrum sandbox scenario (`scrum-sprint.ts`): may need epic data in sandbox tasks
+- Profile registry tests: Scrum profile validation passes with 2 containers
+
+**2. Update mapper internal refs** (`packages/core/src/domains/ingestion/spec-mapper.ts`)
+
+Current: `ref: \`group:${group.name}\`` and fallback body `\`Group: ${group.name}\``
+Change to: `ref: \`capability:${group.name}\`` and fallback body `\`Capability: ${group.name}\``
+
+This is cosmetic (internal data) but maintains consistency.
+
+**3. Update ingestion service log messages** (`packages/core/src/domains/ingestion/ingestion-service.ts`)
+
+Any log messages or suggestion text referencing "groups" should say "capabilities" for consistency.
+
+**4. Update agent instructions for group knowledge downstream**
+
+The `code-analyzer.md` and `technical-spec-writer.md` agents need updated instructions to:
+- Use group context (priority, description) when assessing capabilities
+- Weave group knowledge into capability/epic issue bodies
+- Use group priority for decomposition ordering
+
+**5. Technical spec writer output conventions**
+
+The `## Capability:` heading in the technical spec should use the capability title (not the ref):
+```markdown
+## Capability: Notification Event Model
+> size: M | risk: low
+```
+NOT:
+```markdown
+## Capability: NCO-01 — Notification Event Model
+```
+Because the parser derives a prefix from the heading name. `Notification Event Model` → prefix `NEM`. The tasks use `### NCO-01A: Event Schema` with the ref in the task heading. The capability's ref (NCO-01) is implicit from the task refs, not explicit in the capability heading.
+
+However — this means the parser-derived prefix (`NEM`) won't match the task refs (`NCO-01A`). The current parser derives prefixes from group names, and tasks are expected to use that prefix. If the technical-spec-writer uses the capability title as the heading, the prefix derivation must match the task ref pattern.
+
+**Resolution:** The technical-spec-writer should use the capability ref as part of the heading name to ensure prefix consistency:
+```markdown
+## Capability: NCO — Notification Event Model
+> size: M | risk: low
+
+### NCO-01A: Event Schema
+> effort: M | risk: low | type: feature | ai: full
+```
+This way: `NCO — Notification Event Model` → derived prefix `NCO` → matches task refs `NCO-01A`.
+
+Or simpler: the technical-spec-writer includes only the prefix in the heading:
+```markdown
+## Capability: Notification Core
+> size: M | risk: low
+```
+With prefix derivation: `Notification Core` → `NC`. But tasks use `NCO-` prefix (from the strategic spec). Mismatch.
+
+**Best approach:** Use the strategic spec's group name as the capability heading (since groups contain the capabilities being decomposed):
+```markdown
+## Capability: Notification Core
+> size: L | risk: medium
+```
+Tasks within: `NCO-01A`, `NCO-01B`, `NCO-02A`. Prefix derivation: `Notification Core` → `NC`. But task refs start with `NCO`. Mismatch again.
+
+**Root issue:** The current prefix derivation (initials from the heading name) doesn't always match the strategic spec's prefix convention. The strategic spec uses manually chosen prefixes (NCO for Notification Core, EML for Email Channel). These are 3-letter codes, not always matching initials.
+
+**Fix:** The technical-spec-writer should use the strategic spec's prefix in the heading, matching how the strategic spec names its capabilities:
+```markdown
+## Capability: Notification Core
+> size: L | risk: medium | prefix: NCO
+```
+But the parser doesn't support a `prefix` metadata field — it derives the prefix.
+
+**Simplest fix:** Don't validate prefix matching between heading and task refs in the technical spec. The parser already derives a prefix but doesn't enforce task refs match it. Task refs come from the strategic spec (NCO-01A) and the heading name comes from the capability/group name. The prefix mismatch is cosmetic — the ingestion pipeline doesn't use the derived prefix for anything functional.
+
+**Decision needed:** Verify that prefix mismatch between `ParsedGroup.prefix` (derived from heading) and task refs (from strategic spec) doesn't break any downstream logic. If it doesn't, no change needed.
+
+#### Pipeline Flow After Implementation
+
+```
+Technical spec (produced by technical-spec-writer):
+  ## Capability: Notification Core         ← parser reads as ParsedGroup
+    ### NCO-01A: Event Schema              ← parser reads as ParsedTask
+    ### NCO-01B: Validation Service        ← parser reads as ParsedTask
+  ## Capability: Email Channel
+    ### EML-01A: SendGrid Integration      ← parser reads as ParsedTask
+
+Parser → ParsedSpec:
+  groups[0] = { name: "Notification Core", prefix: "NC", tasks: [NCO-01A, NCO-01B] }
+  groups[1] = { name: "Email Channel", prefix: "EC", tasks: [EML-01A] }
+
+Mapper → MappedSpec:
+  groupIssues[0] = { ref: "capability:Notification Core", containerTypeId: "epic" }
+  groupIssues[1] = { ref: "capability:Email Channel", containerTypeId: "epic" }
+  tasks = [NCO-01A, NCO-01B, EML-01A] (topologically sorted)
+
+IngestionService:
+  1. Create "Notification Core" issue → assign to Epic container → GitHub issue #100
+  2. Create "Email Channel" issue → assign to Epic container → GitHub issue #101
+  3. Create NCO-01A task → sub-issue of #100
+  4. Create NCO-01B task → sub-issue of #100
+  5. Create EML-01A task → sub-issue of #101
+
+GitHub result:
+  #100 Notification Core (Epic)
+    └── #102 NCO-01A: Event Schema (Task)
+    └── #103 NCO-01B: Validation Service (Task)
+  #101 Email Channel (Epic)
+    └── #104 EML-01A: SendGrid Integration (Task)
+```
 
 **Performance:** Sub-issue creation has 1000ms delay per call. Two-level hierarchy (capabilities + tasks) for 12 capabilities + 30 tasks = 42 sub-issue calls = ~42 seconds. Similar to current.
 
@@ -336,25 +461,24 @@ Don't apply human-era methodology constraints (e.g., "2-3 bets per cycle", "5-9 
 
 ## Open Implementation Questions
 
-### Technical spec format: groups → capabilities
-The current technical spec format uses `## Group:` as the top-level grouping. If capabilities replace groups as the structural unit, the format options are:
-1. Replace `## Group:` with a capability-level heading — but `spec-parser.ts` expects `## Group:` syntax
-2. Keep `## Group:` in the technical spec but populate with capability data (one "group" per capability)
-3. Add a new heading pattern for capabilities and update `spec-parser.ts`
-
-This needs resolution before implementation.
+### ~~Technical spec format: groups → capabilities~~ — DONE
+`spec-parser.ts` updated to `## Capability:` regex. All test fixtures, format reference, agent instructions, and MCP schema updated. Commit `142be39`.
 
 ### ~~Terminology: "capabilities" collision~~ — RESOLVED (not a collision)
-"Capabilities" is used in two different domains: agent capabilities (`agent.capabilities: string[]` — what an agent can do) and strategic capabilities (`StrategicCapability` — functional requirements from ido4shape). Different domains, different types, clear from context. No rename needed.
+Different domains, clear from context. No rename needed.
+
+### Prefix derivation vs strategic spec refs
+The parser derives a prefix from the `## Capability:` heading name (e.g., `Notification Core` → `NC`). But tasks use refs from the strategic spec (e.g., `NCO-01A`). The derived prefix (`NC`) doesn't match the task ref prefix (`NCO`). **Verify this mismatch doesn't break downstream logic.** If the derived prefix isn't used functionally, this is cosmetic and acceptable.
 
 ---
 
 ## Next Steps
 
-1. **Resolve open implementation questions** — Technical spec format, terminology
-2. **Add Epic to Scrum profile** — New container, no integrity rule
-3. **Update ingestion pipeline** — Capabilities as grouping unit instead of groups
+1. **Verify prefix mismatch impact** — Check if `ParsedGroup.prefix` is used anywhere that requires matching task refs
+2. **Add Epic to Scrum profile** — Full container definition, update tests, update sandbox scenario
+3. **Update mapper refs** — `group:${name}` → `capability:${name}`, update fallback body text
 4. **Update agent instructions** — Group knowledge downstream, capability→epic mapping
 5. **Validate Gap 4** — Run the pipeline end-to-end
-6. **Real validation** — Decompose a real strategic spec from ido4shape
-7. *(Future enhancement)* Context-aware governance prompts — improve with care, don't break existing
+6. **Release** — Version bump after implementation complete
+7. **Real validation** — Decompose a real strategic spec from ido4shape
+8. *(Future enhancement)* Context-aware governance prompts — improve with care, don't break existing
