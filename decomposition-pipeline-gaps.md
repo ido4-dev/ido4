@@ -6,6 +6,18 @@ Working document for the initiative to close architectural gaps in the decomposi
 
 ---
 
+## Vision Anchor
+
+**North star:** Multiple AI agents working in parallel — each understanding the full picture of what's being built, how their task connects to others, what "done" means, and how to verify it.
+
+**Key principle:** The system carries the knowledge, not the agent. AI agents are stateless — each session starts fresh. A fresh agent with the right 100K tokens of context will outperform a "specialized" agent with wrong context. ido4's role is to assemble the right context at the right moment.
+
+**GitHub issues are living specifications:** Not tickets. They're context carriers encoding intent, acceptance criteria, dependencies, and position in the larger architecture. The issue body is intent; the comments are reality.
+
+**Demo bar:** Largest consultancy firms and software service companies that build at scale. The hierarchy, traceability, and context delivery must be visually compelling and architecturally sound.
+
+---
+
 ## Current State (v0.3.0)
 
 The decomposition pipeline is functionally complete:
@@ -27,13 +39,36 @@ ido4shape → strategic spec → parse → code-analyze → technical canvas →
 ```
 
 **What already existed before this initiative (important for context):**
-- `task-execution-aggregator.ts` — assembles context for task execution (upstream, siblings, downstream, epic progress, execution intelligence)
+
+Context assembly infrastructure:
+- `task-execution-aggregator.ts` — assembles context for task execution (upstream deps with comments, siblings with status, downstream dependents, epic progress, execution intelligence with risk flags and critical path)
 - `context-comment-parser.ts` — parses structured `<!-- ido4:context -->` blocks from issue comments
 - `context-comment-formatter.ts` — produces structured context comments
 - `get_task_execution_data` MCP tool — single-call context assembly for agents
-- Execution prompts (hydro, scrum, shape-up) — guide agents to use `get_task_execution_data` before coding
+- Execution prompts (hydro, scrum, shape-up) — 5-phase agent execution guide:
+  - Phase 1: Specification Comprehension (read issue body, acceptance criteria)
+  - Phase 2: Upstream Context Interpretation (extract interfaces, patterns, decisions from dependency context comments)
+  - Phase 3: Downstream Awareness (design interfaces for consumers)
+  - Phase 4: Pattern Detection (instability signals, coordination needs)
+  - Phase 5: Work Execution (methodology principles, context writing)
+
+Ingestion infrastructure:
 - `IngestionService` — creates GitHub issues with two-level hierarchy (groups → tasks as sub-issues)
-- `addSubIssue` infrastructure — GitHub sub-issue API support
+- `addSubIssue` infrastructure — GitHub sub-issue API support (1000ms delay between calls for API stability)
+- `findGroupingContainer()` — finds methodology container with `completionRule: 'none'` AND `!parent` (epic in Hydro, bet in Shape Up, null in Scrum)
+
+Agent infrastructure:
+- `WorkDistributionService` — scores agent-task fit using `agent.capabilities` (keyword matching, e.g. `['backend', 'auth']`)
+- `AgentStore` — agent registration with `capabilities?: string[]` field
+
+Transition tools:
+- `start_task` is NOT a separate tool — transition tools (start, review, approve, etc.) are dynamically generated from the methodology profile. Context delivery happens through `get_task_execution_data` which agents call separately.
+
+**Terminology note:** "Capabilities" has two meanings in the codebase:
+1. **Agent capabilities** — `agent.capabilities: string[]` in WorkDistributionService (what an agent can do: `['backend', 'auth']`)
+2. **Strategic capabilities** — `StrategicCapability` in the strategic spec parser (functional requirements like NCO-01)
+
+These are different concepts. May need distinct terminology to avoid confusion.
 
 ---
 
@@ -73,7 +108,7 @@ The strategic spec has three levels: Group → Capability → (decomposes into) 
 | Methodology | Execution Container | Grouping Containers | Notes |
 |---|---|---|---|
 | **Hydro** | Wave (singularity, all-terminal) | Epic (no parent) | 2 levels total |
-| **Shape Up** | Cycle (singularity, all-terminal) | Bet (no parent) → Scope (parent: bet) | 3 levels — scope is "independently deliverable piece within a bet" |
+| **Shape Up** | Cycle (singularity, all-terminal) | Bet (no parent, managed) → Scope (parent: bet, **managed: false**) | 3 levels — scope is "independently deliverable piece within a bet." Scope is NOT actively managed by the system. |
 | **Scrum** | Sprint (singularity, all-terminal) | *(none)* | 1 level total |
 
 ### Current ingestion mapping
@@ -114,12 +149,18 @@ If capabilities become GitHub issues, they overlap with groups in the hierarchy.
 - In Shape Up: capabilities naturally map to scopes (already a container with `parent: 'bet'`). The existing three-level container hierarchy is a perfect fit.
 - In Scrum: both groups and capabilities are labels/references only — tasks stand alone in sprints.
 
+**Technical detail — `findGroupingContainer` logic:**
+The function finds containers with `completionRule: 'none'` AND `!parent`. In Shape Up: bet matches (no parent), scope does NOT (parent: bet). This means the current mapper maps groups → bets. If we want capabilities → scopes, the mapper needs a second pass for child grouping containers.
+
+**Performance note:** Sub-issue creation has a 1000ms delay per call (GitHub API stability). A three-level hierarchy (groups + capabilities + tasks) for a spec with 4 groups, 12 capabilities, 30 tasks = 46 sub-issue wiring calls = ~46 seconds. Acceptable but worth noting.
+
 **Open questions:**
 1. Should groups → epics/bets (current behavior), or should capabilities → epics/bets?
 2. If groups → epics, what governance applies to capabilities? Just structural parenting?
 3. If capabilities → epics, what happens to groups? Are they GitHub issues at all?
 4. Does the BRE need changes for any of these mappings?
 5. For Hydro, should we add a scope-like container level to support three-level hierarchy?
+6. Shape Up scopes are `managed: false` — what does this mean for governance if capabilities map to scopes?
 
 ### Desired end state for demo
 A consultant opens GitHub and sees:
@@ -194,6 +235,45 @@ The decomposition pipeline has all stages built, but they haven't been run toget
 | 5 | IngestionService → GitHub API | GraphQL mutations (typed) | **Strong** |
 
 Touch point #3 is inherently soft (AI-to-AI handoff). Accepted as architectural tradeoff — Claude handles format variation well.
+
+---
+
+## Technical Canvas Structure
+
+The canvas is the intermediate artifact between code analysis and technical spec writing. Defined in `code-analyzer.md` agent instructions:
+
+```markdown
+# Technical Canvas: [Project Name]
+> Source: [strategic spec file path]
+> Analyzed: [date]
+
+## Project Context
+[Problem restatement + constraints]
+
+## Codebase Overview
+[Architecture, modules, patterns, conventions, tech stack]
+
+## Cross-Cutting Concern Mapping
+### [Concern] → Codebase Reality
+[What exists, what's missing, integration points]
+
+## Capability: [REF] — [Title]
+### Strategic Context
+[Carried forward from strategic spec — verbatim]
+### Cross-Cutting Constraints
+[Which concerns affect this capability, mapped to code]
+### Codebase Analysis
+- Relevant modules (file paths)
+- Patterns found (with line references)
+- Architecture context
+- What exists vs what's new
+### Code-Level Dependencies Discovered
+[Dependencies not in strategic spec]
+### Complexity Assessment
+[Honest assessment referencing code patterns, coupling, test coverage]
+```
+
+The canvas persists as `[name]-canvas.md` alongside the strategic spec. The technical-spec-writer reads it; executing agents don't (its knowledge is embedded in task descriptions).
 
 ---
 
