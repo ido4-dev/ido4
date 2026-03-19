@@ -135,7 +135,7 @@ Capabilities are the coherent deliverables — they have success conditions, sta
 | Strategic Spec | Hydro | Shape Up | Scrum |
 |---|---|---|---|
 | Group | *(decomposition ordering only)* | *(decomposition ordering only)* | *(decomposition ordering only)* |
-| Capability | **Epic** (container) | **Bet** or **Scope** (TBD) | **Epic** (container) |
+| Capability | **Epic** (container) | **Bet** (container) | **Epic** (container) |
 | Task | Task (assigned to wave) | Task (assigned to cycle) | Task (assigned to sprint) |
 
 **GitHub hierarchy (all methodologies):**
@@ -306,8 +306,8 @@ Task size constrained by three forces:
 - Too big → human oversight lost (reviewer can't verify)
 - Just right → one coherent concept, one agent session, one reviewable output
 
-### Group Preservation
-Keep strategic groups from ido4shape (preserves traceability). Use `depends_on` for technical ordering. Cross-cutting concerns become task constraints, not separate tasks.
+### Group Knowledge Downstream, Not as Issues
+Groups don't become GitHub issues. Their knowledge (priority, description, coherence context) flows into epic/bet bodies, task descriptions, decomposition ordering, and metadata assessment. Cross-cutting concerns become task constraints, not separate tasks.
 
 ### Spec-Time Decomposition
 Produce complete technical spec upfront. Execution-time can be added later.
@@ -318,12 +318,36 @@ NCO-01A traces to strategic capability NCO-01 through the ref pattern.
 ### System Carries Knowledge
 The system assembles context and delivers it. Agents don't manually fetch.
 
+### Methodology Pragmatism
+Don't apply human-era methodology constraints (e.g., "2-3 bets per cycle", "5-9 stories per sprint") to AI-augmented teams. Governance enforces principles (fixed time, variable scope, circuit breaker, epic integrity, dependency coherence) — not arbitrary slot counts. The numbers scale with the team's actual capacity.
+
+---
+
+## Open Implementation Questions
+
+### Technical spec format: groups → capabilities
+The current technical spec format uses `## Group:` as the top-level grouping. If capabilities replace groups as the structural unit, the format options are:
+1. Replace `## Group:` with a capability-level heading — but `spec-parser.ts` expects `## Group:` syntax
+2. Keep `## Group:` in the technical spec but populate with capability data (one "group" per capability)
+3. Add a new heading pattern for capabilities and update `spec-parser.ts`
+
+This needs resolution before implementation.
+
+### Terminology: "capabilities" collision
+"Capabilities" means two things in the codebase:
+1. **Agent capabilities** — `agent.capabilities: string[]` (what an agent can do)
+2. **Strategic capabilities** — `StrategicCapability` (functional requirements from ido4shape)
+
+Options: rename one, qualify both, or accept the overload. Not yet decided.
+
 ---
 
 ## Next Steps
 
-1. **Resolve Gap 2** — Settle the hierarchy and methodology mapping questions
-2. **Update ingestion pipeline** — Implement the decided hierarchy model
-3. **Validate Gap 4** — Run the pipeline end-to-end
-4. **Address Gap 3** — Build the context enrichment service and context writing tool
-5. **Real validation** — Decompose a real strategic spec from ido4shape
+1. **Resolve open implementation questions** — Technical spec format, terminology
+2. **Add Epic to Scrum profile** — New container, no integrity rule
+3. **Update ingestion pipeline** — Capabilities as grouping unit instead of groups
+4. **Update agent instructions** — Group knowledge downstream, capability→epic mapping
+5. **Validate Gap 4** — Run the pipeline end-to-end
+6. **Address Gap 3** — Build the context enrichment service and context writing tool
+7. **Real validation** — Decompose a real strategic spec from ido4shape
