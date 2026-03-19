@@ -1,5 +1,5 @@
 ---
-name: issue-writer
+name: spec-writer
 description: >
   Reads a technical canvas and produces a technical spec artifact in the format
   consumed by ido4's ingestion pipeline. Decomposes capabilities into right-sized

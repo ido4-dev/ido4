@@ -35,7 +35,7 @@ Strategic Spec (from ido4shape)
            │
            ▼
 ┌─────────────────────────┐
-│  Issue Writing Agent     │  Decomposes into tasks, judges effort/
+│  Spec Writing Agent     │  Decomposes into tasks, judges effort/
 │  (AI — reasoning)        │  risk/type/ai, sets dependencies,
 │                          │  writes technical spec markdown
 └──────────┬──────────────┘
@@ -55,7 +55,7 @@ Strategic Spec (from ido4shape)
 ```
 
 **Why multi-stage:**
-- Each stage has one clear job — code analysis doesn't format specs, issue writing doesn't navigate code
+- Each stage has one clear job — code analysis doesn't format specs, spec writing doesn't navigate code
 - The intermediate artifact (technical canvas) is reviewable — catches code analysis errors before they become bad GitHub issues
 - Mirrors the ido4shape pipeline: conversation → canvas → synthesize → artifact
 
@@ -82,7 +82,7 @@ Task size is constrained by three forces:
 **Split when:** Different agents should own different parts; hard dependency boundary; scope so large a reviewer can't grok it.
 **Don't split when:** Same concept across multiple files; agent would do it in one session; spec overhead exceeds coordination benefit.
 
-The issue writing agent asks: "Could a human reviewer look at this task's output and say yes/no without context-switching across unrelated concerns?"
+The spec writing agent asks: "Could a human reviewer look at this task's output and say yes/no without context-switching across unrelated concerns?"
 
 ### Ref pattern: preserves traceability
 Technical tasks use suffixed refs from their parent capability. Strategic NCO-01 decomposes into NCO-01A, NCO-01B, etc. You can always trace a technical task back to its strategic capability.
@@ -162,11 +162,11 @@ The code analysis agent maps cross-cutting concerns to code reality:
 - Security requirements → where auth/encryption/validation already exists, what's missing
 - Observability → existing tracing/logging infrastructure, integration points
 
-These become constraints in the technical canvas, not separate tasks. They shape how the issue writing agent formulates every task.
+These become constraints in the technical canvas, not separate tasks. They shape how the spec writing agent formulates every task.
 
 ---
 
-## Phase 3: Issue Writing Agent
+## Phase 3: Spec Writing Agent
 
 The second AI stage. Reads the technical canvas and produces the technical spec markdown.
 
@@ -221,7 +221,7 @@ Feed the validated technical spec into the existing pipeline. Nothing changes �
 1. Parse strategic spec (Phase 1)
 2. Run code analysis agent (Phase 2)
 3. Present technical canvas for optional review
-4. Run issue writing agent (Phase 3)
+4. Run spec writing agent (Phase 3)
 5. Validate (Phase 4.1)
 6. Optionally ingest (Phase 4.2) — with dry run first
 
@@ -250,7 +250,7 @@ Build against the contract (strategic spec format), not against ido4shape's impl
 
 **Phase 1 (parser):** Use the existing `example-strategic-notification-system.md` from ido4shape references. It's a "perfect" artifact that follows the format spec exactly — 4 groups, ~12 capabilities, cross-cutting concerns, stakeholder attributions, functional dependencies.
 
-**Phases 2-5 (agents and pipeline):** The notification example targets a hypothetical codebase that doesn't exist, so it can't exercise the code analysis agent. Create a second synthetic strategic spec targeting a real feature in the ido4 MCP codebase itself — dogfooding. This lets the code analysis agent explore real code and the issue writing agent produce grounded technical tasks.
+**Phases 2-5 (agents and pipeline):** The notification example targets a hypothetical codebase that doesn't exist, so it can't exercise the code analysis agent. Create a second synthetic strategic spec targeting a real feature in the ido4 MCP codebase itself — dogfooding. This lets the code analysis agent explore real code and the spec writing agent produce grounded technical tasks.
 
 ### Real validation
 

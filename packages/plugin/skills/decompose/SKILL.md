@@ -83,7 +83,7 @@ Present a summary to the user:
 
 ---
 
-## Stage 2: Write the Technical Spec (Issue Writing)
+## Stage 2: Write the Technical Spec (Spec Writing)
 
 Read the technical canvas you produced in Stage 1. For each capability:
 
@@ -185,7 +185,7 @@ If no:
 ## Error Handling
 
 - **Strategic spec parse errors**: Stop. Report errors. User must fix the strategic spec.
-- **Codebase exploration dead ends**: Note the gap in the canvas. The issue writer will create a research task instead of a feature task.
+- **Codebase exploration dead ends**: Note the gap in the canvas. The spec writer will create a research task instead of a feature task.
 - **Validation failures**: Fix the technical spec automatically if possible (formatting issues). Report to user if semantic (bad dependencies, missing fields).
 - **Ingestion failures**: Report which tasks failed and why. Suggest fixes.
 
