@@ -12,3 +12,9 @@ export const IngestSpecSchema = {
     'Preview mode — parse and validate without creating GitHub issues. Shows what would be created, including topological order and value mappings.',
   ),
 };
+
+export const ParseStrategicSpecSchema = {
+  specContent: z.string().describe(
+    'The full markdown content of a strategic spec (produced by ido4shape). Format: # Project with format: strategic-spec marker → ## Cross-Cutting Concerns → ## Group: Name → ### PREFIX-NN: Capability Name. Returns structured AST with project context, cross-cutting concerns, groups, capabilities, dependencies, and validation errors.',
+  ),
+};

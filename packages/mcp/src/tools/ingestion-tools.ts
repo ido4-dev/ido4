@@ -6,9 +6,9 @@
  */
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { IngestSpecSchema } from '../schemas/ingestion-schemas.js';
+import { IngestSpecSchema, ParseStrategicSpecSchema } from '../schemas/ingestion-schemas.js';
 import { handleErrors, toCallToolResult, getContainer } from '../helpers/index.js';
-import { IngestionService } from '@ido4/core';
+import { IngestionService, parseStrategicSpec } from '@ido4/core';
 
 export function registerIngestionTools(server: McpServer): void {
   server.tool(
@@ -32,4 +32,53 @@ export function registerIngestionTools(server: McpServer): void {
       return toCallToolResult(result);
     }),
   );
+
+  server.tool(
+    'parse_strategic_spec',
+    'Parse a strategic spec (from ido4shape) into a structured AST. Returns project context, cross-cutting concerns, groups, capabilities with priority/risk/dependencies, and validation errors. Use this before decomposition to get structured input for the code analysis agent.',
+    ParseStrategicSpecSchema,
+    async (args) => handleErrors(async () => {
+      const result = parseStrategicSpec(args.specContent);
+      const errors = result.errors.filter(e => e.severity === 'error');
+      const warnings = result.errors.filter(e => e.severity === 'warning');
+      return toCallToolResult({
+        success: errors.length === 0,
+        data: {
+          project: result.project,
+          crossCuttingConcerns: result.crossCuttingConcerns,
+          groupCount: result.groups.length,
+          capabilityCount: result.groups.reduce((sum, g) => sum + g.capabilities.length, 0) + result.orphanCapabilities.length,
+          groups: result.groups.map(g => ({
+            name: g.name,
+            prefix: g.prefix,
+            priority: g.priority,
+            capabilityCount: g.capabilities.length,
+            capabilities: g.capabilities.map(c => ({
+              ref: c.ref,
+              title: c.title,
+              priority: c.priority,
+              risk: c.risk,
+              dependsOn: c.dependsOn,
+              successConditionCount: c.successConditions.length,
+            })),
+          })),
+          orphanCapabilities: result.orphanCapabilities.map(c => c.ref),
+          dependencyGraph: buildDependencySummary(result),
+        },
+        errors: errors.map(e => e.message),
+        warnings: warnings.map(e => e.message),
+      });
+    }),
+  );
+}
+
+function buildDependencySummary(spec: ReturnType<typeof parseStrategicSpec>): Record<string, string[]> {
+  const graph: Record<string, string[]> = {};
+  const allCaps = [...spec.groups.flatMap(g => g.capabilities), ...spec.orphanCapabilities];
+  for (const cap of allCaps) {
+    if (cap.dependsOn.length > 0) {
+      graph[cap.ref] = cap.dependsOn;
+    }
+  }
+  return graph;
 }

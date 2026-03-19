@@ -147,7 +147,7 @@ describe('createServer', () => {
 
   it('registers 57 tools total', () => {
     const server = createServer(HYDRO_PROFILE);
-    expect(getRegisteredToolNames(server)).toHaveLength(57);
+    expect(getRegisteredToolNames(server)).toHaveLength(58);
   });
 
   it('registers resources', () => {
@@ -188,7 +188,7 @@ describe('createServer', () => {
 describe('createServer — Scrum profile', () => {
   it('registers 48 tools total', () => {
     const server = createServer(SCRUM_PROFILE);
-    expect(getRegisteredToolNames(server)).toHaveLength(48);
+    expect(getRegisteredToolNames(server)).toHaveLength(49);
   });
 
   it('registers 7 dynamic transition tools', () => {
@@ -256,7 +256,7 @@ describe('createServer — Scrum profile', () => {
 describe('createServer — Shape Up profile', () => {
   it('registers 53 tools total', () => {
     const server = createServer(SHAPE_UP_PROFILE);
-    expect(getRegisteredToolNames(server)).toHaveLength(53);
+    expect(getRegisteredToolNames(server)).toHaveLength(54);
   });
 
   it('registers 9 dynamic transition tools', () => {
@@ -332,7 +332,7 @@ describe('createServer — bootstrap mode (null profile)', () => {
   it('registers only profile-independent tools', () => {
     const server = createServer(null);
     const toolNames = getRegisteredToolNames(server);
-    expect(toolNames).toHaveLength(26);
+    expect(toolNames).toHaveLength(27);
   });
 
   it('registers project tools (init + status)', () => {
@@ -422,7 +422,7 @@ describe('createServer — bootstrap mode (null profile)', () => {
   it('accepts methodology activation after bootstrap', () => {
     // Verify that a bootstrap server can have methodology tools added dynamically
     const server = createServer(null);
-    expect(getRegisteredToolNames(server)).toHaveLength(26);
+    expect(getRegisteredToolNames(server)).toHaveLength(27);
 
     // Simulate what activateMethodology does — register profile-dependent tools
     registerTaskTools(server, HYDRO_PROFILE);
@@ -432,7 +432,7 @@ describe('createServer — bootstrap mode (null profile)', () => {
     registerPrompts(server, HYDRO_PROFILE);
 
     // Now should have full Hydro tool set + bootstrap entries
-    expect(getRegisteredToolNames(server)).toHaveLength(57);
+    expect(getRegisteredToolNames(server)).toHaveLength(58);
     expect(hasRegisteredTool(server, 'list_waves')).toBe(true);
     expect(hasRegisteredTool(server, 'start_task')).toBe(true);
     expect(hasRegisteredTool(server, 'search_epics')).toBe(true);
