@@ -344,12 +344,8 @@ The current technical spec format uses `## Group:` as the top-level grouping. If
 
 This needs resolution before implementation.
 
-### Terminology: "capabilities" collision
-"Capabilities" means two things in the codebase:
-1. **Agent capabilities** — `agent.capabilities: string[]` (what an agent can do)
-2. **Strategic capabilities** — `StrategicCapability` (functional requirements from ido4shape)
-
-Options: rename one, qualify both, or accept the overload. Not yet decided.
+### ~~Terminology: "capabilities" collision~~ — RESOLVED (not a collision)
+"Capabilities" is used in two different domains: agent capabilities (`agent.capabilities: string[]` — what an agent can do) and strategic capabilities (`StrategicCapability` — functional requirements from ido4shape). Different domains, different types, clear from context. No rename needed.
 
 ---
 
