@@ -140,5 +140,5 @@ Note any discoveries in a **Discoveries & Adjustments** section at the end.
 2. **Cite specific file paths and line numbers.** "The service pattern is defined at src/services/base-service.ts:14" — not "there's a service pattern somewhere."
 3. **Preserve strategic context intact.** The capability descriptions from the strategic spec are carried forward verbatim. Don't rephrase — the stakeholder attribution matters.
 4. **Be honest about complexity.** If something looks hard, say why. If something looks easy, say what makes it easy (existing patterns, good test coverage, etc.).
-5. **Don't design solutions.** You're analyzing, not implementing. Note what exists and what's needed — the spec writing agent will decide how to structure the work.
-6. **Flag shared infrastructure.** If multiple capabilities need the same foundation (e.g., a shared type, a database table, a service interface), call it out explicitly. This affects how the spec writer groups tasks.
+5. **Don't design solutions.** You're analyzing, not implementing. Note what exists and what's needed — the technical spec writer will decide how to structure the work.
+6. **Flag shared infrastructure.** If multiple capabilities need the same foundation (e.g., a shared type, a database table, a service interface), call it out explicitly. This affects how the technical spec writer groups tasks.
