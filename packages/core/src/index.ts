@@ -221,7 +221,7 @@ export { WorkDistributionService } from './domains/distribution/index.js';
 export { MergeReadinessService } from './domains/gate/index.js';
 
 // Domain Services — Ingestion
-export { parseSpec, mapSpec, findGroupingContainer, topologicalSort, IngestionService } from './domains/ingestion/index.js';
+export { parseSpec, parseStrategicSpec, mapSpec, findGroupingContainer, topologicalSort, IngestionService, STRATEGIC_PRIORITIES, STRATEGIC_RISKS } from './domains/ingestion/index.js';
 export type {
   ParsedSpec,
   ParsedProjectHeader,
@@ -234,6 +234,15 @@ export type {
   MappingError,
   IngestSpecResult,
   IngestSpecOptions,
+  ParsedStrategicSpec,
+  StrategicProjectHeader,
+  StrategicGroup,
+  StrategicCapability,
+  StrategicParseError,
+  CrossCuttingConcern,
+  Stakeholder,
+  StrategicPriority,
+  StrategicRisk,
 } from './domains/ingestion/index.js';
 
 // Domain Services — Sandbox
