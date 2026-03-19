@@ -4,6 +4,19 @@ All notable changes to ido4 are documented here.
 
 Both `@ido4/core` and `@ido4/mcp` are released together at the same version.
 
+## [0.3.0] — 2026-03-19
+
+Decomposition pipeline. ido4 MCP can now consume strategic specs from ido4shape and produce technical specs for the ingestion pipeline.
+
+- **Strategic spec parser**: Parses ido4shape output (format: strategic-spec v1.0) into structured AST. Extracts project context, stakeholders, cross-cutting concerns, groups with priority, capabilities with strategic risk and functional dependencies. Validates format, refs, cycles, and allowed values.
+- **`parse_strategic_spec` MCP tool**: Gives agents structured input from the parser — project overview, dependency graph, validation errors.
+- **Code analysis agent**: Explores the codebase per strategic capability. Produces a technical canvas — intermediate artifact mapping capabilities to code modules, patterns, architecture, and complexity assessments.
+- **Issue writing agent**: Reads the technical canvas, decomposes capabilities into right-sized implementation tasks with code-grounded metadata (effort, risk, type, AI suitability, dependencies). Follows the Goldilocks principle for task sizing.
+- **`/ido4:decompose` skill**: Orchestrates the full pipeline — parse → analyze codebase → write technical tasks → validate → optionally ingest. Produces reviewable canvas and ingestion-ready technical spec.
+- **Dogfooding test fixture**: Synthetic strategic spec (Development Context Pipeline) targeting the ido4 codebase for end-to-end validation.
+
+1,767 tests. Build clean.
+
 ## [0.2.0] — 2026-03-18
 
 Methodology-agnostic engine. ido4 is no longer Hydro-specific — it runs any methodology from a profile definition.
