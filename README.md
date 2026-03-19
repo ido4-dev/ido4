@@ -14,8 +14,8 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/MCP-compatible-7C3AED" alt="MCP Compatible">
-  <img src="https://img.shields.io/badge/tools-51-2563EB" alt="51 MCP Tools">
-  <img src="https://img.shields.io/badge/tests-1074-16A34A" alt="1074 Tests">
+  <img src="https://img.shields.io/badge/tools-58-2563EB" alt="58 MCP Tools">
+  <img src="https://img.shields.io/badge/tests-1768-16A34A" alt="1768 Tests">
   <img src="https://img.shields.io/npm/l/@ido4/core" alt="MIT License">
 </p>
 
@@ -25,7 +25,7 @@ AI agents can write code. Ship features. Fix bugs. But who ensures they follow y
 
 **ido4** is an [MCP](https://modelcontextprotocol.io/) server that provides deterministic governance for AI-augmented development teams. It runs inside Claude Code (and any MCP-compatible AI environment), enforcing business rules that no agent can bypass — with full audit trails, compliance scoring, and multi-agent coordination.
 
-Every task transition passes through **27 validation steps** executed as real TypeScript code. Not LLM instructions that can be hallucinated. Not suggestions that can be ignored. Deterministic rules enforced by the AI's own tool environment.
+Every task transition passes through **32 validation steps** executed as real TypeScript code. Not LLM instructions that can be hallucinated. Not suggestions that can be ignored. Deterministic rules enforced by the AI's own tool environment.
 
 ```
 Developer: "Start task #268"
@@ -175,7 +175,7 @@ Add to your MCP client configuration:
 
 ### Deterministic Business Rule Engine
 
-Every task transition runs through a composable validation pipeline — 27 built-in steps across 5 categories:
+Every task transition runs through a composable validation pipeline — 32 built-in steps across 5 categories, configurable per methodology:
 
 | Category | What It Validates |
 |---|---|
@@ -218,9 +218,9 @@ Every governance action creates an immutable audit entry:
 - **Real analytics** — Cycle time, lead time, throughput, blocking time — computed from actual events, not estimates
 - **Queryable** — Filter by time range, actor, transition type, issue number, session
 
-### 8 Governance Skills
+### 18 Governance Skills
 
-Skills are intelligent workflows that compose multiple tools into governance insights:
+Skills are intelligent workflows that compose multiple tools into governance insights. Core skills work across all methodologies; methodology-specific variants speak your methodology's language:
 
 | Skill | What It Does |
 |---|---|
@@ -228,9 +228,10 @@ Skills are intelligent workflows that compose multiple tools into governance ins
 | `/ido4:board` | Flow intelligence — blockers, cascade risks, false statuses, epic cohesion |
 | `/ido4:compliance` | Three-part assessment: quantitative score + structural audit + synthesis |
 | `/ido4:plan-wave` | Principle-aware wave composition — valid-by-construction plans |
-| `/ido4:retro` | Data-backed retrospective with real metrics from audit trail |
+| `/ido4:retro-wave` | Data-backed wave retrospective (Hydro). Also: `/retro-sprint` (Scrum), `/retro-cycle` (Shape Up) |
 | `/ido4:health` | 5-second governance verdict: RED / YELLOW / GREEN |
-| `/ido4:sandbox` | Interactive demo with live analysis and BRE enforcement |
+| `/ido4:sandbox` | Interactive demo — routes to methodology-specific sandbox (Hydro, Scrum, Shape Up) |
+| `/ido4:decompose` | Decompose a strategic spec into a technical spec via codebase analysis |
 | `/ido4:pilot-test` | End-to-end verification of the entire governance stack |
 
 ### CI/CD Quality Gate
@@ -263,16 +264,16 @@ ido4's governance model is built on 5 principles that cannot be bypassed:
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │  Claude Code Plugin                                          │
-│  8 Skills · PM Agent · 2 Governance Hooks                    │
+│  18 Skills · 4 Agents · 2 Governance Hooks                   │
 ├──────────────────────────────────────────────────────────────┤
 │  MCP Server (@ido4/mcp)                                      │
-│  51 Tools · 9 Resources · 6 Prompts · STDIO Transport        │
+│  58 Tools · 9 Resources · 7 Prompts · STDIO Transport        │
 ├──────────────────────────────────────────────────────────────┤
 │  Core Domain Layer (@ido4/core)                               │
 │                                                               │
 │  ┌──────────┐ ┌──────────┐ ┌────────────┐ ┌──────────────┐  │
-│  │ Tasks    │ │ Waves    │ │ Agents     │ │ Compliance   │  │
-│  │ BRE (27  │ │ Epics    │ │ Work       │ │ Analytics    │  │
+│  │ Tasks    │ │Containers│ │ Agents     │ │ Compliance   │  │
+│  │ BRE (32  │ │Integrity │ │ Work       │ │ Analytics    │  │
 │  │  steps)  │ │ Deps     │ │ Distrib.   │ │ Audit Trail  │  │
 │  └──────────┘ └──────────┘ │ Merge Gate │ └──────────────┘  │
 │                             └────────────┘                    │
@@ -289,9 +290,9 @@ ido4's governance model is built on 5 principles that cannot be bypassed:
 
 | Package | npm | Description |
 |---|---|---|
-| [`@ido4/core`](packages/core/) | `npm i @ido4/core` | Domain logic — BRE, services, repositories. Zero CLI dependencies. |
-| [`@ido4/mcp`](packages/mcp/) | `npm i @ido4/mcp` | MCP server — STDIO transport, 51 tools, 9 resources, 6 prompts. |
-| [`plugin`](packages/plugin/) | — | Claude Code plugin — 8 skills, PM agent, governance hooks. |
+| [`@ido4/core`](packages/core/) | `npm i @ido4/core` | Domain logic — BRE (32 steps), profile-driven services, repositories. Zero CLI dependencies. |
+| [`@ido4/mcp`](packages/mcp/) | `npm i @ido4/mcp` | MCP server — STDIO transport, 58 tools (Hydro), 9 resources, 7 prompts. |
+| [`plugin`](packages/plugin/) | — | Claude Code plugin — 18 skills, 4 agents, governance hooks. |
 
 ### 51 MCP Tools
 
@@ -343,7 +344,7 @@ ido4 provides the governance infrastructure that enterprise delivery requires:
 
 **Compliance documentation.** Every decision is auditable. Every rule enforcement is traceable. The audit trail provides the evidence that enterprise clients demand — who did what, when, and whether the rules were followed.
 
-**Configurable methodology.** Wave-based development is the default, but the BRE pipeline is fully configurable. Adopt ido4 with your existing methodology (Scrum, Kanban, SAFe) while getting deterministic enforcement.
+**Multi-methodology support.** Three built-in profiles: Hydro (wave-based), Scrum (sprint-based), Shape Up (cycle-based). The engine is methodology-agnostic — profiles define states, transitions, containers, integrity rules, and pipelines. Adopt ido4 with your existing methodology while getting deterministic enforcement.
 
 **Quality gates.** Configure minimum PR reviews, test coverage thresholds, and security scan requirements per transition. Gates are enforced deterministically — not as suggestions.
 
@@ -372,7 +373,7 @@ We welcome contributions. See [CONTRIBUTING.md](CONTRIBUTING.md) for development
 # Development
 npm install
 npm run build
-npm run test          # 1074 tests
+npm run test          # 1,768 tests
 
 # Run with plugin
 claude --plugin-dir ./packages/plugin

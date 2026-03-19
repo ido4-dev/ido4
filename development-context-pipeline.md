@@ -4,7 +4,7 @@
 
 **Author:** Claude (Opus 4.6), commissioned by Bogdan Coman
 **Date:** 2026-03-13
-**Status:** Architecture Specification (Pre-Implementation)
+**Status:** IMPLEMENTED — Core infrastructure built. Task execution aggregator, context comment parser/formatter, `get_task_execution_data` MCP tool, and 8-phase execution prompts are all live. See v0.2.0+ changelog.
 
 ---
 

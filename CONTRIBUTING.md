@@ -24,7 +24,7 @@ npm install
 # Build all packages
 npm run build
 
-# Run all tests (1074 tests)
+# Run all tests (1,768 tests)
 npm run test
 ```
 
@@ -52,15 +52,15 @@ ido4-MCP/
 
 ### @ido4/core
 
-The domain layer. Contains task workflow services, BRE validation pipeline, wave management, epic integrity enforcement, dependency analysis, audit trail, analytics, compliance scoring, multi-agent coordination, work distribution, and merge readiness gates. **Zero dependencies on CLI frameworks or MCP SDK.**
+The domain layer. Profile-driven methodology engine with 32 BRE validation steps, container management, integrity enforcement, dependency analysis, audit trail, analytics, compliance scoring, multi-agent coordination, work distribution, merge readiness, ingestion pipeline, and strategic spec parser. Three built-in profiles: Hydro, Scrum, Shape Up. **Zero dependencies on CLI frameworks or MCP SDK.**
 
 ### @ido4/mcp
 
-The MCP server. Wraps @ido4/core services as 51 MCP tools, 9 resources, and 6 prompts. Uses STDIO transport.
+The MCP server. Dynamically generates tools, resources, and prompts from the active methodology profile. STDIO transport. Hydro: 58 tools, Scrum: 56, Shape Up: 54.
 
 ### plugin/
 
-Claude Code plugin bundle. Contains 8 skills, the project-manager agent with persistent memory, and 2 governance hooks.
+Claude Code plugin bundle. 18 skills (governance, planning, retrospectives, sandbox demos, spec validation, decomposition), 4 agents (PM, code-analyzer, technical-spec-writer, spec-reviewer), and governance hooks.
 
 ## Architecture Principles
 

@@ -1,6 +1,6 @@
-# ido4 MCP — Strategic Spec Decomposition Plan
+# ido4 MCP — Strategic Spec Decomposition Plan — IMPLEMENTED (v0.3.0-v0.4.0)
 
-Building ido4 MCP's capability to consume strategic specs from ido4shape and produce technical specs for the existing ingestion pipeline.
+The decomposition pipeline is built: strategic spec parser, code analysis agent, technical spec writer, orchestration skill (`/ido4:decompose`), and capability-based ingestion. Awaiting end-to-end validation.
 
 **This is the ido4-MCP side of a two-project change.** For the ido4shape side (format redesign, skill rewrites, conversation flow — COMPLETE), see `/Users/bogdanionutcoman/dev-projects/ido4shape/references/strategic-spec-adaptation-plan.md`.
 
