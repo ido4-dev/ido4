@@ -103,77 +103,83 @@ The strategic spec has three levels: Group → Capability → (decomposes into) 
 - `findGroupingContainer()` maps groups to the methodology's grouping container (epic in Hydro, bet in Shape Up, nothing in Scrum)
 - Methodology profiles define containers: Hydro has 2 (wave, epic), Shape Up has 3 (cycle, bet, scope), Scrum has 1 (sprint)
 
-### Current container hierarchy per methodology
+### Container hierarchy per methodology
 
 | Methodology | Execution Container | Grouping Containers | Notes |
 |---|---|---|---|
-| **Hydro** | Wave (singularity, all-terminal) | Epic (no parent) | 2 levels total |
-| **Shape Up** | Cycle (singularity, all-terminal) | Bet (no parent, managed) → Scope (parent: bet, **managed: false**) | 3 levels — scope is "independently deliverable piece within a bet." Scope is NOT actively managed by the system. |
-| **Scrum** | Sprint (singularity, all-terminal) | *(none)* | 1 level total |
+| **Hydro** | Wave (singularity, all-terminal) | Epic (no parent) | 2 levels |
+| **Shape Up** | Cycle (singularity, all-terminal) | Bet (no parent, managed) → Scope (parent: bet, **managed: false**) | 3 levels |
+| **Scrum** | Sprint (singularity, all-terminal) | Epic (no parent) — **TO BE ADDED** | Currently 1 level, will be 2 |
 
-### Current ingestion mapping
+### Decisions Made
 
-```
-Strategic Spec          GitHub Issues
-──────────────          ─────────────
-Group                 → Parent issue (mapped to epic/bet container)
-  Capability          → (LOST — not created as an issue)
-    → decomposed into → Tasks (sub-issues of group)
-```
+**Groups are ido4shape's concern, not ido4 MCP's.**
+Groups exist for ido4shape's conversation process (discovery, stakeholder priority triage). They carry priority and cluster related capabilities. But ido4 MCP doesn't need them as GitHub issues because:
+- Capabilities already provide the grouping structure (NCO-01 parents NCO-01A, NCO-01B)
+- Groups add a third level that isn't structurally necessary
+- Group priority is redundant when capabilities have their own priority
+- The coherence groups represent is already encoded in capability dependencies
 
-### The overlap question (OPEN)
-If capabilities become GitHub issues, they overlap with groups in the hierarchy. What does each level mean?
+ido4 MCP may use group priority for decomposition ordering (must-have groups first) but does NOT create group issues in GitHub.
 
-**Groups** in the strategic spec:
-- Organizational clusters of related capabilities
-- Have: priority, description
-- Example: "Notification Core" (contains 4 capabilities)
-
-**Capabilities** in the strategic spec:
-- Functional requirements with clear deliverables
-- Have: priority, risk, dependencies, description, success conditions, stakeholder attributions
-- Example: "NCO-01: Notification Event Model"
-
-**Key insight:** Capabilities are the coherent deliverables (they have success conditions). Groups are organizational (they cluster related deliverables). The methodology's grouping container (epic/bet) semantically aligns more with capabilities than with groups — an epic should be "a coherent deliverable," not "an organizational cluster."
-
-### Proposed methodology mapping (UNDER DISCUSSION)
+**Capabilities map to the methodology's grouping container.**
+Capabilities are the coherent deliverables — they have success conditions, stakeholder attributions, dependencies. They are analogous to epics (in the enriched, multi-stakeholder sense). The mapping:
 
 | Strategic Spec | Hydro | Shape Up | Scrum |
 |---|---|---|---|
-| Group | Epic (container) | Bet (container) | *(label only)* |
-| Capability | Sub-issue of epic (no container) | Scope (container, parent: bet) | *(label only)* |
+| Group | *(decomposition ordering only)* | *(decomposition ordering only)* | *(decomposition ordering only)* |
+| Capability | **Epic** (container) | **Bet** or **Scope** (TBD) | **Epic** (container) |
 | Task | Task (assigned to wave) | Task (assigned to cycle) | Task (assigned to sprint) |
 
-**Implications:**
-- In Hydro: capabilities are structural parents (sub-issues of epics) carrying strategic prose, but not governance containers. Epic integrity still means "all tasks in the same epic in the same wave." No BRE changes.
-- In Shape Up: capabilities naturally map to scopes (already a container with `parent: 'bet'`). The existing three-level container hierarchy is a perfect fit.
-- In Scrum: both groups and capabilities are labels/references only — tasks stand alone in sprints.
-
-**Technical detail — `findGroupingContainer` logic:**
-The function finds containers with `completionRule: 'none'` AND `!parent`. In Shape Up: bet matches (no parent), scope does NOT (parent: bet). This means the current mapper maps groups → bets. If we want capabilities → scopes, the mapper needs a second pass for child grouping containers.
-
-**Performance note:** Sub-issue creation has a 1000ms delay per call (GitHub API stability). A three-level hierarchy (groups + capabilities + tasks) for a spec with 4 groups, 12 capabilities, 30 tasks = 46 sub-issue wiring calls = ~46 seconds. Acceptable but worth noting.
-
-**Open questions:**
-1. Should groups → epics/bets (current behavior), or should capabilities → epics/bets?
-2. If groups → epics, what governance applies to capabilities? Just structural parenting?
-3. If capabilities → epics, what happens to groups? Are they GitHub issues at all?
-4. Does the BRE need changes for any of these mappings?
-5. For Hydro, should we add a scope-like container level to support three-level hierarchy?
-6. Shape Up scopes are `managed: false` — what does this mean for governance if capabilities map to scopes?
-
-### Desired end state for demo
-A consultant opens GitHub and sees:
+**GitHub hierarchy (all methodologies):**
 ```
-Notification Core (epic/bet)
-  └── NCO-01: Notification Event Model (capability — strategic prose, stakeholder attributions)
-      └── NCO-01A: Event Schema (task — code-specific, effort/risk/type/ai)
-      └── NCO-01B: Validation Service (task)
-  └── NCO-02: Channel Abstraction (capability)
-      └── NCO-02A: Channel Interface (task)
+NCO-01: Notification Event Model (capability → epic/bet — strategic prose, stakeholder attributions)
+  └── NCO-01A: Event Schema (task — code-specific, effort/risk/type/ai)
+  └── NCO-01B: Validation Service (task)
+NCO-02: Channel Abstraction (capability → epic/bet)
+  └── NCO-02A: Channel Interface (task)
 ```
 
-Click any task → see implementation details. Click its parent → see the strategic capability with stakeholder context. Click up again → see the group with its scope and priority.
+Two levels in GitHub. Clean. Click any task → see implementation details. Click its parent → see strategic capability with stakeholder context.
+
+**Add Epic to Scrum profile.**
+The Scrum profile currently has no grouping container. Adding Epic aligns it with Hydro and gives capabilities a container to map to. The Scrum profile becomes:
+```
+containers: [
+  { id: 'sprint', singularity: true, completionRule: 'all-terminal' },
+  { id: 'epic', completionRule: 'none', managed: true }
+]
+```
+
+**No epic-sprint integrity in Scrum.**
+Unlike Hydro (where all tasks in an epic must be in the same wave), Scrum allows epics to span multiple sprints. This matches how every Scrum team actually works. The governance Scrum gets instead:
+- Sprint singularity (one active sprint)
+- Dependency coherence (task sprint >= dependency sprint)
+- Atomic completion (sprint complete when all tasks done)
+
+**Keep Sprint as Sprint.**
+No renaming to "Iteration." Each methodology speaks its own language — Waves, Cycles, Sprints. That's the enterprise pitch.
+
+### Remaining question: Shape Up mapping
+Shape Up has three container levels: Cycle → Bet → Scope. How do capabilities map?
+- Capability → Bet? (what you're betting on — the commitment)
+- Capability → Scope? (independently deliverable piece within a bet)
+- If Capability → Bet, what maps to Scope? Tasks?
+- If Capability → Scope, what maps to Bet? Groups?
+
+This is the last methodology mapping to settle. Hydro and Scrum are decided.
+
+### Implementation impact
+
+**Ingestion pipeline changes:**
+- `findGroupingContainer()` currently maps groups → epic/bet. Needs to map capabilities → epic/bet instead.
+- `IngestionService` currently creates group issues then task sub-issues. Needs to create capability issues then task sub-issues. Group issues are no longer created.
+- The technical spec format may need adjustment — capabilities as the top-level grouping instead of groups.
+
+**`findGroupingContainer` logic:**
+Currently finds containers with `completionRule: 'none'` AND `!parent`. This returns Epic (Hydro), Bet (Shape Up), and now Epic (Scrum). The logic doesn't change — what changes is WHAT maps to it (capabilities instead of groups).
+
+**Performance:** Sub-issue creation has 1000ms delay per call. Two-level hierarchy (capabilities + tasks) for 12 capabilities + 30 tasks = 42 sub-issue calls = ~42 seconds. Similar to current.
 
 ---
 
