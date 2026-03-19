@@ -89,7 +89,7 @@ The canvas file persists for human review and auditability, but executing agents
 
 **Rationale:** This requires no changes to `start_task`, `get_task_execution_data`, or the execution prompts. The existing context pipeline already delivers the issue body. The technical-spec-writer just needs to be thorough.
 
-**Open question:** Is a task description always sufficient? For complex capabilities, the canvas section might be 500+ words of analysis. Should all of that go into the task description, or should particularly rich context be linked?
+**Resolved:** Task descriptions have no length limit. A 500-800 word description with codebase context, stakeholder attributions, file paths, and success conditions is a good living specification, not an overloaded one. If the description feels too long, the task needs splitting (Goldilocks violation) — not a different delivery mechanism. No linking, no separate storage, no retrieval infrastructure.
 
 ---
 
@@ -198,32 +198,43 @@ Currently finds containers with `completionRule: 'none'` AND `!parent`. This ret
 
 ---
 
-## Gap 3: Development Context Pipeline Not Built
+## Gap 3: Development Context Pipeline — EFFECTIVELY CLOSED
 
-### Problem
-The development context pipeline — enriching task execution with upstream decisions, sibling patterns, and downstream expectations — is partially built. The infrastructure exists but the enrichment layer is missing.
+### Reassessment
+Upon thorough investigation, the context lifecycle loop is already complete:
 
-### What exists (already built)
-- **Task execution aggregator** (`packages/mcp/src/aggregators/task-execution-aggregator.ts`) — assembles upstream deps, siblings, downstream dependents, execution intelligence. Already used by `get_task_execution_data`.
-- **Context comment parser** (`packages/core/src/shared/utils/context-comment-parser.ts`) — parses structured `<!-- ido4:context -->` blocks.
-- **Context comment formatter** (`packages/core/src/shared/utils/context-comment-formatter.ts`) — produces structured context comments.
-- **Execution prompts** — guide agents through context consumption (Phase 1: spec comprehension, Phase 2: upstream interpretation, etc.)
+**READ side (system delivers context to agents):**
+- `get_task_execution_data` MCP tool — single-call assembly of upstream deps (with parsed context comments), siblings, downstream, epic progress, execution intelligence
+- Execution prompts — 8-phase agent guide:
+  - Phase 1: Specification Comprehension
+  - Phase 2: Upstream Context Interpretation (extract interfaces, patterns, decisions, warnings)
+  - Phase 3: Downstream Awareness (design for consumers)
+  - Phase 4: Pattern Detection (instability signals)
+  - Phase 5: Work Execution
+  - Phase 6: Escalation Protocol
+  - Phase 7: Context Capture (templates for start, decisions, completion)
+  - Phase 8: Completion Verification
 
-### What's missing
-- **Context enrichment service** — combines task execution data with parsed context comments to produce enriched packages with upstream decisions, not just statuses.
-- **Context writing MCP tool** — exposes `formatIdo4ContextComment` as an MCP tool so agents can write structured context back to issues.
-- **Context snapshot persistence** — audit trail of what context was provided to an agent at task start.
-- **Context-aware prompts** — standup/board/health prompts that leverage assembled context.
+**WRITE side (agents contribute context back):**
+- Every transition tool (`start_task`, `review_task`, `approve_task`, `block_task`, etc.) accepts a `context` parameter
+- When provided, the system calls `formatIdo4ContextComment` and writes a structured `<!-- ido4:context -->` comment on the issue
+- The execution prompt Phase 7 guides agents on WHAT to write at three touchpoints:
+  - At start: approach, interfaces consumed, patterns following
+  - At key decisions: what, why, alternatives rejected
+  - At completion: interfaces created, patterns established, decisions, edge cases, test coverage
 
-### Relationship to Gap 1
-Gap 1 (context compression) is about decomposition-time knowledge reaching executing agents. Gap 3 is about runtime context (upstream decisions, sibling patterns) reaching executing agents. They're complementary:
-- Gap 1 solution: embed canvas knowledge in task descriptions → agents get codebase context from the issue body
-- Gap 3 solution: build context enrichment → agents get runtime context from `get_task_execution_data`
+**The loop:** Agent A starts task → writes context at start/decisions/completion → Agent B starts downstream task → `get_task_execution_data` returns Agent A's context comments → execution prompt Phase 2 guides extraction → Agent B builds on Agent A's knowledge.
 
-Both flow through the existing execution prompt framework. No new delivery mechanism needed.
+### What was initially misidentified as missing
+- **Context writing MCP tool** — ALREADY EXISTS. Built into every transition tool's `context` parameter.
+- **Context enrichment service** — NOT NEEDED. The execution prompts guide AI agents through extraction (Phase 2). AI does this better than a deterministic service.
+- **Context snapshot persistence** — ALREADY EXISTS. Context comments on GitHub issues are timestamped, attributed, and permanent. The audit trail IS the comment history.
 
-### Strategic spec for this feature
-A dogfooding strategic spec exists: `tests/fixtures/strategic-spec-context-pipeline.md` (5 capabilities across 2 groups). It accurately reflects what exists vs what's new.
+### Future enhancement (not a gap)
+- **Context-aware governance prompts** — standup/board/health prompts could be richer if they included upstream decision summaries ("NCO-01A agent established Zod pattern, downstream should follow"). This is an improvement to working infrastructure, not a missing piece. Must be done with care to not break existing prompt quality.
+
+### Dogfooding spec status
+`tests/fixtures/strategic-spec-context-pipeline.md` described capabilities that are mostly already built. The remaining capabilities (CTX-01: enrichment service, CTX-02: snapshot persistence) may not be needed given the reassessment. The fixture is still useful for testing the decomposition pipeline mechanics.
 
 ---
 
@@ -349,5 +360,5 @@ Options: rename one, qualify both, or accept the overload. Not yet decided.
 3. **Update ingestion pipeline** — Capabilities as grouping unit instead of groups
 4. **Update agent instructions** — Group knowledge downstream, capability→epic mapping
 5. **Validate Gap 4** — Run the pipeline end-to-end
-6. **Address Gap 3** — Build the context enrichment service and context writing tool
-7. **Real validation** — Decompose a real strategic spec from ido4shape
+6. **Real validation** — Decompose a real strategic spec from ido4shape
+7. *(Future enhancement)* Context-aware governance prompts — improve with care, don't break existing
