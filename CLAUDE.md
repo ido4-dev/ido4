@@ -24,7 +24,7 @@ ido4-MCP/
 The domain layer. Contains: task workflow services, BRE (Business Rule Engine) validation pipeline (32 steps), container management, integrity enforcement, dependency analysis, compliance scoring, analytics, work distribution, merge readiness, ingestion pipeline, strategic spec parser. Profile-driven state machine. **Zero dependencies on CLI frameworks, terminal formatting, or MCP SDK.**
 
 ### @ido4/mcp
-The MCP server. Wraps @ido4/core domain services as MCP tools, resources, and prompts — dynamically generated from the active methodology profile. Uses STDIO transport for Claude Code integration. Hydro: 58 tools, Scrum: 56 tools, Shape Up: 54 tools.
+The MCP server. Wraps @ido4/core domain services as MCP tools, resources, and prompts — dynamically generated from the active methodology profile. Uses STDIO transport for Claude Code integration. Hydro: 57 tools, Scrum: 56 tools, Shape Up: 53 tools.
 
 ### plugin/
 Claude Code plugin bundle. Contains 18 skills (governance, planning, retrospectives, sandbox demos, spec validation, decomposition), 4 agents (PM, code-analyzer, technical-spec-writer, spec-reviewer), and automation hooks.

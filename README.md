@@ -14,7 +14,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/MCP-compatible-7C3AED" alt="MCP Compatible">
-  <img src="https://img.shields.io/badge/tools-58-2563EB" alt="58 MCP Tools">
+  <img src="https://img.shields.io/badge/tools-57-2563EB" alt="57 MCP Tools">
   <img src="https://img.shields.io/badge/tests-1768-16A34A" alt="1768 Tests">
   <img src="https://img.shields.io/npm/l/@ido4/core" alt="MIT License">
 </p>
@@ -291,7 +291,7 @@ ido4's governance model is built on 5 principles that cannot be bypassed:
 | Package | npm | Description |
 |---|---|---|
 | [`@ido4/core`](packages/core/) | `npm i @ido4/core` | Domain logic — BRE (32 steps), profile-driven services, repositories. Zero CLI dependencies. |
-| [`@ido4/mcp`](packages/mcp/) | `npm i @ido4/mcp` | MCP server — STDIO transport, 58 tools (Hydro), 9 resources, 7 prompts. |
+| [`@ido4/mcp`](packages/mcp/) | `npm i @ido4/mcp` | MCP server — STDIO transport, 57 tools (Hydro), 9 resources, 8 prompts. |
 | [`plugin`](packages/plugin/) | — | Claude Code plugin — 18 skills, 4 agents, governance hooks. |
 
 ### 51 MCP Tools
