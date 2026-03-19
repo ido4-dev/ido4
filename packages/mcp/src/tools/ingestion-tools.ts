@@ -52,6 +52,7 @@ export function registerIngestionTools(server: McpServer): void {
             name: g.name,
             prefix: g.prefix,
             priority: g.priority,
+            description: g.description,
             capabilityCount: g.capabilities.length,
             capabilities: g.capabilities.map(c => ({
               ref: c.ref,
@@ -59,7 +60,8 @@ export function registerIngestionTools(server: McpServer): void {
               priority: c.priority,
               risk: c.risk,
               dependsOn: c.dependsOn,
-              successConditionCount: c.successConditions.length,
+              body: c.body,
+              successConditions: c.successConditions,
             })),
           })),
           orphanCapabilities: result.orphanCapabilities.map(c => c.ref),
