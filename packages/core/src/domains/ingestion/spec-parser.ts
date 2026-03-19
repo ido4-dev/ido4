@@ -12,6 +12,7 @@ import type {
   ParsedTask,
   ParseError,
 } from './types.js';
+import { parseMetadataLine, derivePrefix } from './spec-parse-utils.js';
 
 type ParserState = 'INIT' | 'PROJECT' | 'GROUP' | 'TASK';
 
@@ -29,28 +30,6 @@ const KNOWN_TASK_METADATA_KEYS = new Set([
 const KNOWN_GROUP_METADATA_KEYS = new Set([
   'size', 'risk',
 ]);
-
-function parseMetadataLine(line: string): Record<string, string> {
-  const pairs: Record<string, string> = {};
-  for (const segment of line.split('|')) {
-    const match = segment.trim().match(/^(\w+):\s*(.+)$/);
-    if (match && match[1] && match[2]) {
-      pairs[match[1]] = match[2].trim();
-    }
-  }
-  return pairs;
-}
-
-function derivePrefix(groupName: string): string {
-  const words = groupName.split(/\s+/).filter(Boolean);
-  if (words.length === 1) {
-    return words[0]!.substring(0, 3).toUpperCase();
-  }
-  return words
-    .map(w => w[0]!)
-    .join('')
-    .toUpperCase();
-}
 
 export function parseSpec(markdown: string): ParsedSpec {
   const lines = markdown.split('\n');

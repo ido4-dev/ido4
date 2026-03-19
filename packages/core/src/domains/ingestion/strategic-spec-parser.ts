@@ -20,6 +20,7 @@ import type {
   Stakeholder,
 } from './strategic-spec-types.js';
 import { STRATEGIC_PRIORITIES, STRATEGIC_RISKS } from './strategic-spec-types.js';
+import { parseMetadataLine, derivePrefix } from './spec-parse-utils.js';
 
 type ParserState = 'INIT' | 'PROJECT' | 'CROSS_CUTTING' | 'GROUP' | 'CAPABILITY';
 
@@ -36,28 +37,6 @@ const SEPARATOR = /^---\s*$/;
 
 const KNOWN_GROUP_METADATA_KEYS = new Set(['priority']);
 const KNOWN_CAPABILITY_METADATA_KEYS = new Set(['priority', 'risk', 'depends_on']);
-
-function parseMetadataLine(line: string): Record<string, string> {
-  const pairs: Record<string, string> = {};
-  for (const segment of line.split('|')) {
-    const match = segment.trim().match(/^(\w+):\s*(.+)$/);
-    if (match && match[1] && match[2]) {
-      pairs[match[1]] = match[2].trim();
-    }
-  }
-  return pairs;
-}
-
-function derivePrefix(groupName: string): string {
-  const words = groupName.split(/\s+/).filter(Boolean);
-  if (words.length === 1) {
-    return words[0]!.substring(0, 3).toUpperCase();
-  }
-  return words
-    .map(w => w[0]!)
-    .join('')
-    .toUpperCase();
-}
 
 export function parseStrategicSpec(markdown: string): ParsedStrategicSpec {
   const lines = markdown.split('\n');

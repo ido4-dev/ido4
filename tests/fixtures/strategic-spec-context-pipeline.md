@@ -50,43 +50,36 @@ Every context assembly should be traceable — what was fetched, what was includ
 ## Group: Context Assembly
 > priority: must-have
 
-The engine that gathers and structures context for a task. Reads the dependency graph, fetches upstream decisions, identifies sibling patterns, and assembles everything into a structured context package that any agent can consume.
+The engine that gathers and structures context for a task. Builds on existing infrastructure — the task execution aggregator (packages/mcp/src/aggregators/task-execution-aggregator.ts) already fetches upstream dependencies, epic siblings, and downstream dependents. The context comment parser (packages/core/src/shared/utils/context-comment-parser.ts) already parses structured ido4 context blocks. What's missing is the enrichment layer that combines these into a self-contained context package.
 
-### CTX-01: Task Execution Data Aggregator
-> priority: must-have | risk: low
+### CTX-01: Context Enrichment Service
+> priority: must-have | risk: medium
 > depends_on: -
 
-Consolidate the existing task execution aggregator into a reliable context source. It already fetches upstream dependencies, epic siblings, downstream dependents, and computes execution intelligence (risk flags, critical path, dependency signals). The foundation exists but needs hardening for production use as the primary context delivery mechanism.
+The orchestrator that combines raw task data (from the existing task execution aggregator) with parsed context comments (from the existing context comment parser) to produce enriched context packages. For each upstream dependency, includes not just status but the decisions made, interfaces created, and patterns established. For siblings, includes what parallel agents decided so the current agent can align.
 
-**Success conditions:**
-- Assembles full task context (upstream + siblings + downstream + epic progress) in a single call
-- Handles missing or inaccessible dependencies gracefully without failing the whole assembly
-- Returns structured data with clear separation between dependency context, sibling context, and downstream expectations
-- Performance: completes within 5 seconds for typical task graphs
-
-### CTX-02: Context Comment Parser
-> priority: must-have | risk: low
-> depends_on: CTX-01
-
-Parse structured context from GitHub issue comments. Agents write context at key transitions (start, review, complete) using a structured format. The parser extracts these structured blocks from the comment stream, enabling the aggregator to include upstream decisions in downstream task context.
-
-**Success conditions:**
-- Parses ido4 context comment format from issue comment bodies
-- Extracts transition type, agent identity, timestamp, and structured content
-- Handles comments with mixed structured and unstructured content
-- Returns ordered context blocks per issue
-
-### CTX-03: Context Enrichment Service
-> priority: must-have | risk: medium
-> depends_on: CTX-01, CTX-02
-
-The orchestrator that combines raw task data with parsed context comments to produce enriched context packages. For each upstream dependency, includes not just status but the decisions made, interfaces created, and patterns established. For siblings, includes what parallel agents decided so the current agent can align.
+Per Bogdan: the system carries the knowledge, not the agent. This service is the "institutional memory" assembler — every agent gets the same rich context regardless of which AI model powers it.
 
 **Success conditions:**
 - Produces enriched context that includes upstream decisions and interface descriptions
-- Cross-cutting concerns from the project spec are woven into relevant task context
+- Integrates with existing task execution aggregator (does not duplicate its functionality)
+- Integrates with existing context comment parser (does not duplicate its functionality)
 - Context package is self-contained — an agent can understand its task without additional API calls
 - Handles partial context gracefully (some deps may have no context comments)
+
+### CTX-02: Context Snapshot Persistence
+> priority: should-have | risk: low
+> depends_on: CTX-01
+
+Persist assembled context snapshots so they can be audited and compared. When context is assembled for a task, the snapshot records what information was available at that moment. This enables tracing: "the agent had this context when it started working."
+
+Per enterprise users: accountability requires traceability — what did the agent know when it made its decisions?
+
+**Success conditions:**
+- Context snapshots are persisted as part of the audit trail
+- Snapshots include: what was fetched, what was included, what was omitted (and why)
+- Snapshots are queryable by task number and timestamp
+- No modification of existing audit service — uses the existing event pattern
 
 ---
 
@@ -97,9 +90,11 @@ How context reaches agents. The MCP tools and prompts that deliver assembled con
 
 ### CDL-01: Start Task Context Injection
 > priority: must-have | risk: medium
-> depends_on: CTX-03
+> depends_on: CTX-01
 
 When an agent calls `start_task`, automatically assemble and deliver the full context package alongside the task briefing. The agent receives not just "start working on #42" but a complete understanding of what upstream produced, what siblings decided, and what downstream expects.
+
+Per Bogdan: agents are stateless — each session starts fresh. The right 100K tokens of context will outperform a "specialized" agent with the wrong context.
 
 **Success conditions:**
 - `start_task` response includes assembled context alongside task details
@@ -107,21 +102,21 @@ When an agent calls `start_task`, automatically assemble and deliver the full co
 - Agent can understand task position in the project graph without additional calls
 - Existing `start_task` behavior is preserved — context is additive
 
-### CDL-02: Context Writing Tools
+### CDL-02: Context Writing MCP Tool
 > priority: must-have | risk: low
-> depends_on: CTX-02
+> depends_on: -
 
-MCP tools for agents to write structured context back to issues at key transitions. When an agent completes a review or makes a design decision, it writes structured context that future agents (working on downstream tasks) can consume.
+MCP tool for agents to write structured context back to issues at key transitions. Uses the existing context comment formatter (packages/core/src/shared/utils/context-comment-formatter.ts) to produce machine-parseable, human-readable comments. When an agent makes a design decision, it writes structured context that future agents can consume.
 
 **Success conditions:**
-- MCP tool to write structured context comment on an issue
-- Context format includes: transition, agent identity, timestamp, structured content
-- Written context is immediately available to the context parser
+- MCP tool `write_task_context` accepts transition type, content, and optional agent identity
+- Uses existing formatIdo4ContextComment — does not create a new format
+- Written context is immediately parseable by the existing context comment parser
 - Integrates with existing audit trail (context writes are governance events)
 
 ### CDL-03: Context-Aware Prompts
 > priority: should-have | risk: low
-> depends_on: CTX-03, CDL-01
+> depends_on: CTX-01, CDL-01
 
 Enhanced MCP prompts (standup, board, health) that leverage assembled context to produce richer, more actionable guidance. A standup that knows what each agent's upstream dependencies decided is more valuable than one that just reports statuses.
 
