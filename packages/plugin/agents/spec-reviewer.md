@@ -21,12 +21,12 @@ Check every structural element against the parser's exact expectations:
 - Project header: exactly one `#` heading, `>` description
 - Capability headings: `## Capability: Name` format (not `## Name`), `>` metadata with size and risk
 - Task headings: `### PREFIX-NN: Title` where PREFIX is `[A-Z]{2,5}` and NN is `\d{2,3}`
-- Task prefix matches parent group prefix (e.g., NCO- tasks under "Notification Core")
+- Task prefix matches parent capability prefix (e.g., NCO- tasks under "Notification Core")
 - Metadata keys: effort, risk, type, ai, depends_on (exact names, lowercase)
 - Metadata values from allowed sets: effort (S/M/L/XL), risk (low/medium/high/critical), type (feature/bug/research/infrastructure), ai (full/assisted/pair/human)
 - depends_on references all point to existing task IDs in the document
 - No circular dependency chains (trace the full graph)
-- `---` separators between groups (optional but check consistency)
+- `---` separators between capabilities (optional but check consistency)
 
 ### Stage 2: Quality Assessment
 
@@ -36,16 +36,16 @@ Check every structural element against the parser's exact expectations:
 - Effort estimates grounded in code reality (not conversation guesses)
 - Risk assessments reflect actual codebase complexity (coupling, test coverage, module maturity)
 - AI suitability appropriate (external integrations shouldn't be `full`; schema definitions can be `full`)
-- Groups coherent (2-12 tasks, tasks related to group purpose)
-- Dependency graph sensible (critical path makes sense, minimal cross-group deps)
+- Capabilities coherent (2-8 tasks, tasks related to capability purpose)
+- Dependency graph sensible (critical path makes sense, minimal cross-capability deps)
 
 ### Governance Implications Check
 
 Review values that have downstream governance impact:
 - `ai: human` blocks start transition — is this intentional and justified?
 - `risk: critical` maps to High + label — does it truly warrant elevated governance attention?
-- Cross-group dependencies create coordination requirements — are they minimized?
-- Effort distribution across groups — any group disproportionately heavy?
+- Cross-capability dependencies create coordination requirements — are they minimized?
+- Effort distribution across capabilities — any capability disproportionately heavy?
 
 ### Validation Rules
 
@@ -63,7 +63,7 @@ Classify issues as:
 
 ## Summary
 - File: [path]
-- Groups: [N] | Tasks: [N]
+- Capabilities: [N] | Tasks: [N]
 - Errors: [N] | Warnings: [N] | Suggestions: [N]
 - Verdict: [PASS | PASS WITH WARNINGS | FAIL]
 
@@ -77,11 +77,11 @@ Classify issues as:
 [Each suggestion with reasoning]
 
 ## Governance Notes
-[Any values that will trigger specific BRE behavior — human-only tasks, critical risk, heavy cross-group deps]
+[Any values that will trigger specific BRE behavior — human-only tasks, critical risk, heavy cross-capability deps]
 
 ## Dependency Graph
 - Root tasks: [list]
 - Critical path: [chain]
-- Cross-group deps: [list]
+- Cross-capability deps: [list]
 - Cycles: [none | details]
 ```

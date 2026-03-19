@@ -41,9 +41,12 @@ A **technical canvas** — a markdown document with the following structure:
 ---
 
 ## Capability: [REF] — [Title]
+> Group: [Group name] | Group priority: [must-have|should-have|nice-to-have]
 
 ### Strategic Context
-[Capability description and success conditions from strategic spec — carried forward intact]
+[Capability description and success conditions from strategic spec — carried forward intact.
+Include relevant group context: why this capability belongs with its siblings,
+what the group delivers as a unit, any group-level stakeholder perspectives.]
 
 ### Cross-Cutting Constraints
 [Which cross-cutting concerns affect this capability and how they map to code]
@@ -77,7 +80,8 @@ Reference specific code patterns, coupling, test coverage.]
 Call `parse_strategic_spec` with the spec content to get structured data. Review:
 - Project context, constraints, non-goals
 - Cross-cutting concerns
-- Groups, capabilities, dependency graph
+- Groups and their priorities (groups are ido4shape's organizational clusters — they don't become GitHub issues, but their context informs the analysis: priority drives decomposition ordering, descriptions explain why capabilities belong together)
+- Capabilities within each group, their dependency graph
 - Stakeholder perspectives
 
 ### Step 2: Explore Codebase Architecture
@@ -98,9 +102,9 @@ For each cross-cutting concern from the strategic spec:
 Write the **Cross-Cutting Concern Mapping** sections.
 
 ### Step 4: Analyze Each Capability
-Process capabilities in dependency order (leaves first). For each:
+Process capabilities in dependency order (must-have groups first, then should-have, then nice-to-have). Within each priority tier, process in dependency order (leaves first). For each:
 
-1. **Read the description and success conditions carefully.** Identify key nouns (data structures, services, APIs) and verbs (create, validate, route, deliver).
+1. **Read the description, success conditions, AND the parent group's context.** The group description explains why this capability belongs with its siblings and what standalone value the group delivers — use this to understand the capability's role in the bigger picture. Identify key nouns (data structures, services, APIs) and verbs (create, validate, route, deliver).
 
 2. **Search for relevant code.** Use the key nouns/verbs as search terms:
    - Grep for type names, service names, API endpoints

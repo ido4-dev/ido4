@@ -26,7 +26,7 @@ Verify each structural element against the parser's exact expectations:
 
 **Capabilities:** `## Capability: Name` format — must include `Capability:` prefix. Metadata in `>` blockquote with `size` and `risk` from allowed sets.
 
-**Tasks:** `### PREFIX-NN: Title` where PREFIX is `[A-Z]{2,5}` and NN is `\d{2,3}`. Prefix must match parent group's derived prefix.
+**Tasks:** `### PREFIX-NN: Title` where PREFIX is `[A-Z]{2,5}` and NN is `\d{2,3}`. Prefix must match parent capability's derived prefix.
 
 **Metadata keys (exact, lowercase):** effort, risk, type, ai, depends_on. Values from allowed sets:
 - effort: S, M, L, XL
@@ -43,8 +43,8 @@ Verify each structural element against the parser's exact expectations:
 - Success conditions present under `**Success conditions:**` as bullet list — specific and independently verifiable
 - Effort/risk calibration plausible (external integration marked low risk is suspicious; XL + low risk is suspicious)
 - AI suitability appropriate (external integrations shouldn't be `full`; well-defined schema tasks can be)
-- Groups have 3-8 tasks with related purposes
-- Dependency graph has a sensible critical path with minimal cross-group dependencies
+- Capabilities have 2-8 tasks with related purposes
+- Dependency graph has a sensible critical path with minimal cross-capability dependencies
 
 ## Step 3: Report
 
@@ -54,7 +54,7 @@ Produce a structured report:
 ## Spec Validation Report
 
 **File:** [path]
-**Groups:** [N] | **Tasks:** [N]
+**Capabilities:** [N] | **Tasks:** [N]
 **Errors:** [N] | **Warnings:** [N] | **Suggestions:** [N]
 **Verdict:** [PASS | PASS WITH WARNINGS | FAIL]
 
@@ -70,7 +70,7 @@ Produce a structured report:
 ### Dependency Graph
 - Root tasks: [list]
 - Critical path: [longest chain]
-- Cross-group deps: [list with risk assessment]
+- Cross-capability deps: [list with risk assessment]
 - Cycles: [none | details]
 ```
 

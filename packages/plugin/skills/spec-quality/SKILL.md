@@ -78,11 +78,11 @@ Determines work item categorization in the methodology profile.
 
 A single strategic capability often decomposes into multiple types: the migration is infrastructure, the API endpoint is feature, the feasibility check is research.
 
-## Group Quality
+## Capability Quality (as Grouping Unit)
 
-Groups should be coherent (all tasks serve the same module or capability), self-contained (delivering the group provides a testable increment), and right-sized (3-8 tasks typically).
+In technical specs, each `## Capability:` section represents one strategic capability — it becomes an epic/bet in GitHub. Capabilities should be coherent (all tasks serve the same functional requirement), self-contained (delivering the capability provides a testable increment), and right-sized (2-8 tasks typically).
 
-In technical specs, groups often align with code modules or service boundaries rather than functional capabilities — this is correct. A strategic capability "notification preferences" might decompose into tasks across "Database" and "API" groups if that better reflects the codebase architecture.
+The capability description should carry strategic context (stakeholder attributions, group coherence from ido4shape) and codebase context (relevant modules, patterns). This becomes the epic/bet issue body — make it rich enough to be a living specification.
 
 ## Methodology Mapping Awareness
 

@@ -23,7 +23,7 @@ Use $ARGUMENTS as the path to the strategic spec file.
 3. Review the result:
    - If there are **errors**, stop and report them. The strategic spec must be fixed first.
    - If there are **warnings**, report them but continue.
-4. Summarize to the user: project name, number of groups, number of capabilities, dependency structure.
+4. Summarize to the user: project name, number of capabilities (grouped by ido4shape groups), dependency structure, group priorities.
 
 If no path is provided, ask the user for it.
 
@@ -115,10 +115,10 @@ For each capability (in dependency order):
    - **ai**: full/assisted/pair/human based on code patterns
    - **depends_on**: functional (from strategic spec) + code-level (from canvas)
 
-### 2c. Preserve Groups
-- Keep strategic groups as the primary structure
-- Use depends_on for technical ordering within groups
-- Only create a shared infrastructure group if truly cross-group
+### 2c. Capability as Top-Level Structure
+- Each strategic capability becomes a `## Capability:` section — no group headings in the technical spec
+- Group knowledge (priority, description, coherence) is woven into capability descriptions
+- Use depends_on for technical ordering within and across capabilities
 - Cross-cutting concerns become task constraints, not separate tasks
 
 ### 2d. Assemble the Technical Spec
@@ -139,7 +139,8 @@ Write the complete technical spec as a markdown file alongside the strategic spe
 ## Capability: [Name]
 > size: [S|M|L|XL] | risk: [low|medium|high|critical]
 
-[Description]
+[Strategic context from ido4shape + group coherence context + codebase context from canvas.
+This becomes the epic/bet GitHub issue body — make it a living specification.]
 
 ### [REF]: [Title]
 > effort: [S|M|L|XL] | risk: [low|medium|high|critical] | type: [feature|bug|research|infrastructure] | ai: [full|assisted|pair|human]
