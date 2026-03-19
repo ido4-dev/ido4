@@ -4,6 +4,18 @@ All notable changes to ido4 are documented here.
 
 Both `@ido4/core` and `@ido4/mcp` are released together at the same version.
 
+## [0.4.0] — 2026-03-19
+
+Capability-based architecture. Capabilities (from ido4shape strategic specs) are now the structural unit — they become epic/bet GitHub issues with tasks as sub-issues. Groups provide decomposition context but don't become GitHub issues.
+
+- **Capability-based ingestion**: Technical spec format changed from `## Group:` to `## Capability:`. Capabilities map to the methodology's grouping container (epic in Hydro/Scrum, bet in Shape Up). Tasks are sub-issues of capabilities.
+- **Scrum Epic container**: Scrum profile now has Epic as a grouping container, adding 7 tools (list, status, assign + 4 legacy epic tools). No epic-sprint integrity — epics span sprints, matching real-world Scrum.
+- **Agent instructions aligned**: Code analyzer uses group context (priority, description) for decomposition ordering. Technical spec writer embeds group knowledge into capability descriptions. All agents, skills, and validators reference `## Capability:` format.
+- **Semantic clarity**: Mapper uses `capability:` refs. Tool descriptions explain group→capability semantic transformation. Methodology mapping table updated across all documentation.
+- **Shared parser utilities**: Extracted `parseMetadataLine` and `derivePrefix` into shared module — used by both technical and strategic spec parsers.
+
+1,768 tests. Build clean.
+
 ## [0.3.0] — 2026-03-19
 
 Decomposition pipeline. ido4 MCP can now consume strategic specs from ido4shape and produce technical specs for the ingestion pipeline.
