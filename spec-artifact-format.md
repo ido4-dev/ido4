@@ -10,7 +10,7 @@ The artifact is **methodology-agnostic**. It captures substance — what to buil
 
 ```
 # Project Name          → project
-## Group: Group Name    → logical grouping (becomes epic/bet/feature)
+## Capability: Name         → capability (becomes epic/bet)
 ### PREFIX-NN: Title    → individual task (becomes GitHub issue)
 ```
 
@@ -32,18 +32,18 @@ The artifact is **methodology-agnostic**. It captures substance — what to buil
 - Unresolved decisions that may affect scope or approach
 ```
 
-### Group
+### Capability
 
 ```markdown
-## Group: Group Name
+## Capability: Notification Event Model
 > size: M | risk: medium
 
-Description of the group — what it delivers as a unit,
-why these tasks belong together, what value it provides
-when complete.
+Description of the capability — what it delivers, strategic
+context, stakeholder attributions. Tasks within this capability
+implement the functional requirement.
 
-Optional risk notes, architectural context, or
-integration points with other groups.
+Includes codebase context from decomposition: relevant modules,
+patterns, architecture.
 ```
 
 ### Task
@@ -96,7 +96,7 @@ When omitted, ido4 defaults to `assisted` (AI executes, human reviews) — the s
 ### Parsing Rules
 
 1. `#` = project title. First `>` block after it = project description.
-2. `## Group:` = group start. ID prefix derived from group name initials or abbreviation.
+2. `## Capability:` = capability start. ID prefix derived from name initials or abbreviation.
 3. `### PREFIX-NN:` = task. Prefix matches its parent group.
 4. `>` lines immediately after any heading = structured metadata (pipe-separated key-value pairs).
 5. Body = everything between metadata and next heading or `---`.
@@ -110,8 +110,8 @@ When omitted, ido4 defaults to `assisted` (AI executes, human reviews) — the s
 
 | Artifact concept | Hydro | Scrum | Shape Up |
 |-----------------|-------|-------|----------|
-| Group | Epic | Feature group | Bet |
-| Group size | — | — | Appetite (S→S, M→M, L→L, XL→XL) |
+| Capability | Epic | Epic | Bet |
+| Capability size | — | — | Appetite (S→S, M→M, L→L, XL→XL) |
 | Task | Task (issue) | Story / Spike / Task | Scope |
 | Task effort | Effort field (S→Small, M→Medium, L/XL→Large) | Story points (S→1, M→3, L→5, XL→8) | — |
 | Task risk | Risk field (low→Low, medium→Medium, high/critical→High) | Spike candidate if high/critical | Rabbit hole flag if high/critical |
@@ -176,7 +176,7 @@ The artifact uses a compact, product-friendly vocabulary. ido4's `ingest_spec` m
 
 ---
 
-## Group: Notification Core
+## Capability: Notification Core
 > size: L | risk: medium
 
 The backbone of the notification system — event ingestion, routing
@@ -295,7 +295,7 @@ not updates. This gives full audit trail and makes concurrent updates safe.
 
 ---
 
-## Group: Email Channel
+## Capability: Email Channel
 > size: M | risk: low
 
 Email delivery channel implementation. Integrates with SendGrid SMTP API,
@@ -366,7 +366,7 @@ send path — check before sending, not after.
 
 ---
 
-## Group: Push Channel
+## Capability: Push Channel
 > size: L | risk: high
 
 Push notification delivery via APNs (iOS) and FCM (Android).
@@ -450,7 +450,7 @@ vs data message — use data messages for more control).
 
 ---
 
-## Group: Preferences
+## Capability: Preferences
 > size: M | risk: low
 
 User notification preferences — which channels are enabled for which

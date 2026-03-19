@@ -24,7 +24,7 @@ Verify each structural element against the parser's exact expectations:
 
 **Project header:** One `#` heading with `>` description. Constraints/Non-goals/Open questions sections are conventional but not parser-required.
 
-**Groups:** `## Group: Name` format — must include `Group:` prefix. Metadata in `>` blockquote with `size` and `risk` from allowed sets.
+**Capabilities:** `## Capability: Name` format — must include `Capability:` prefix. Metadata in `>` blockquote with `size` and `risk` from allowed sets.
 
 **Tasks:** `### PREFIX-NN: Title` where PREFIX is `[A-Z]{2,5}` and NN is `\d{2,3}`. Prefix must match parent group's derived prefix.
 

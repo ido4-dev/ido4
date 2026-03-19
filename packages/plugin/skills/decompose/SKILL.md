@@ -136,7 +136,7 @@ Write the complete technical spec as a markdown file alongside the strategic spe
 
 ---
 
-## Group: [Name]
+## Capability: [Name]
 > size: [S|M|L|XL] | risk: [low|medium|high|critical]
 
 [Description]

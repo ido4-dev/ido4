@@ -40,10 +40,10 @@ A **technical spec** in the exact format that `spec-parser.ts` consumes:
 
 ---
 
-## Group: [Group Name]
+## Capability: [Capability Name]
 > size: [S|M|L|XL] | risk: [low|medium|high|critical]
 
-[Group description — what this group delivers, code modules involved.]
+[Capability description — what this delivers, strategic context, code modules involved.]
 
 ### [REF]: [Task Title]
 > effort: [S|M|L|XL] | risk: [low|medium|high|critical] | type: [feature|bug|research|infrastructure] | ai: [full|assisted|pair|human]

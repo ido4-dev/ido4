@@ -10,7 +10,7 @@ const MINIMAL_SPEC = `# Test Project
 
 > A test project description.
 
-## Group: Core
+## Capability: Core
 > size: M | risk: low
 
 Core group description.
@@ -45,7 +45,7 @@ const FULL_SPEC = `# Real-time Notification System
 
 ---
 
-## Group: Notification Core
+## Capability: Notification Core
 > size: L | risk: medium
 
 The backbone of the notification system.
@@ -81,7 +81,7 @@ The routing engine is the central dispatcher.
 
 ---
 
-## Group: Email Channel
+## Capability: Email Channel
 > size: M | risk: low
 
 Email delivery channel implementation.
@@ -238,7 +238,7 @@ Body of orphan task.
 
 > Desc.
 
-## Group: A
+## Capability: A
 > size: S | risk: low
 
 Desc.
@@ -289,7 +289,7 @@ Body.
 
 > Desc.
 
-## Group: Empty Group
+## Capability: Empty Group
 > size: S | risk: low
 
 This group has no tasks.

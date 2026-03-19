@@ -13,7 +13,7 @@ const SAMPLE_SPEC = `# Test Project
 
 > A test project.
 
-## Group: Core
+## Capability: Core
 > size: M | risk: low
 
 Core group.

@@ -35,7 +35,7 @@ const FULL_ARTIFACT = `# Real-time Notification System
 
 ---
 
-## Group: Notification Core
+## Capability: Notification Core
 > size: L | risk: medium
 
 The backbone of the notification system — event ingestion, routing
@@ -154,7 +154,7 @@ not updates. This gives full audit trail and makes concurrent updates safe.
 
 ---
 
-## Group: Email Channel
+## Capability: Email Channel
 > size: M | risk: low
 
 Email delivery channel implementation. Integrates with SendGrid SMTP API,
@@ -225,7 +225,7 @@ send path — check before sending, not after.
 
 ---
 
-## Group: Push Channel
+## Capability: Push Channel
 > size: L | risk: high
 
 Push notification delivery via APNs (iOS) and FCM (Android).
@@ -309,7 +309,7 @@ vs data message — use data messages for more control).
 
 ---
 
-## Group: Preferences
+## Capability: Preferences
 > size: M | risk: low
 
 User notification preferences — which channels are enabled for which

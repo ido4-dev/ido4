@@ -19,7 +19,7 @@ Perform a two-stage review:
 Check every structural element against the parser's exact expectations:
 
 - Project header: exactly one `#` heading, `>` description
-- Group headings: `## Group: Name` format (not `## Name`), `>` metadata with size and risk
+- Capability headings: `## Capability: Name` format (not `## Name`), `>` metadata with size and risk
 - Task headings: `### PREFIX-NN: Title` where PREFIX is `[A-Z]{2,5}` and NN is `\d{2,3}`
 - Task prefix matches parent group prefix (e.g., NCO- tasks under "Notification Core")
 - Metadata keys: effort, risk, type, ai, depends_on (exact names, lowercase)
