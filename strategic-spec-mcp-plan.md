@@ -240,7 +240,25 @@ Feed the validated technical spec into the existing pipeline. Nothing changes �
 
 Phase 2 and 3 are the core work — AI reasoning about codebases and judgment about task decomposition. Phase 1 is mechanical. Phase 4 is mostly existing infrastructure. Phase 5 is orchestration glue.
 
-**First real validation:** Decompose a real strategic spec (produced by ido4shape) against a real codebase. The synthetic notification example is useful for parser testing but can't validate decomposition quality.
+---
+
+## Testing Strategy
+
+Build against the contract (strategic spec format), not against ido4shape's implementation. The strategic spec format IS the interface between the two systems. If MCP works with a spec that follows the contract, the pipeline is proven.
+
+### Synthetic artifacts
+
+**Phase 1 (parser):** Use the existing `example-strategic-notification-system.md` from ido4shape references. It's a "perfect" artifact that follows the format spec exactly — 4 groups, ~12 capabilities, cross-cutting concerns, stakeholder attributions, functional dependencies.
+
+**Phases 2-5 (agents and pipeline):** The notification example targets a hypothetical codebase that doesn't exist, so it can't exercise the code analysis agent. Create a second synthetic strategic spec targeting a real feature in the ido4 MCP codebase itself — dogfooding. This lets the code analysis agent explore real code and the issue writing agent produce grounded technical tasks.
+
+### Real validation
+
+When ido4shape produces a real strategic spec, validate:
+1. It parses correctly (it should — same contract)
+2. Decomposition quality is useful (iterate on agent instructions)
+
+Any gap between ido4shape's real output and the contract is ido4shape's to fix, not MCP's to accommodate. The contract is the boundary.
 
 ---
 
