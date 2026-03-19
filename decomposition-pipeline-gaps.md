@@ -160,14 +160,22 @@ Unlike Hydro (where all tasks in an epic must be in the same wave), Scrum allows
 **Keep Sprint as Sprint.**
 No renaming to "Iteration." Each methodology speaks its own language — Waves, Cycles, Sprints. That's the enterprise pitch.
 
-### Remaining question: Shape Up mapping
-Shape Up has three container levels: Cycle → Bet → Scope. How do capabilities map?
-- Capability → Bet? (what you're betting on — the commitment)
-- Capability → Scope? (independently deliverable piece within a bet)
-- If Capability → Bet, what maps to Scope? Tasks?
-- If Capability → Scope, what maps to Bet? Groups?
+### Shape Up mapping — DECIDED
+Capabilities → **Bets**. Scopes remain available (`managed: false`) for teams that want finer-grained tracking within a bet, but not structurally required by the pipeline.
 
-This is the last methodology mapping to settle. Hydro and Scrum are decided.
+The betting table selects which capabilities to commit to each cycle. Not all capabilities are bet on at once — Shape Up's natural flow handles this.
+
+Note: traditional Shape Up limits bets to 2-3 per cycle — this was a human-era throughput constraint. AI-augmented teams can handle more bets per cycle if they fit naturally. Governance enforces the principles (fixed time, variable scope, circuit breaker), not arbitrary slot counts.
+
+### Final methodology mapping — ALL SETTLED
+
+| Strategic Spec | Hydro | Shape Up | Scrum |
+|---|---|---|---|
+| Group | *(decomposition ordering only)* | *(decomposition ordering only)* | *(decomposition ordering only)* |
+| Capability | **Epic** | **Bet** | **Epic** |
+| Task | Task (in wave) | Task (in cycle) | Task (in sprint) |
+
+**One rule: capabilities → the methodology's grouping container.** Uniform across all methodologies.
 
 ### Implementation impact
 
