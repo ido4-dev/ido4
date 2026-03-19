@@ -234,7 +234,7 @@ Upon thorough investigation, the context lifecycle loop is already complete:
 - **Context-aware governance prompts** — standup/board/health prompts could be richer if they included upstream decision summaries ("NCO-01A agent established Zod pattern, downstream should follow"). This is an improvement to working infrastructure, not a missing piece. Must be done with care to not break existing prompt quality.
 
 ### Dogfooding spec status
-`tests/fixtures/strategic-spec-context-pipeline.md` described capabilities that are mostly already built. The remaining capabilities (CTX-01: enrichment service, CTX-02: snapshot persistence) may not be needed given the reassessment. The fixture is still useful for testing the decomposition pipeline mechanics.
+`tests/fixtures/strategic-spec-context-pipeline.md` — kept as a **parser/pipeline mechanics test only**. Its content doesn't represent real planned work (most features already exist or aren't needed). Valid for testing: parser, MCP tool, format compliance, dry run. NOT valid for testing decomposition quality — that requires a real strategic spec from ido4shape targeting real planned work.
 
 ---
 
