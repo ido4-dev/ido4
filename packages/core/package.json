@@ -1,6 +1,6 @@
 {
   "name": "@ido4/core",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "ido4 core domain layer — wave-based development governance with deterministic business rule enforcement",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

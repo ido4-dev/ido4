@@ -1,6 +1,6 @@
 {
   "name": "@ido4/mcp",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "ido4 MCP server — 51 development governance tools for Claude Code and MCP-compatible AI coding environments",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
