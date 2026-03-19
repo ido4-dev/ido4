@@ -47,7 +47,7 @@ ido4shape (conversation) → strategic spec → ido4 MCP decomposition → techn
 - Code analysis agent: `packages/plugin/agents/code-analyzer.md`
 - Technical spec writer: `packages/plugin/agents/technical-spec-writer.md`
 - Orchestration skill: `/ido4:decompose`
-- Work plan: `strategic-spec-mcp-plan.md`
+- Architecture: `architecture/decomposition-pipeline.md`
 
 **Capability-based hierarchy (v0.4.0):**
 Strategic capabilities become the methodology's grouping container (epic in Hydro/Scrum, bet in Shape Up). Tasks are sub-issues of capabilities. Groups from ido4shape provide decomposition context but don't become GitHub issues.
