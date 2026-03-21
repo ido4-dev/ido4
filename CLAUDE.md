@@ -126,6 +126,39 @@ CI Workflows (`.github/workflows/`):
 - **Docs (GitBook)**: https://hydro-dev.gitbook.io/ido4 — auto-syncs from `docs/` directory
 - **Website**: ido4.dev (separate repo)
 
+## Documentation Sync
+
+After any change that affects architecture, services, tools, profiles, validation steps, or the plugin — verify and update all affected documentation. Code and docs must stay synchronized.
+
+### Documentation Map
+
+| Code Area | Affected Docs | Affected Diagrams |
+|---|---|---|
+| `packages/core/src/domains/tasks/` (BRE, validation steps) | `architecture/validation-extensibility.md`, `docs/concepts/business-rule-engine.md` | `diagrams/04-bre-pipeline.html` |
+| `packages/core/src/domains/audit/`, `analytics/`, `compliance/` | `architecture/event-sourced-governance.md`, `docs/concepts/audit-compliance.md`, `docs/enterprise/compliance.md` | `diagrams/03-event-sourcing.html` |
+| `packages/core/src/domains/agents/`, `distribution/`, `gate/` | `architecture/multi-agent-coordination.md`, `docs/concepts/multi-agent.md` | `diagrams/07-multi-agent.html` |
+| `packages/core/src/container/service-container.ts` | `architecture/technical-stack.md` | `diagrams/08-service-container.html` |
+| `packages/core/src/profiles/` | `architecture/methodology-runner.md`, `docs/enterprise/methodology.md` | `diagrams/05-profile-generation.html` |
+| `packages/core/src/domains/ingestion/` | `architecture/decomposition-pipeline.md`, `architecture/two-artifact-pipeline.md`, `architecture/spec-artifact-format.md` | `diagrams/06-decomposition-pipeline.html` |
+| `packages/mcp/src/` (tools, resources, prompts) | `architecture/vision-and-roadmap.md` (tool counts) | `diagrams/01-system-overview.html`, `diagrams/02-request-flow.html` |
+| `packages/plugin/` (skills, agents, hooks) | `docs/skills/overview.md`, `docs/skills/pm-agent.md` | `diagrams/09-plugin-layer.html` |
+| Any architectural change | `architecture/vision-and-roadmap.md`, `CLAUDE.md` | `diagrams/00-system-block.html` |
+| Agent workflow changes | `architecture/context-delivery.md`, `architecture/llm-strategy.md` | `diagrams/10-agent-workflow.html` |
+
+### Sync Rules
+
+1. **New validation step added?** Update step count in: `CLAUDE.md`, `docs/concepts/business-rule-engine.md`, `diagrams/04-bre-pipeline.html`, `diagrams/01-system-overview.html`
+2. **New tool registered?** Update tool counts in: `CLAUDE.md`, `architecture/vision-and-roadmap.md`, `README.md`, website `SocialProofSection.tsx`
+3. **New skill/agent/hook added?** Update `docs/skills/overview.md`, `diagrams/09-plugin-layer.html`
+4. **New domain service?** Update `diagrams/08-service-container.html`, `architecture/technical-stack.md`
+5. **Profile changed?** Update `diagrams/05-profile-generation.html`, `architecture/methodology-runner.md`
+6. **Website repo** (`/Users/bogdanionutcoman/dev-projects/ido4-website/`) must be updated when public-facing numbers or identity framing changes
+
+### After completing work, ask:
+- "Did I change any architecture, services, tools, or validation steps?"
+- If yes: check the documentation map above and update affected docs
+- If adding a new feature: update `architecture/vision-and-roadmap.md` current state table
+
 ## Ideas Backlog
 
 The `ideas/` directory is a parking lot for future ideas, explorations, and strategic directions. Each idea is a separate markdown file with frontmatter (date, status, category).
