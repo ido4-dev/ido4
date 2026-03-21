@@ -1,7 +1,7 @@
 <p align="center">
   <h1 align="center">ido4</h1>
-  <p align="center"><strong>Development Governance for AI-Augmented Teams</strong></p>
-  <p align="center">Deterministic methodology enforcement that runs inside AI coding environments</p>
+  <p align="center"><strong>AI-Hybrid Software Development at Scale</strong></p>
+  <p align="center">The platform that gives AI agents shared understanding, institutional memory, and quality enforcement</p>
 </p>
 
 <p align="center">
@@ -21,11 +21,11 @@
 
 ---
 
-AI agents can write code. Ship features. Fix bugs. But who ensures they follow your development methodology?
+AI agents can write code. But can they understand the full project? Know what was built before them? Pick the highest-leverage task? Build on decisions from previous sessions? Coordinate with other agents without conflicts?
 
-**ido4** is an [MCP](https://modelcontextprotocol.io/) server that provides deterministic governance for AI-augmented development teams. It runs inside Claude Code (and any MCP-compatible AI environment), enforcing business rules that no agent can bypass — with full audit trails, compliance scoring, and multi-agent coordination.
+**ido4** is an [MCP](https://modelcontextprotocol.io/) server that makes AI-hybrid software development actually work. It runs inside Claude Code (and any MCP-compatible AI environment), giving every AI session full project context — what to build, what's already built, who depends on your output — with deterministic governance ensuring quality at every step.
 
-Every task transition passes through **32 validation steps** executed as real TypeScript code. Not LLM instructions that can be hallucinated. Not suggestions that can be ignored. Deterministic rules enforced by the AI's own tool environment.
+The system carries the knowledge, not the agent. Every session starts with accumulated project understanding. Every action is validated through **34 real validation steps** — not LLM instructions that can be hallucinated. Every outcome is recorded so the next session is smarter than the last.
 
 ```
 Developer: "Start task #268"
@@ -40,13 +40,15 @@ ido4 BRE: BLOCKED — 3 validation failures:
 
 ## The Problem
 
-AI coding agents are everywhere — Claude Code, Copilot, Cursor, Devin — but **governance hasn't kept up**:
+AI coding agents can execute. But AI-hybrid development at scale needs more than execution:
 
-- **No methodology enforcement.** AI agents execute tasks in whatever order they choose. Dependencies get violated. Epics ship incomplete. Quality gates get skipped.
-- **No audit trail.** When 3 AI agents make 40 transitions in a day, nobody knows who did what, when, or whether the rules were followed.
+- **No shared understanding.** Every AI session starts from scratch. No knowledge of what was built yesterday, what decisions were made, what patterns were established. Context is lost between sessions.
+- **No task intelligence.** Agents pick whatever task seems obvious, not the one that unblocks the most downstream work. No scoring, no cascade analysis, no epic momentum.
+- **No institutional memory.** When Agent A builds an auth service and Agent B needs to consume it next week, there's no structured knowledge transfer. B searches the codebase blind.
+- **No quality enforcement.** Dependencies get violated. Epics ship incomplete. Quality gates get skipped. Nobody can trace what happened when something breaks.
 - **No coordination.** Multiple agents on the same codebase with no awareness of each other — duplicate work, conflicting changes, cascade failures.
 
-Traditional project management tools (Linear, Jira, Notion) track work. They don't **govern** it. ido4 fills the gap between execution and accountability.
+Traditional project management tools (Linear, Jira, Notion) track work after the fact. They don't **empower agents** to build effectively. ido4 is the platform that makes AI-hybrid development work — from context delivery through quality enforcement.
 
 ## See It In Action
 
@@ -173,9 +175,18 @@ Add to your MCP client configuration:
 
 ## Features
 
+### Context Assembly & Task Intelligence
+
+Every AI session starts with full project understanding — not a blank slate:
+
+- **`get_task_execution_data`** — One call assembles: task spec, upstream dependency context (what was actually built, not just "done"), sibling patterns, downstream consumers, epic progress, and quantified risk flags.
+- **`get_next_task`** — 4-dimension scoring recommends the highest-leverage task: cascade value (what unblocks the most), epic momentum (finish what's started), capability match, dependency freshness.
+- **`get_standup_data`** — Full project briefing: blocked tasks, compliance score, recent audit events, agent status, analytics — everything a session needs to orient.
+- **Structured context comments** — Agents write what they built; next agent reads accumulated knowledge. Institutional memory that compounds across sessions.
+
 ### Deterministic Business Rule Engine
 
-Every task transition runs through a composable validation pipeline — 32 built-in steps across 5 categories, configurable per methodology:
+Every task transition runs through a composable validation pipeline — 34 built-in steps across 5 categories, configurable per methodology:
 
 | Category | What It Validates |
 |---|---|
@@ -218,9 +229,9 @@ Every governance action creates an immutable audit entry:
 - **Real analytics** — Cycle time, lead time, throughput, blocking time — computed from actual events, not estimates
 - **Queryable** — Filter by time range, actor, transition type, issue number, session
 
-### 18 Governance Skills
+### 18 Intelligence Skills
 
-Skills are intelligent workflows that compose multiple tools into governance insights. Core skills work across all methodologies; methodology-specific variants speak your methodology's language:
+Skills are intelligent workflows that compose multiple tools into project intelligence and governance insights. Core skills work across all methodologies; methodology-specific variants speak your methodology's language:
 
 | Skill | What It Does |
 |---|---|
@@ -273,7 +284,7 @@ ido4's governance model is built on 5 principles that cannot be bypassed:
 │                                                               │
 │  ┌──────────┐ ┌──────────┐ ┌────────────┐ ┌──────────────┐  │
 │  │ Tasks    │ │Containers│ │ Agents     │ │ Compliance   │  │
-│  │ BRE (32  │ │Integrity │ │ Work       │ │ Analytics    │  │
+│  │ BRE (34  │ │Integrity │ │ Work       │ │ Analytics    │  │
 │  │  steps)  │ │ Deps     │ │ Distrib.   │ │ Audit Trail  │  │
 │  └──────────┘ └──────────┘ │ Merge Gate │ └──────────────┘  │
 │                             └────────────┘                    │
@@ -290,7 +301,7 @@ ido4's governance model is built on 5 principles that cannot be bypassed:
 
 | Package | npm | Description |
 |---|---|---|
-| [`@ido4/core`](packages/core/) | `npm i @ido4/core` | Domain logic — BRE (32 steps), profile-driven services, repositories. Zero CLI dependencies. |
+| [`@ido4/core`](packages/core/) | `npm i @ido4/core` | Domain logic — BRE (34 steps), profile-driven services, repositories. Zero CLI dependencies. |
 | [`@ido4/mcp`](packages/mcp/) | `npm i @ido4/mcp` | MCP server — STDIO transport, 57 tools (Hydro), 9 resources, 8 prompts. |
 | [`plugin`](packages/plugin/) | — | Claude Code plugin — 18 skills, 4 agents, governance hooks. |
 
@@ -340,7 +351,9 @@ ido4's governance model is built on 5 principles that cannot be bypassed:
 
 ## For Enterprise
 
-ido4 provides the governance infrastructure that enterprise delivery requires:
+ido4 provides the infrastructure that enterprise AI-hybrid development requires:
+
+**Context at scale.** Every AI session starts with full project understanding — accumulated knowledge from every prior session, dependency context, risk signals, and institutional memory. No agent starts from scratch.
 
 **Compliance documentation.** Every decision is auditable. Every rule enforcement is traceable. The audit trail provides the evidence that enterprise clients demand — who did what, when, and whether the rules were followed.
 
@@ -348,22 +361,22 @@ ido4 provides the governance infrastructure that enterprise delivery requires:
 
 **Quality gates.** Configure minimum PR reviews, test coverage thresholds, and security scan requirements per transition. Gates are enforced deterministically — not as suggestions.
 
-**Multi-agent governance at scale.** Deploy multiple AI agents on the same codebase with confidence. Each agent has a unique identity, capability profile, and audit trail. Work distribution prevents conflicts. Task locking prevents duplicate effort. Coordination state provides full visibility.
+**Multi-agent coordination at scale.** Deploy multiple AI agents on the same codebase with confidence. Each agent has a unique identity, capability profile, and audit trail. Task intelligence recommends the highest-leverage work. Task locking prevents duplicate effort. Handoff chains keep work flowing continuously.
 
-## The Consultancy 2.0 Model
+## The New Way of Working
 
-ido4 enables a new operating model for software delivery:
+ido4 enables a new operating model for software delivery — AI-hybrid development at enterprise scale:
 
-**2 senior humans + AI agents + ido4 governance = the output of a 10-person team.**
+**2 senior humans + AI agents + ido4 = the output of a 10-person team.**
 
 | Role | Provides |
 |---|---|
 | **PM** | Product vision, stakeholder management, strategic decisions |
 | **Tech Architect** | System design, code quality oversight, technical judgment |
 | **AI Agents** | Execution capacity — coding, testing, documentation |
-| **ido4** | **Governance** — deterministic rules ensuring methodology compliance |
+| **ido4** | **The platform** — context intelligence, institutional memory, task distribution, and deterministic quality enforcement |
 
-This isn't a better project management tool. It's the technology infrastructure that makes AI-augmented delivery possible at enterprise scale.
+This isn't a better project management tool. It's the infrastructure that makes AI-hybrid software development actually work — where AI agents understand the full project, build on each other's work, and deliver with the quality and coherence that enterprise clients demand.
 
 ## Contributing
 
@@ -386,5 +399,5 @@ claude --plugin-dir ./packages/plugin
 ---
 
 <p align="center">
-  <strong>ido4</strong> — Because AI execution without governance is just chaos with better syntax.
+  <strong>ido4</strong> — The platform that makes AI-hybrid software development work. At scale. For real.
 </p>

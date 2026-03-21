@@ -1,8 +1,8 @@
 # ido4
 
-**Your AI agents write code. ido4 makes sure they do it right.**
+**Your AI agents write code. ido4 gives them shared understanding, institutional memory, and quality enforcement.**
 
-ido4 is an MCP server that sits inside your AI coding environment and enforces your development methodology — deterministically. Not with guidelines an agent can ignore. With real validation that blocks bad transitions, records every action, and coordinates multiple agents working in parallel.
+ido4 is the MCP server that makes AI-hybrid software development work at scale. It sits inside your AI coding environment and gives every session full project context — what to build, what was built before, who depends on your output. Deterministic governance validates every action. Institutional memory compounds knowledge across sessions. Task intelligence ensures agents focus on the highest-leverage work.
 
 ```
 Agent: "Start task #42"

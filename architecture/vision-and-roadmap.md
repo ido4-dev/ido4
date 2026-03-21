@@ -9,9 +9,9 @@
 
 ### What We're Building
 
-ido4 is a **Development Governance Platform** — a system that enables small, senior-led teams to deliver enterprise-grade software by combining human judgment with AI agent execution under deterministic methodology enforcement.
+ido4 is the **platform that makes AI-hybrid software development work at scale** — enabling small, senior-led teams to deliver enterprise-grade software by giving AI agents shared understanding, institutional memory, and deterministic quality enforcement.
 
-The platform runs natively inside Claude Code (and any MCP-compatible AI coding environment) as an MCP server, providing real-time governance, compliance validation, and intelligent project orchestration.
+The platform runs natively inside Claude Code (and any MCP-compatible AI coding environment) as an MCP server, providing context assembly, task intelligence, institutional memory, and methodology enforcement. Every AI session starts with full project understanding. Every action is validated. Every outcome is recorded so the next session is smarter.
 
 ### The Problem We Solve
 
@@ -24,16 +24,16 @@ AI coding agents can now execute development tasks autonomously. But execution w
 
 No existing tool enforces development methodology programmatically inside the coding environment.
 
-### The Solution: Consultancy 2.0
+### The Solution: The New Way of Working
 
-**2 senior humans (PM + Tech Architect) + AI agents + ido4 governance = the output of a 10-person team at a fraction of the cost.**
+**2 senior humans (PM + Tech Architect) + AI agents + ido4 = the output of a 10-person team at a fraction of the cost.**
 
 - The **PM** provides product vision, stakeholder management, and strategic decisions
 - The **Tech Architect** provides system design, code quality oversight, and technical judgment
 - **AI agents** provide execution capacity — coding, testing, documentation
-- **ido4** provides the **governance layer** — deterministic business rules, audit trails, and quality gates
+- **ido4** provides the **platform** — context intelligence that gives every agent full project understanding, institutional memory that compounds knowledge across sessions, task distribution that maximizes leverage, and deterministic governance that ensures quality
 
-This isn't a better project management tool. It's the technology infrastructure that makes AI-augmented consulting possible.
+This isn't a better project management tool. It's the infrastructure that makes AI-hybrid software development a real, scalable way of working.
 
 ---
 
@@ -43,7 +43,7 @@ This isn't a better project management tool. It's the technology infrastructure 
 
 | Component | Status | Details |
 |---|---|---|
-| **@ido4/core** | Complete | 1,310 tests. BRE (32 steps), ServiceContainer (9 layers), profile-driven state machine |
+| **@ido4/core** | Complete | 1,310 tests. BRE (34 steps), ServiceContainer (9 layers), profile-driven state machine |
 | **@ido4/mcp** | Complete | 457 tests. Dynamic tool/resource/prompt generation from profile |
 | **Plugin** | Complete | 18 skills, 4 agents, 2 hooks |
 | **Methodology Runner** | Complete | Profile-driven engine. Hydro (57 tools), Scrum (56), Shape Up (53) |
@@ -61,7 +61,7 @@ This isn't a better project management tool. It's the technology infrastructure 
 |  58 Tools (Hydro), 9 Resources, 7 Prompts, 5 Aggregators     |
 +--------------------------------------------------------------+
 |  Layer 1: Core Domain (packages/core -- @ido4/core)           |
-|  ServiceContainer, 12 Domain Services, BRE (32 steps)        |
+|  ServiceContainer, 12 Domain Services, BRE (34 steps)        |
 |  Profile-driven state machine, GitHub GraphQL with resilience |
 +--------------------------------------------------------------+
 |  External: GitHub Projects V2 / Issues / Pull Requests        |
@@ -71,7 +71,7 @@ This isn't a better project management tool. It's the technology infrastructure 
 ### Key Capabilities
 
 **Governance Engine**
-- 32-step Business Rule Engine with profile-driven pipeline configuration
+- 34-step Business Rule Engine with profile-driven pipeline configuration
 - Per-methodology validation pipelines (including type-scoped overrides for Scrum)
 - Full audit trail (append-only JSONL)
 - Deterministic compliance scoring (5-category, 0-100)

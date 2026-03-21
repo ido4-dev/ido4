@@ -1,6 +1,6 @@
 # Quick Start
 
-From zero to governed in under 5 minutes. This guide uses Hydro (wave-based) as the example — the flow is identical for Scrum and Shape Up, just with different terminology.
+From zero to AI-hybrid development in under 5 minutes. Set up ido4 and give your AI agents full project context, task intelligence, and quality governance. This guide uses Hydro (wave-based) as the example — the flow is identical for Scrum and Shape Up, just with different terminology.
 
 ## 1. Initialize
 

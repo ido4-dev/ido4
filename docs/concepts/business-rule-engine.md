@@ -1,16 +1,26 @@
 # Business Rule Engine (BRE)
 
-The Business Rule Engine is the core of ido4's governance. It's a composable validation pipeline that evaluates every task state transition against a set of deterministic rules. The BRE runs real TypeScript code — not LLM instructions, not YAML configuration interpreted by an AI. Real code with real results.
+The BRE is the quality foundation that makes AI-hybrid development trustworthy. It's a composable validation pipeline that evaluates every task state transition against deterministic rules — catching dependency violations, integrity breaks, and missing criteria before they cascade. The BRE runs real TypeScript code — not LLM instructions, not YAML configuration interpreted by an AI. Real code with real results.
+
+## Key Design Principles
+
+**Fail-safe execution.** Every step runs regardless of prior failures. A dependency check failing doesn't skip the security scan. The full picture is always available — agents get actionable guidance on everything that needs fixing, not one error at a time.
+
+**Profile-driven pipelines.** Which steps run for each transition is defined in the methodology profile — not hardcoded. Adding a custom validation step means adding its name to a pipeline, not modifying engine code.
+
+**Type-scoped overrides.** Different work item types can have different rules. User Stories need acceptance criteria. Bugs need reproduction steps. Spikes have relaxed Definition of Done. The BRE checks for `{action}:{type}` first, falls back to `{action}`.
+
+**Parameterized steps.** Steps accept configuration via colon syntax: `PRReviewValidation:2` requires 2 approving reviews. `ContainerAssignmentValidation:wave` checks wave assignment. One step class handles multiple configurations.
 
 ## How It Works
 
 When a task transition is requested (e.g., "start task #42"), the BRE:
 
-1. Loads the validation steps configured for that transition type in the active methodology profile
-2. Checks for type-scoped pipeline overrides (e.g., `start:bug` instead of `start`)
-3. Runs each step sequentially, collecting results
-4. Returns a structured result with per-step pass/fail/warn details
-5. Blocks the transition if any step fails (unless `skipValidation` is explicitly used)
+1. Resolves the pipeline — checks for type-scoped override (`start:bug`), falls back to default (`start`)
+2. Instantiates each step via the ValidationStepRegistry (factory pattern with dependency injection)
+3. Runs ALL steps, collecting results (fail-safe — no early exit)
+4. Returns a structured result with per-step pass/fail/warn and remediation guidance
+5. Blocks the transition if any error-severity step fails
 
 ```
 start_task(#42)
@@ -20,13 +30,13 @@ start_task(#42)
 |                                    |
 | 1. SourceStatus           PASS     |
 | 2. SpecCompleteness       PASS     |
-| 3. StatusTransition        PASS     |
+| 3. StatusTransition       PASS     |
 | 4. DependencyValidation   PASS     |
-| 5. ContainerAssignment     PASS     |
-| 6. ContainerSingularity    PASS     |
-| 7. AISuitability           WARN     |
-| 8. RiskLevel               PASS     |
-| 9. ContainerIntegrity      PASS     |
+| 5. ContainerAssignment    PASS     |
+| 6. ContainerSingularity   PASS     |
+| 7. AISuitability          WARN     |
+| 8. RiskLevel              PASS     |
+| 9. ContainerIntegrity     PASS     |
 |                                    |
 | Result: PASS (1 warning)           |
 +------------------------------------+
@@ -35,11 +45,15 @@ Status updated: Ready for Dev -> In Progress
 Audit event recorded
 ```
 
-## Profile-Driven Pipelines
+### What happens when validation fails?
 
-The BRE pipeline is fully driven by the methodology profile. Each profile defines which validation steps run for each transition:
+- **Error-severity failure** — transition is blocked. The response includes which steps failed, why, and what to do about it (remediation). The agent can fix the issue and retry.
+- **Warning** — transition proceeds but the warning is recorded. Example: `AISuitabilityValidation` warns when an AI agent starts a human-review task.
+- **Skip** — step was not applicable (e.g., `TaskLockValidation` when AgentService isn't configured). Skips don't affect the result.
 
-### Hydro Pipeline Example
+## Pipeline Examples by Methodology
+
+### Hydro
 
 ```
 refine:  SourceStatus -> BaseTaskFields -> StatusTransition -> ContainerIntegrity
@@ -49,19 +63,21 @@ review:  StatusTransition -> ImplementationReadiness -> ContainerIntegrity
 approve: StatusTransition -> ApprovalRequirement -> ContextCompleteness -> ContainerIntegrity
 ```
 
-### Scrum Pipeline Example
+### Scrum (with type-scoped overrides)
 
 ```
-plan:         SourceStatus -> SpecCompleteness -> StatusTransition
-plan:story:   SourceStatus -> AcceptanceCriteria -> SpecCompleteness -> EffortEstimation -> StatusTransition
-plan:bug:     SourceStatus -> BaseTaskFields -> SpecCompleteness -> StatusTransition
-plan:spike:   SourceStatus -> StatusTransition
-start:        SourceStatus -> SpecCompleteness -> StatusTransition -> Dependency -> ContainerAssignment -> ContainerSingularity
-approve:spike: StatusTransition (relaxed DoD)
+plan:            SourceStatus -> SpecCompleteness -> StatusTransition
+plan:story:      SourceStatus -> AcceptanceCriteria -> SpecCompleteness -> EffortEstimation -> StatusTransition
+plan:bug:        SourceStatus -> BaseTaskFields -> SpecCompleteness -> StatusTransition
+plan:spike:      SourceStatus -> StatusTransition
+start:           SourceStatus -> SpecCompleteness -> StatusTransition -> Dependency -> ContainerAssignment -> ContainerSingularity
+approve:spike:   StatusTransition (relaxed DoD)
 approve:tech-debt: StatusTransition -> ApprovalRequirement -> ContextCompleteness -> PRReview:2
 ```
 
-### Shape Up Pipeline Example
+Type-scoped pipelines in action: `plan:story` requires acceptance criteria and effort estimation. `plan:spike` only requires a valid status transition. Same action, different rules based on work item type.
+
+### Shape Up
 
 ```
 shape:   SourceStatus -> SpecCompleteness -> StatusTransition
@@ -72,120 +88,98 @@ ship:    StatusTransition -> ApprovalRequirement -> ContextCompleteness
 kill:    TaskAlreadyCompleted -> StatusTransition
 ```
 
-## The 32 Built-in Validation Steps
+Note `CircuitBreaker` on `start` and `review` — Shape Up's time-based kill mechanism. If the cycle deadline has passed, the step fails.
 
-The BRE ships with 32 validation steps organized into 7 categories. Each methodology profile activates a subset per transition.
+## The 34 Validation Steps
 
-### Source Status Steps (5)
+The BRE ships with 34 validation steps. Each methodology profile activates a subset per transition.
 
-These verify the task is in the expected state before a transition.
+### State Guards (10)
 
-| Step | What It Checks | Used By |
-|---|---|---|
-| `SourceStatusValidation` | Task is in one of the expected source states (parameterized) | All profiles |
-| `TaskAlreadyCompletedValidation` | Task is not already in a terminal state | All (block, unblock, return, kill) |
-| `TaskAlreadyBlockedValidation` | Task is already blocked (prevents double-blocking) | Hydro |
-| `TaskNotBlockedValidation` | Task is not blocked (for unblock transition) | Hydro |
-| `TaskBlockedValidation` | Task is in blocked state (validates return from blocked) | Hydro |
-| `StatusAlreadyDoneValidation` | Task is already Done (for administrative complete) | Hydro |
+| Step | What It Checks |
+|---|---|
+| `SourceStatusValidation` | Task is in expected source state (parameterized) |
+| `StatusTransitionValidation` | From/to status pair is valid in the state machine (parameterized) |
+| `BackwardTransitionValidation` | Return target is a valid backward status |
+| `TaskAlreadyCompletedValidation` | Task is not already in a terminal state |
+| `TaskAlreadyBlockedValidation` | Task is already blocked (prevents double-blocking) |
+| `TaskNotBlockedValidation` | Task is not blocked (for unblock) |
+| `TaskBlockedValidation` | Task is in blocked state (for return from blocked) |
+| `StatusAlreadyDoneValidation` | Task is already Done |
+| `RefineFromBacklogValidation` | Source is Backlog (Hydro-specific shorthand) |
+| `StartFromReadyForDevValidation` | Source is Ready for Dev (Hydro-specific shorthand) |
 
-### Status Transition Steps (2)
+### Readiness & Field Requirements (8)
 
-| Step | What It Checks | Used By |
-|---|---|---|
-| `StatusTransitionValidation` | The from/to status pair is valid in the state machine (parameterized with target state) | All profiles, all transitions |
-| `BackwardTransitionValidation` | Return target is a valid backward status | All profiles (return) |
+| Step | What It Checks |
+|---|---|
+| `BaseTaskFieldsValidation` | Required fields (title, body) are populated |
+| `AcceptanceCriteriaValidation` | Task has acceptance criteria or success conditions |
+| `SpecCompletenessValidation` | Description content >= 200 chars |
+| `EffortEstimationValidation` | Effort field is set |
+| `DependencyIdentificationValidation` | Dependencies field is explicitly set (even if empty) |
+| `ReadyFromRefinementOrBacklogValidation` | Source is Refinement or Backlog (Hydro-specific) |
+| `FastTrackValidation` | Allows fast-tracking from Backlog to Ready (skips refinement) |
+| `WaveAssignmentValidation` | Task assigned to a wave (Hydro-specific shorthand) |
 
-### Readiness & Quality Steps (7)
+### Dependency & Integrity (2)
 
-These check that work meets quality standards before progressing.
+| Step | What It Checks |
+|---|---|
+| `DependencyValidation` | All dependency tasks are in terminal state |
+| `SubtaskCompletionValidation` | All sub-issues are in terminal state before parent closes |
 
-| Step | What It Checks | Used By |
-|---|---|---|
-| `BaseTaskFieldsValidation` | Required fields (title, body) are populated | Hydro (refine), Scrum (plan:bug) |
-| `AcceptanceCriteriaValidation` | Task has acceptance criteria or success conditions | Hydro (ready), Scrum (plan:story) |
-| `SpecCompletenessValidation` | Task has sufficient description content (>= 200 chars) | All profiles (start, plan) |
-| `EffortEstimationValidation` | Effort field is set | Hydro (ready), Scrum (plan:story) |
-| `DependencyIdentificationValidation` | Dependencies field is explicitly set (even if empty) | Hydro (ready) |
-| `ImplementationReadinessValidation` | Implementation evidence exists (PR, commits, or context) | All profiles (review) |
-| `FastTrackValidation` | Allows fast-tracking from Backlog to Ready (skips refinement) | Hydro (ready) |
+### Container Governance (4)
 
-### Dependency Steps (1)
+| Step | What It Checks |
+|---|---|
+| `ContainerAssignmentValidation` | Task assigned to active container (parameterized: wave, sprint, cycle) |
+| `ContainerSingularityValidation` | Only one container of this type is active (parameterized) |
+| `ContainerIntegrityValidation` | Integrity rule satisfied, e.g., all epic tasks in same wave (parameterized) |
+| `CircuitBreakerValidation` | Cycle has time remaining — Shape Up timebox enforcement (parameterized) |
 
-| Step | What It Checks | Used By |
-|---|---|---|
-| `DependencyValidation` | All dependency tasks are in a terminal state | All profiles (start) |
+### Risk, Suitability & Approval (4)
 
-### Container Steps (4)
+| Step | What It Checks |
+|---|---|
+| `AISuitabilityValidation` | Warns for human-review or human-only tasks started by AI |
+| `RiskLevelValidation` | Risk level assessment and process requirements |
+| `ApprovalRequirementValidation` | Closing transition has appropriate approval evidence |
+| `ContextCompletenessValidation` | Completion context provided (what was built, decisions, interfaces) |
 
-These are the methodology-agnostic container enforcement steps that replaced methodology-specific validation.
+### Quality Gates (3)
 
-| Step | What It Checks | Parameters | Used By |
-|---|---|---|---|
-| `ContainerAssignmentValidation` | Task is assigned to an active container | Container type ID | All profiles (start) |
-| `ContainerSingularityValidation` | Only one container of this type is active | Container type ID | All profiles (start) |
-| `ContainerIntegrityValidation` | Integrity rule is satisfied (e.g., all tasks in same epic share same wave) | Rule ID | Hydro, Shape Up |
-| `CircuitBreakerValidation` | Cycle has time remaining (not past deadline) | Container type ID | Shape Up (start, review, unblock, return) |
+| Step | What It Checks |
+|---|---|
+| `PRReviewValidation` | PR has minimum approving reviews (parameterized: count) |
+| `TestCoverageValidation` | Test coverage meets threshold (parameterized: %) |
+| `SecurityScanValidation` | No critical/high security vulnerabilities |
 
-### Risk & Suitability Steps (4)
+### Implementation & Review (2)
 
-| Step | What It Checks | Used By |
-|---|---|---|
-| `AISuitabilityValidation` | Warns for human-review or human-only tasks started by AI | Hydro (start) |
-| `RiskLevelValidation` | Risk level assessment and process requirements | Hydro (start) |
-| `ApprovalRequirementValidation` | Closing transition has appropriate approval evidence | All profiles (approve/ship) |
-| `ContextCompletenessValidation` | Completion context provided (what was built, decisions, interfaces) | All profiles (approve/ship) |
+| Step | What It Checks |
+|---|---|
+| `ImplementationReadinessValidation` | Implementation evidence exists (PR, commits, or context) |
+| `EpicIntegrityValidation` | Epic-wave integrity (Hydro-specific shorthand) |
 
-### Quality Gate Steps (4)
+### Multi-Agent (1)
 
-| Step | What It Checks | Parameters | Used By |
-|---|---|---|---|
-| `PRReviewValidation` | PR has minimum approving reviews | Min approvals count | Scrum (approve:tech-debt), configurable |
-| `TestCoverageValidation` | Test coverage meets threshold from CI checks | Threshold % | Configurable |
-| `SecurityScanValidation` | No critical/high security vulnerabilities | — | Configurable |
-| `TaskLockValidation` | Warns if task is locked by a different agent | — | Configurable |
+| Step | What It Checks |
+|---|---|
+| `TaskLockValidation` | Warns if task is locked by a different agent |
 
-### Hierarchy Steps (2)
-
-| Step | What It Checks | Used By |
-|---|---|---|
-| `SubtaskCompletionValidation` | All sub-issues are in terminal state before parent closes | Hydro (complete), Scrum (approve) |
-
-### Legacy Compatibility Steps (3)
-
-These exist for backward compatibility with pre-profile configurations:
-
-| Step | Replaced By | Status |
-|---|---|---|
-| `StartFromReadyForDevValidation` | `SourceStatusValidation:READY_FOR_DEV` | Hydro-specific |
-| `RefineFromBacklogValidation` | `SourceStatusValidation:BACKLOG` | Hydro-specific |
-| `ReadyFromRefinementOrBacklogValidation` | `SourceStatusValidation:IN_REFINEMENT,BACKLOG` | Hydro-specific |
-| `WaveAssignmentValidation` | `ContainerAssignmentValidation:wave` | Hydro-specific |
-| `EpicIntegrityValidation` | `ContainerIntegrityValidation:epic-wave-integrity` | Hydro-specific |
-
-## Parameterized Steps
-
-Many steps accept parameters via colon-separated syntax in the profile's pipeline definition:
+## Parameterized Steps Reference
 
 | Step | Parameter | Example | Effect |
 |---|---|---|---|
-| `SourceStatusValidation` | Expected source states | `SourceStatusValidation:READY_FOR_DEV` | Only passes if task is in Ready for Dev |
-| `StatusTransitionValidation` | Target state | `StatusTransitionValidation:IN_PROGRESS` | Validates transition to In Progress |
-| `ContainerAssignmentValidation` | Container type | `ContainerAssignmentValidation:wave` | Checks wave assignment |
-| `ContainerSingularityValidation` | Container type | `ContainerSingularityValidation:sprint` | Checks sprint singularity |
-| `ContainerIntegrityValidation` | Rule ID | `ContainerIntegrityValidation:epic-wave-integrity` | Checks specific integrity rule |
-| `CircuitBreakerValidation` | Container type | `CircuitBreakerValidation:cycle` | Checks cycle time remaining |
-| `PRReviewValidation` | Min approvals | `PRReviewValidation:2` | Requires 2 approving reviews |
-| `TestCoverageValidation` | Threshold | `TestCoverageValidation:90` | Requires 90% coverage |
-
-## Type-Scoped Pipelines
-
-The Scrum profile demonstrates type-scoped pipeline overrides. When a transition is requested, the BRE checks for a type-specific pipeline first:
-
-1. Look for `{action}:{workItemType}` (e.g., `plan:story`)
-2. If not found, fall back to `{action}` (e.g., `plan`)
-
-This enables different Definition of Ready and Definition of Done checks per work item type — User Stories need acceptance criteria, Bugs need reproduction steps, Spikes have relaxed DoD.
+| `SourceStatusValidation` | Source states | `:READY_FOR_DEV` | Only passes if task is in Ready for Dev |
+| `StatusTransitionValidation` | Target state | `:IN_PROGRESS` | Validates transition to In Progress |
+| `ContainerAssignmentValidation` | Container type | `:wave` | Checks wave assignment |
+| `ContainerSingularityValidation` | Container type | `:sprint` | Checks sprint singularity |
+| `ContainerIntegrityValidation` | Rule ID | `:epic-wave-integrity` | Checks specific integrity rule |
+| `CircuitBreakerValidation` | Container type | `:cycle` | Checks cycle time remaining |
+| `PRReviewValidation` | Min approvals | `:2` | Requires 2 approving reviews |
+| `TestCoverageValidation` | Threshold | `:90` | Requires 90% coverage |
 
 ## Validation Results
 
@@ -193,21 +187,18 @@ Every BRE run returns a structured result:
 
 ```typescript
 {
-  valid: boolean;           // Overall pass/fail
+  canProceed: boolean;        // true if no error-severity failures
   stepResults: [{
-    stepName: string;       // "DependencyValidation"
-    status: 'pass' | 'fail' | 'warn' | 'skip';
-    message: string;        // Human-readable explanation
-    details?: any;          // Step-specific data
-    remediation?: string;   // What to do if it failed
+    stepName: string;         // "DependencyValidation"
+    passed: boolean;          // step-level pass/fail
+    severity: 'error' | 'warning' | 'info';
+    message: string;          // Human-readable explanation
+    details?: object;         // Step-specific data
   }];
-  summary: {
-    total: number;
-    passed: number;
-    failed: number;
-    warned: number;
-    skipped: number;
-  };
+  failedSteps: number;
+  warnedSteps: number;
+  executionTimeMs: number;
+  suggestions: Suggestion[];  // Actionable next steps
 }
 ```
 
@@ -220,7 +211,7 @@ validate_transition(#42, "start")
 -> Runs all steps, returns results, changes nothing
 ```
 
-The `validate_all_transitions` tool runs the BRE for all possible transitions on a task, showing exactly what's allowed and what's blocked — and why.
+The `validate_all_transitions` tool runs the BRE for all possible transitions on a task, showing exactly what's allowed and what's blocked — and why. This is how agents explore the state machine without side effects.
 
 ## Audit Integration
 
@@ -231,3 +222,13 @@ Every BRE evaluation (pass or fail) is recorded in the audit trail:
 - **Skip (dry run)**: Not recorded — dry runs leave no audit trace
 
 The compliance score uses BRE pass/fail ratios as its highest-weighted category (35-40% depending on methodology).
+
+## Extensibility
+
+The ValidationStepRegistry is already a plugin architecture. Each step is registered by name with a factory function. Adding a custom step:
+
+1. Implement the `ValidationStep` interface (name + validate method)
+2. Register with the registry: `registry.register('MyCustomStep', (deps) => new MyCustomStep(deps))`
+3. Add to a profile pipeline: `"approve": { "steps": ["StatusTransition", "MyCustomStep"] }`
+
+No engine changes. The profile references step names, the registry resolves them. See [Validation Extensibility](../../architecture/validation-extensibility.md) for the full architecture.

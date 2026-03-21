@@ -2,7 +2,7 @@
 
 ## Overview
 
-ido4 participates in a two-artifact pipeline with ido4shape. The pipeline transforms multi-stakeholder understanding into governed GitHub issues through two stages:
+The two-artifact pipeline is how ideas become executable work for AI agents. ido4shape captures multi-stakeholder understanding (the WHAT), ido4 MCP decomposes it against the codebase (the HOW), and the result is GitHub issues that carry full context — not just task titles, but specifications that AI agents can execute against with understanding of intent, dependencies, and success criteria.
 
 ```
 ido4shape (conversation)  →  strategic spec  →  ido4 MCP (decomposition)  →  technical spec  →  ingestion  →  GitHub issues

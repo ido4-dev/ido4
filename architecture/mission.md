@@ -25,10 +25,11 @@ The system carries the knowledge, not the agent. AI agents are stateless — eac
 
 ## What ido4 Is
 
-- **A governance engine** — deterministic business rules that enforce methodology compliance
-- **An institutional memory** — audit trails, context comments, and accumulated project knowledge
-- **A context delivery system** — assembling the right information for each agent at each moment
+- **A context intelligence system** — assembling the right information for each agent at each moment, so every session starts with full project understanding
+- **An institutional memory** — audit trails, context comments, and accumulated project knowledge that compounds across sessions
+- **A task intelligence engine** — scoring work by cascade value, epic momentum, and capability match so agents focus on highest-leverage tasks
 - **A coordination platform** — multi-agent work distribution, task locking, handoff
+- **A governance foundation** — deterministic business rules that enforce methodology compliance, ensuring quality without slowing agents down
 - **Methodology-agnostic** — profiles define methodologies (Hydro, Scrum, Shape Up), the engine enforces them
 
 ## What ido4 Is Not

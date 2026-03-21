@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ido4 MCP — Event Sourcing Data Flow</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; color: #1c2028; padding: 40px 48px 32px; }
+  h1 { font-size: 26px; font-weight: 700; color: #0d1117; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: #656d76; margin-bottom: 36px; }
+
+  .canvas { position: relative; width: 1100px; height: 720px; margin: 0 auto; }
+
+  .box {
+    position: absolute; border-radius: 10px; padding: 14px 16px;
+    border: 1.5px solid; text-align: center;
+  }
+  .box-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .box-detail { font-size: 10.5px; line-height: 1.5; }
+
+  .box-green { background: #dafbe1; border-color: #82e596; }
+  .box-green .box-title { color: #116329; }
+  .box-green .box-detail { color: #1a7f37; }
+
+  .box-blue { background: #ddf4ff; border-color: #80ccff; }
+  .box-blue .box-title { color: #0550ae; }
+  .box-blue .box-detail { color: #0969da; }
+
+  .box-purple { background: #f5f0ff; border-color: #d8b9ff; }
+  .box-purple .box-title { color: #5e35b1; }
+  .box-purple .box-detail { color: #6e40c9; }
+
+  .box-yellow { background: #fff8e1; border-color: #e5c76b; }
+  .box-yellow .box-title { color: #7c5800; }
+  .box-yellow .box-detail { color: #9a6700; }
+
+  .box-gray { background: #f6f8fa; border-color: #d1d9e0; }
+  .box-gray .box-title { color: #0d1117; }
+  .box-gray .box-detail { color: #656d76; }
+
+  .center-hub {
+    position: absolute; border-radius: 50%; width: 120px; height: 120px;
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
+    border: 3px solid #6e40c9; background: #f5f0ff;
+    font-size: 14px; font-weight: 700; color: #5e35b1;
+    left: 490px; top: 230px;
+  }
+  .center-hub .hub-sub { font-size: 10px; font-weight: 500; color: #6e40c9; margin-top: 2px; }
+
+  .section-label {
+    position: absolute; font-size: 10px; font-weight: 700; color: #656d76;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+
+  .key-insight {
+    position: absolute; padding: 12px 16px; border-radius: 8px;
+    background: #fff8e1; border: 1.5px solid #e5c76b;
+    font-size: 11px; color: #7c5800; line-height: 1.5; max-width: 300px;
+  }
+  .key-insight strong { color: #5c3d00; }
+
+  svg.arrows {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 5;
+  }
+  .arr { stroke: #8b949e; stroke-width: 2.5; fill: none; }
+  .arr-dash { stroke: #8b949e; stroke-width: 2.5; fill: none; stroke-dasharray: 7,5; }
+  .arr-purple { stroke: #6e40c9; stroke-width: 2.5; fill: none; }
+  .arr-green { stroke: #1a7f37; stroke-width: 2.5; fill: none; }
+
+  .legend {
+    margin-top: 28px; display: flex; gap: 18px; justify-content: center; flex-wrap: wrap;
+    width: 1100px; margin-left: auto; margin-right: auto;
+  }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 10.5px; color: #656d76; }
+  .legend-swatch { width: 13px; height: 13px; border-radius: 3px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<h1>Event-Sourced Governance — Data Flow</h1>
+<p class="subtitle">Audit trail is the single source of truth. Analytics and Compliance derive all metrics by replaying events.</p>
+
+<div class="canvas">
+
+  <!-- Section labels -->
+  <div class="section-label" style="left: 20px; top: 10px;">EVENT PRODUCERS</div>
+  <div class="section-label" style="left: 760px; top: 10px;">EVENT CONSUMERS (replay from audit)</div>
+
+  <!-- Left: Domain operations that emit events -->
+  <div class="box box-green" style="left: 0; top: 40px; width: 190px;">
+    <div class="box-title">TaskService</div>
+    <div class="box-detail">Emits task.transition<br>on every state change</div>
+  </div>
+
+  <div class="box box-green" style="left: 0; top: 155px; width: 190px;">
+    <div class="box-title">ContainerService</div>
+    <div class="box-detail">Emits container.assignment<br>with integrityMaintained flag</div>
+  </div>
+
+  <div class="box box-green" style="left: 0; top: 270px; width: 190px;">
+    <div class="box-title">WorkDistribution</div>
+    <div class="box-detail">Emits work.recommendation<br>and work.handoff</div>
+  </div>
+
+  <div class="box box-green" style="left: 0; top: 385px; width: 190px;">
+    <div class="box-title">Validator</div>
+    <div class="box-detail">Emits validation events<br>with step results</div>
+  </div>
+
+  <!-- Center: EventBus -->
+  <div class="center-hub">
+    EventBus
+    <div class="hub-sub">on('*')</div>
+  </div>
+
+  <!-- Right: Consumers -->
+  <div class="box box-purple" style="left: 700px; top: 40px; width: 240px;">
+    <div class="box-title">AuditService</div>
+    <div class="box-detail">Subscribes to ALL events<br>Ring buffer (500, in-memory)<br>JSONL store (persistent, append-only)<br>Fire-and-forget persistence</div>
+  </div>
+
+  <div class="box box-blue" style="left: 700px; top: 230px; width: 240px;">
+    <div class="box-title">AnalyticsService</div>
+    <div class="box-detail">Queries AuditService on demand<br>Builds per-task timelines<br>Computes cycle/lead/blocking time<br>Cache: 30s TTL, invalidated on events</div>
+  </div>
+
+  <div class="box box-blue" style="left: 700px; top: 420px; width: 240px;">
+    <div class="box-title">ComplianceService</div>
+    <div class="box-detail">Queries AuditService on demand<br>5 categories, weighted 0-100 score<br>Uses AnalyticsService for flow efficiency<br>Cache: 30s TTL, invalidated on events</div>
+  </div>
+
+  <!-- Storage -->
+  <div class="box box-gray" style="left: 1000px; top: 72px; width: 100px;">
+    <div class="box-title" style="font-size: 12px;">.jsonl</div>
+    <div class="box-detail">Append-only</div>
+  </div>
+
+  <!-- Key insight -->
+  <div class="key-insight" style="left: 260px; top: 570px; max-width: 580px;">
+    <strong>Zero separate storage:</strong> AnalyticsService and ComplianceService have NO database. They replay the audit trail on every query (cached 30s). Correctness is guaranteed by construction &mdash; if events are emitted correctly, all derived data is correct. New governance intelligence = new replay query, not new storage.
+  </div>
+
+  <!-- SVG arrows -->
+  <!-- Boxes: Producers right=190, EventBus center ~550,290 r=60 -->
+  <!-- AuditService: left=700 top=40 right=940 bottom=170 -->
+  <!-- AnalyticsService: left=700 top=230 right=940 bottom=350 -->
+  <!-- ComplianceService: left=700 top=420 right=940 bottom=540 -->
+  <!-- .jsonl: left=1000 top=72 -->
+  <svg class="arrows" viewBox="0 0 1100 720">
+    <defs>
+      <marker id="ar" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0,0 8,3 0,6" fill="#6e40c9"/></marker>
+      <marker id="ag" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0,0 8,3 0,6" fill="#8b949e"/></marker>
+      <marker id="ab" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0,0 8,3 0,6" fill="#0969da"/></marker>
+    </defs>
+
+    <!-- ══ PUSH: Producers → EventBus (solid purple) ══ -->
+    <line x1="190" y1="75" x2="490" y2="265" class="arr-purple" marker-end="url(#ar)"/>
+    <line x1="190" y1="190" x2="490" y2="278" class="arr-purple" marker-end="url(#ar)"/>
+    <line x1="190" y1="305" x2="490" y2="292" class="arr-purple" marker-end="url(#ar)"/>
+    <line x1="190" y1="420" x2="490" y2="308" class="arr-purple" marker-end="url(#ar)"/>
+
+    <!-- ══ PUSH: EventBus → Consumers (solid purple, subscribe to *) ══ -->
+    <line x1="610" y1="268" x2="700" y2="100" class="arr-purple" marker-end="url(#ar)"/>
+    <line x1="610" y1="288" x2="700" y2="290" class="arr-purple" marker-end="url(#ar)"/>
+    <line x1="610" y1="308" x2="700" y2="475" class="arr-purple" marker-end="url(#ar)"/>
+
+    <!-- ══ PERSIST: AuditService → .jsonl ══ -->
+    <line x1="940" y1="95" x2="1000" y2="95" class="arr" marker-end="url(#ag)"/>
+
+    <!-- ══ PULL: Analytics queries AuditService (dashed blue) ══ -->
+    <!-- Route: Analytics right side (940,280) → right to (960,280) → up to (960,160) → left to (940,160) into Audit -->
+    <path d="M 940 280 L 960 280 L 960 160 L 940 160" stroke="#0969da" stroke-width="2" stroke-dasharray="6,4" fill="none" marker-end="url(#ab)"/>
+    <rect x="948" y="198" width="45" height="14" rx="2" fill="white"/>
+    <text x="970" y="209" font-family="Inter, sans-serif" font-size="9" fill="#0969da" font-weight="600" text-anchor="middle">queries</text>
+
+    <!-- ══ PULL: Compliance queries AuditService (dashed blue) ══ -->
+    <!-- Route: Compliance right side (940,470) → right to (990,470) → up to (990,160) → left to (940,160) into Audit -->
+    <path d="M 940 470 L 990 470 L 990 150 L 940 150" stroke="#0969da" stroke-width="2" stroke-dasharray="6,4" fill="none" marker-end="url(#ab)"/>
+    <rect x="978" y="303" width="45" height="14" rx="2" fill="white"/>
+    <text x="1000" y="314" font-family="Inter, sans-serif" font-size="9" fill="#0969da" font-weight="600" text-anchor="middle">queries</text>
+
+    <!-- ══ PULL: Compliance uses AnalyticsService (dashed blue) ══ -->
+    <!-- Route: Compliance top (820,420) → up to Analytics bottom (820,350) -->
+    <line x1="820" y1="420" x2="820" y2="355" stroke="#0969da" stroke-width="2" stroke-dasharray="6,4" fill="none" marker-end="url(#ab)"/>
+    <rect x="828" y="380" width="30" height="14" rx="2" fill="white"/>
+    <text x="843" y="391" font-family="Inter, sans-serif" font-size="9" fill="#0969da" font-weight="600" text-anchor="middle">uses</text>
+  </svg>
+
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-swatch" style="background: #dafbe1; border: 1px solid #82e596;"></div>Event Producers (domain services)</div>
+  <div class="legend-item"><div class="legend-swatch" style="background: #f5f0ff; border: 1px solid #d8b9ff;"></div>EventBus + AuditService</div>
+  <div class="legend-item"><div class="legend-swatch" style="background: #ddf4ff; border: 1px solid #80ccff;"></div>Derived Services (replay audit)</div>
+  <div class="legend-item"><div class="legend-swatch" style="background: #fff8e1; border: 1px solid #e5c76b;"></div>Key Insight</div>
+</div>
+
+</body>
+</html>

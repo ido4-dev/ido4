@@ -2,9 +2,9 @@
 
 ## Overview
 
-ido4 MCP is a **Development Governance Platform** — an MCP server that provides deterministic methodology enforcement for AI-augmented development teams.
+ido4 MCP is the **platform that makes AI-hybrid software development work at scale.** It gives every AI coding session full project understanding — what to build, what was built before, what depends on your output, and how to verify you built the right thing. Deterministic governance ensures quality without slowing agents down.
 
-It exposes methodology-agnostic project governance as MCP tools that Claude Code (and other MCP-compatible AI environments) can use natively. Three built-in methodologies: Hydro (wave-based), Scrum (sprint-based), Shape Up (cycle-based). The engine is methodology-agnostic — profiles are data, the engine is code.
+It runs as an MCP server inside Claude Code (and any MCP-compatible AI environment), providing context assembly, task intelligence, institutional memory, and methodology enforcement. Three built-in methodologies: Hydro (wave-based), Scrum (sprint-based), Shape Up (cycle-based). The engine is methodology-agnostic — profiles are data, the engine is code.
 
 ## Project Structure
 
@@ -21,13 +21,13 @@ ido4-MCP/
 ```
 
 ### @ido4/core
-The domain layer. Contains: task workflow services, BRE (Business Rule Engine) validation pipeline (32 steps), container management, integrity enforcement, dependency analysis, compliance scoring, analytics, work distribution, merge readiness, ingestion pipeline, strategic spec parser. Profile-driven state machine. **Zero dependencies on CLI frameworks, terminal formatting, or MCP SDK.**
+The domain layer. Context assembly, task intelligence, work distribution, institutional memory (audit trail, analytics, compliance scoring), BRE (Business Rule Engine) validation pipeline (34 steps), container management, integrity enforcement, dependency analysis, merge readiness, ingestion pipeline, strategic spec parser. Profile-driven state machine. **Zero dependencies on CLI frameworks, terminal formatting, or MCP SDK.**
 
 ### @ido4/mcp
-The MCP server. Wraps @ido4/core domain services as MCP tools, resources, and prompts — dynamically generated from the active methodology profile. Uses STDIO transport for Claude Code integration. Hydro: 57 tools, Scrum: 56 tools, Shape Up: 53 tools.
+The MCP server. Wraps @ido4/core domain services as MCP tools, resources, and prompts — dynamically generated from the active methodology profile. Composite aggregators assemble full project context in single calls. Uses STDIO transport for Claude Code integration. Hydro: 57 tools, Scrum: 56 tools, Shape Up: 53 tools.
 
 ### plugin/
-Claude Code plugin bundle. Contains 18 skills (governance, planning, retrospectives, sandbox demos, spec validation, decomposition), 4 agents (PM, code-analyzer, technical-spec-writer, spec-reviewer), and automation hooks.
+Claude Code plugin bundle. Contains 18 skills (standup, planning, retrospectives, compliance, decomposition, sandbox demos), 4 agents (PM, code-analyzer, technical-spec-writer, spec-reviewer), and automation hooks. Skills turn raw data into project intelligence — every session starts with full context.
 
 ## Two-Artifact Architecture (Strategic Spec → Technical Spec) — IMPLEMENTED (v0.3.0+)
 
@@ -66,7 +66,7 @@ Strategic capabilities become the methodology's grouping container (epic in Hydr
 
 - **Container**: A methodology-specific grouping unit. Hydro: Wave (execution) + Epic (grouping). Scrum: Sprint (execution) + Epic (grouping). Shape Up: Cycle (execution) + Bet (grouping) + Scope (optional).
 - **Capability**: A functional requirement from the strategic spec that becomes an epic/bet — the parent issue for implementation tasks.
-- **BRE**: Business Rule Engine — composable validation pipeline with 32 steps, configurable per methodology profile.
+- **BRE**: Business Rule Engine — composable validation pipeline with 34 steps, configurable per methodology profile.
 - **Transition**: A workflow state change (start, review, approve, block, unblock, return, and methodology-specific actions like refine, ready, shape, bet, ship, kill).
 
 ## Governance Principles
@@ -125,6 +125,12 @@ CI Workflows (`.github/workflows/`):
 - **GitHub**: https://github.com/ido4-dev/ido4
 - **Docs (GitBook)**: https://hydro-dev.gitbook.io/ido4 — auto-syncs from `docs/` directory
 - **Website**: ido4.dev (separate repo)
+
+## Ideas Backlog
+
+The `ideas/` directory is a parking lot for future ideas, explorations, and strategic directions. Each idea is a separate markdown file with frontmatter (date, status, category).
+
+During brainstorming conversations, when a concrete idea surfaces worth preserving, capture it to `ideas/` with appropriate frontmatter. Don't auto-capture every half-thought — wait for the user to signal something is worth parking ("park that", "capture this", "good idea for later") or offer to capture at the end of a brainstorming session by reviewing what surfaced.
 
 ## Workflow
 

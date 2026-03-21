@@ -1,6 +1,6 @@
 # Compliance Reporting
 
-ido4's compliance system provides deterministic, data-backed governance reporting that enterprise clients require. Every metric is computed from audit trail events — no manual tracking, no estimation, no self-reported data.
+ido4's compliance system provides deterministic, data-backed reporting that enterprise clients require. Every metric is computed from the audit trail — the same event log that powers context assembly, analytics, and institutional memory. No manual tracking, no estimation, no self-reported data.
 
 ## Compliance Score
 

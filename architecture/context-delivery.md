@@ -10,9 +10,9 @@
 
 ## 1. The Problem
 
-ido4 has a mature governance intelligence layer: 32 BRE validation steps, 7 prompt types teaching methodology-native governance reasoning, 4 composite aggregators, deterministic compliance scoring. An agent using ido4 understands the *rules* of the project.
+ido4's governance layer (34 BRE validation steps, compliance scoring, audit trail) ensures agents follow the rules. But understanding rules is not the same as understanding the project.
 
-But understanding rules is not the same as understanding the project.
+An agent needs to know: What was built before me? What interfaces do my dependencies expose? What patterns did my epic siblings establish? Who will consume my output? What does "done" actually look like for this task? Without this context, even a perfectly governed agent builds the wrong thing.
 
 When an agent starts task #42, it receives: `{ issueNumber: 42, fromStatus: "Ready for Dev", toStatus: "In Progress" }`. To learn *what to build*, it must separately call `get_task`. To understand *what its dependencies produced*, it must call `get_task` for each dependency individually. To know *who will consume its output*, it has no mechanism at all. To learn *what decisions its epic siblings already made*, it would need to enumerate and fetch each one.
 

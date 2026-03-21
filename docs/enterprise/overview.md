@@ -1,17 +1,18 @@
 # Enterprise Features
 
-ido4 provides the governance infrastructure that enterprise software delivery requires — compliance documentation, configurable methodology, quality gates, and full audit trails. All features work across all three built-in methodologies (Hydro, Scrum, Shape Up) and custom profiles.
+ido4 provides the infrastructure that enterprise AI-hybrid development requires — context intelligence for every agent session, institutional memory that compounds across teams, compliance documentation, configurable methodology, quality gates, and full audit trails. All features work across all three built-in methodologies (Hydro, Scrum, Shape Up) and custom profiles.
 
-## Why Enterprise Teams Need Governance
+## Why Enterprise Teams Need More Than AI Agents
 
-Enterprise development teams are deploying AI coding agents at scale. The productivity gains are real, but so are the risks:
+Enterprise development teams are deploying AI coding agents at scale. The productivity gains are real, but agents alone don't scale:
 
+- **Context**: Every AI session starts from scratch. No knowledge of prior work, no understanding of dependencies, no institutional memory. At enterprise scale, this means agents repeatedly rediscover what others already built.
+- **Coordination**: Multiple AI agents must work coherently — understanding who's building what, what's blocked, and where the highest-leverage work is.
 - **Compliance**: Regulated industries need proof that development processes were followed. "The AI did it" is not an acceptable audit response.
 - **Consistency**: Multiple AI agents must follow the same methodology, not each agent's interpretation of it.
-- **Accountability**: When something breaks in production, the audit trail must show exactly who (human or AI) did what, when, and whether the rules were followed.
 - **Quality**: Speed without quality gates produces technical debt faster than any human team could.
 
-ido4 addresses all four with deterministic enforcement, not guidelines.
+ido4 addresses all five — context intelligence, coordination, compliance, consistency, and quality — with a platform that empowers agents rather than constraining them.
 
 ## Compliance Reporting
 

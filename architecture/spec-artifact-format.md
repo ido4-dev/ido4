@@ -1,6 +1,6 @@
 # Spec Artifact Format — v1
 
-The spec artifact is the contract between specs-wizard (creative decomposition) and ido4 (governance engine). It is a single markdown file that describes a project or feature as a dependency graph of tasks organized into logical groups.
+The spec artifact is the contract between the decomposition pipeline (ido4shape → ido4 MCP) and the ingestion engine. It is a single markdown file that describes a project or feature as a dependency graph of tasks organized into logical groups — the bridge between "what to build" and the governed GitHub issues that AI agents will execute against.
 
 The artifact is **methodology-agnostic**. It captures substance — what to build, why, how things relate, what the risks are, what "done" looks like. ido4 applies the methodology lens at ingestion time.
 
@@ -152,7 +152,9 @@ The artifact uses a compact, product-friendly vocabulary. ido4's `ingest_spec` m
 
 ---
 
-## Example: Real-time Notification System
+## Full Example: Real-time Notification System
+
+The following is a complete spec artifact showing all features: capabilities with metadata, tasks with effort/risk/type/AI suitability, dependency chains, success conditions, and cross-cutting concerns. This is what the decomposition pipeline (`/ido4:decompose`) produces and what the ingestion engine (`ingest_spec`) consumes to create governed GitHub issues.
 
 # Real-time Notification System
 

@@ -1,6 +1,6 @@
 # @ido4/mcp
 
-The MCP server for the [ido4 Development Governance Platform](https://github.com/ido4-dev/ido4). Exposes 51 governance tools, 9 resources, and 6 prompts over STDIO transport.
+The MCP server for [ido4](https://github.com/ido4-dev/ido4) — the platform for AI-hybrid software development at scale. Provides context intelligence, task distribution, and deterministic governance over STDIO transport.
 
 ## Installation
 

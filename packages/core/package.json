@@ -1,7 +1,7 @@
 {
   "name": "@ido4/core",
   "version": "0.4.0",
-  "description": "ido4 core domain layer — wave-based development governance with deterministic business rule enforcement",
+  "description": "ido4 core — context intelligence, task distribution, and deterministic governance for AI-hybrid software development",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -23,16 +23,18 @@
     "dist"
   ],
   "keywords": [
+    "ai-hybrid-development",
+    "ai-agents",
+    "context-intelligence",
+    "mcp",
     "governance",
     "development-governance",
-    "mcp",
-    "ai-agents",
     "business-rules",
     "compliance",
     "audit-trail",
     "multi-agent",
-    "wave-based",
-    "methodology-enforcement",
+    "work-distribution",
+    "institutional-memory",
     "github-projects"
   ],
   "repository": {

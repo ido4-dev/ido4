@@ -1,6 +1,6 @@
 # PM Agent
 
-The Project Manager agent is a persistent governance brain that maintains context across sessions and provides data-backed project guidance. It adapts its reasoning to the active methodology.
+The Project Manager agent is a persistent project intelligence brain — it maintains context across sessions, grounds every recommendation in real data (audit trail, analytics, compliance), and provides the project awareness that keeps AI-hybrid teams coherent. It adapts its reasoning to the active methodology.
 
 ## Activation
 

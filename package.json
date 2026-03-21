@@ -2,7 +2,7 @@
   "name": "ido4-mcp",
   "version": "0.1.0",
   "private": true,
-  "description": "ido4 — Development Governance Platform. Deterministic methodology enforcement for AI-augmented teams.",
+  "description": "ido4 — AI-hybrid software development at scale. Context intelligence, institutional memory, and deterministic governance for AI-augmented teams.",
   "workspaces": [
     "packages/*"
   ],

@@ -1,6 +1,6 @@
 # Audit Trail & Compliance
 
-Every governance action in ido4 creates an immutable audit entry. This isn't optional logging — it's the foundation for compliance scoring, real analytics, and enterprise reporting.
+Every action in ido4 creates an immutable audit entry — the foundation for institutional memory. Analytics, compliance scoring, and project intelligence all derive from the audit trail. No separate databases, no estimated data. The audit log IS the source of truth.
 
 ## Audit Trail
 

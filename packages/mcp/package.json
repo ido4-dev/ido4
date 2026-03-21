@@ -1,7 +1,7 @@
 {
   "name": "@ido4/mcp",
   "version": "0.4.0",
-  "description": "ido4 MCP server — 51 development governance tools for Claude Code and MCP-compatible AI coding environments",
+  "description": "ido4 MCP server — context intelligence, task distribution, and governance for AI-hybrid software development in Claude Code",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
@@ -32,15 +32,17 @@
   "keywords": [
     "mcp",
     "mcp-server",
+    "ai-hybrid-development",
+    "ai-agents",
+    "context-intelligence",
+    "claude-code",
     "governance",
     "development-governance",
-    "ai-agents",
-    "claude-code",
     "business-rules",
     "compliance",
     "audit-trail",
     "multi-agent",
-    "quality-gates",
+    "work-distribution",
     "model-context-protocol"
   ],
   "repository": {
