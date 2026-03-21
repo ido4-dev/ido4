@@ -161,9 +161,15 @@ After any change that affects architecture, services, tools, profiles, validatio
 
 ## Ideas Backlog
 
-The `ideas/` directory is a parking lot for future ideas, explorations, and strategic directions. Each idea is a separate markdown file with frontmatter (date, status, category).
+The `ideas/` directory is a parking lot for future ideas, explorations, and strategic directions. Each idea is a separate markdown file with frontmatter (date, status, category). Statuses: `idea` (raw), `exploring` (being discussed), `ready` (understood, waiting for prioritization), `parked` (good idea, wrong time), `rejected` (decided against).
 
-During brainstorming conversations, when a concrete idea surfaces worth preserving, capture it to `ideas/` with appropriate frontmatter. Don't auto-capture every half-thought — wait for the user to signal something is worth parking ("park that", "capture this", "good idea for later") or offer to capture at the end of a brainstorming session by reviewing what surfaced.
+**When to capture ideas:**
+- The user explicitly says "park that", "capture this", "good idea for later"
+- During brainstorming, offer to capture at the end by reviewing what surfaced
+- **During implementation work:** if you discover a capability gap, a natural extension point, or a "this would be better if..." moment — ask the user: "I noticed [X] could be improved by [Y]. Worth parking as an idea?" Don't auto-save, but do proactively surface it.
+- When the user mentions future plans, integrations, or "someday we should..." — offer to capture
+
+**When NOT to capture:** bugs (those are issues), tasks for the current session, things already documented elsewhere.
 
 ## Workflow
 
