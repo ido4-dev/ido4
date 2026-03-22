@@ -14,8 +14,7 @@ This is an npm workspaces monorepo with three packages:
 ido4-MCP/
 ├── packages/
 │   ├── core/       # @ido4/core — Domain logic, zero CLI dependencies
-│   ├── mcp/        # @ido4/mcp — MCP server (STDIO transport)
-│   └── plugin/     # Claude Code plugin (skills, hooks, agents)
+│   └── mcp/        # @ido4/mcp — MCP server (STDIO transport)
 ├── package.json    # Workspace root
 └── tsconfig.json   # Shared TypeScript config
 ```
@@ -26,8 +25,8 @@ The domain layer. Context assembly, task intelligence, work distribution, instit
 ### @ido4/mcp
 The MCP server. Wraps @ido4/core domain services as MCP tools, resources, and prompts — dynamically generated from the active methodology profile. Composite aggregators assemble full project context in single calls. Uses STDIO transport for Claude Code integration. Hydro: 57 tools, Scrum: 56 tools, Shape Up: 53 tools.
 
-### plugin/
-Claude Code plugin bundle. Contains 21 skills (standup, planning, retrospectives, compliance, decomposition, sandbox lifecycle, onboarding, guided demo, exploration), 4 agents (PM, code-analyzer, technical-spec-writer, spec-reviewer), and automation hooks. Skills turn raw data into project intelligence — every session starts with full context.
+### ido4dev Plugin (separate repo)
+The Claude Code plugin lives at [ido4-dev/ido4dev](https://github.com/ido4-dev/ido4dev). 21 skills, 4 agents, 2 hook types. Distributed via the [ido4-plugins marketplace](https://github.com/ido4-dev/ido4-plugins). Install: `/plugin install ido4dev@ido4-plugins`.
 
 ## Two-Artifact Architecture (Strategic Spec → Technical Spec) — IMPLEMENTED (v0.3.0+)
 
@@ -44,8 +43,8 @@ ido4shape (conversation) → strategic spec → ido4 MCP decomposition → techn
 **Decomposition pipeline (built):**
 - Strategic spec parser: `packages/core/src/domains/ingestion/strategic-spec-parser.ts`
 - `parse_strategic_spec` MCP tool
-- Code analysis agent: `packages/plugin/agents/code-analyzer.md`
-- Technical spec writer: `packages/plugin/agents/technical-spec-writer.md`
+- Code analysis agent: [ido4dev repo](https://github.com/ido4-dev/ido4dev) `agents/code-analyzer.md`
+- Technical spec writer: [ido4dev repo](https://github.com/ido4-dev/ido4dev) `agents/technical-spec-writer.md`
 - Orchestration skill: `/ido4dev:decompose`
 - Architecture: `architecture/decomposition-pipeline.md`
 
@@ -98,7 +97,7 @@ npm run clean        # Remove all dist/ directories
 To run Claude Code with the full ido4 plugin (skills, agents, hooks, MCP server):
 
 ```bash
-claude --plugin-dir ./packages/plugin
+claude --plugin-dir ../ido4dev
 ```
 
 Prerequisites:
@@ -141,7 +140,7 @@ After any change that affects architecture, services, tools, profiles, validatio
 | `packages/core/src/profiles/` | `architecture/methodology-runner.md`, `docs/enterprise/methodology.md` | `diagrams/05-profile-generation.html` |
 | `packages/core/src/domains/ingestion/` | `architecture/decomposition-pipeline.md`, `architecture/two-artifact-pipeline.md`, `architecture/spec-artifact-format.md` | `diagrams/06-decomposition-pipeline.html` |
 | `packages/mcp/src/` (tools, resources, prompts) | `architecture/vision-and-roadmap.md` (tool counts) | `diagrams/01-system-overview.html`, `diagrams/02-request-flow.html` |
-| `packages/plugin/` (skills, agents, hooks) | `docs/skills/overview.md`, `docs/skills/pm-agent.md` | `diagrams/09-plugin-layer.html` |
+| [ido4dev plugin](https://github.com/ido4-dev/ido4dev) (skills, agents, hooks) | `docs/skills/overview.md`, `docs/skills/pm-agent.md` | `diagrams/09-plugin-layer.html` |
 | Any architectural change | `architecture/vision-and-roadmap.md`, `CLAUDE.md` | `diagrams/00-system-block.html` |
 | Agent workflow changes | `architecture/context-delivery.md`, `architecture/llm-strategy.md` | `diagrams/10-agent-workflow.html` |
 
