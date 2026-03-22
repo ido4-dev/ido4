@@ -106,7 +106,7 @@ export class IngestionService {
 
     // Step 7: Create tasks in topological order
     const taskRefToIssue = new Map<string, { id: string; number: number; url: string }>();
-    const createdTasks: Array<{ ref: string; issueNumber: number; title: string; url: string; dependsOn: string[] }> = [];
+    const createdTasks: Array<{ ref: string; issueNumber: number; title: string; url: string; dependsOn: string[]; groupRef: string | null }> = [];
     const failed: Array<{ ref: string; title: string; error: string }> = [];
     const failedRefs = new Set<string>();
 
@@ -161,6 +161,7 @@ export class IngestionService {
             title: task.request.title,
             url: result.data.url,
             dependsOn: task.dependsOn,
+            groupRef: task.groupRef,
           });
           this.logger.info('Task created', { ref: task.ref, issueNumber: result.data.issueNumber });
         }
@@ -291,6 +292,7 @@ export class IngestionService {
       title: t.request.title,
       url: '(dry run)',
       dependsOn: t.dependsOn,
+      groupRef: t.groupRef,
     }));
 
     const suggestions = this.generateSuggestions(

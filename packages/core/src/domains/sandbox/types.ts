@@ -1,45 +1,121 @@
 /**
  * Sandbox domain types — definitions for governed sandbox environments.
  *
- * These types are methodology-agnostic. Container types, parent issues,
- * and task structures are expressed generically and resolved at runtime
- * via the profile's container definitions.
+ * v2 architecture: Sandbox creation uses the ingestion pipeline to create
+ * issues from a technical spec, then applies post-ingestion state simulation
+ * and violation injection. Scenarios are lightweight definitions referencing
+ * a shared technical spec, not hardcoded task lists.
  */
 
-// ─── Scenario Definition Types ───
+// ─── Scenario Config (Input to ScenarioBuilder) ───
 
-/** @deprecated Use ContainerInstanceDefinition instead */
-export interface WaveDefinition {
+export interface ScenarioConfig {
+  id: string;
   name: string;
   description: string;
-  state: 'completed' | 'active' | 'planned';
+  profileId: string;
+  technicalSpecContent: string;
+
+  /** Execution container layout (waves/sprints/cycles) */
+  executionContainers: Array<{
+    name: string;
+    containerType: string;
+    state: 'completed' | 'active' | 'planned';
+    description?: string;
+    metadata?: Record<string, unknown>;
+  }>;
+
+  /** Grouping containers with explicit state (e.g., bets in Shape Up). Optional. */
+  groupingContainers?: Array<{
+    name: string;
+    containerType: string;
+    state: 'active' | 'killed';
+  }>;
+
+  /** Number of tasks to leave unassigned (cooldown/backlog). Optional. */
+  cooldownCount?: number;
 }
 
-/** @deprecated Use ParentIssueDefinition instead */
-export interface EpicDefinition {
-  ref: string;
-  title: string;
-  body: string;
+// ─── v2 Scenario Types (Pipeline-Based — output of ScenarioBuilder) ───
+
+export interface SandboxScenario {
+  id: string;
+  name: string;
+  description: string;
+  profileId: string;
+  narrative: ScenarioNarrative;
+
+  /** Technical spec content in ingestion format (## Capability: + ### PREFIX-NN:) */
+  technicalSpecContent: string;
+
+  /** Execution container instances (waves/sprints/cycles/bets/scopes) */
+  containerInstances: ContainerInstanceDefinition[];
+
+  /** Post-ingestion: assign tasks to execution containers. taskRef → { containerTypeId: value } */
+  containerAssignments: Record<string, Record<string, string>>;
+
+  /** Post-ingestion: transition tasks to target states. taskRef → status key */
+  taskStates: Record<string, string>;
+
+  /** Methodology-specific violation injections applied after state simulation */
+  violations: ViolationInjection[];
+
+  /** Backdated audit trail events */
+  auditEvents: AuditSeedEvent[];
+
+  /** Agent registrations and task locks */
+  agents?: AgentSeedDefinition;
+
+  /** PRs to seed (with real code if patchContent provided) */
+  prSeeds?: PRSeedDefinition[];
+
+  /** Context comments per task. taskRef → comment strings (supports #TASK_REF resolution) */
+  contextComments: Record<string, string[]>;
+
+  /** Governance memory seed written to .ido4/sandbox-memory-seed.md */
+  memorySeed: string;
 }
 
-/** @deprecated Use SandboxTaskDefinition instead */
-export interface TaskDefinition {
-  ref: string;
-  title: string;
-  body: string;
-  epicRef: string;
-  wave: string;
-  status: string;
-  effort: string;
-  riskLevel: string;
-  aiSuitability: string;
-  dependencyRefs?: string[];
-  governanceSignal?: string;
-  seedPR?: { branchName: string; prTitle: string };
-  contextComments?: string[];
+export interface ScenarioNarrative {
+  /** One-paragraph project setup — what this team is building and where they are */
+  setup: string;
+  /** The tension — what's going wrong and why it matters */
+  tension: string;
+  /** Per-violation context — why this specific violation happened in this story */
+  violationContext: Record<string, string>;
+  /** What governance should surface when skills analyze this scenario */
+  expectedFindings: string[];
+  /** What fixing the violations looks like */
+  resolution: string;
 }
 
-// ─── Generic Scenario Types ───
+export interface ViolationInjection {
+  /** Violation type identifier (EPIC_INTEGRITY, FALSE_STATUS, etc.) */
+  type: string;
+  /** Task ref to apply the violation to */
+  taskRef: string;
+  /** The action that creates the violation */
+  action: ViolationAction;
+  /** Human-readable description of what this violation represents */
+  description: string;
+}
+
+export type ViolationAction =
+  | { kind: 'wrong_container'; containerType: string; wrongValue: string }
+  | { kind: 'false_status'; status: string }
+  | { kind: 'label'; labels: string[] };
+
+export interface PRSeedDefinition {
+  taskRef: string;
+  branchName: string;
+  prTitle: string;
+  /** File path for the PR content (e.g., src/notifications/retry-policy.ts) */
+  filePath?: string;
+  /** File content for real code changes (vs default .sandbox/ stub) */
+  patchContent?: string;
+}
+
+// ─── Shared Types (Used by Both v1 and v2) ───
 
 export interface ContainerInstanceDefinition {
   ref: string;
@@ -51,32 +127,6 @@ export interface ContainerInstanceDefinition {
   state: 'completed' | 'active' | 'planned' | 'killed';
   /** Extra metadata, e.g. { startDate: '2026-02-04' } for circuit breaker */
   metadata?: Record<string, unknown>;
-}
-
-export interface ParentIssueDefinition {
-  ref: string;
-  title: string;
-  body: string;
-}
-
-export interface SandboxTaskDefinition {
-  ref: string;
-  title: string;
-  body: string;
-  /** containerTypeId → containerInstanceName */
-  containers: Record<string, string>;
-  /** For sub-issue relationships (epicRef, betRef) */
-  parentRef?: string;
-  status: string;
-  /** For Scrum type labels (type:story, type:bug, etc.) */
-  labels?: string[];
-  effort?: string;
-  riskLevel?: string;
-  aiSuitability?: string;
-  dependencyRefs?: string[];
-  governanceSignal?: string;
-  seedPR?: { branchName: string; prTitle: string };
-  contextComments?: string[];
 }
 
 export interface AuditSeedEvent {
@@ -94,17 +144,62 @@ export interface AgentSeedDefinition {
   locks?: Array<{ agentId: string; taskRef: string }>;
 }
 
-export interface SandboxScenario {
-  id: string;
+// ─── v1 Types (Deprecated — kept for backward compatibility during transition) ───
+
+/** @deprecated Use ContainerInstanceDefinition instead */
+export interface WaveDefinition {
   name: string;
   description: string;
-  profileId: string;
-  containerInstances: ContainerInstanceDefinition[];
-  parentIssues: ParentIssueDefinition[];
-  tasks: SandboxTaskDefinition[];
-  auditEvents: AuditSeedEvent[];
-  agents?: AgentSeedDefinition;
-  memorySeed: string;
+  state: 'completed' | 'active' | 'planned';
+}
+
+/** @deprecated Use ContainerInstanceDefinition instead */
+export interface EpicDefinition {
+  ref: string;
+  title: string;
+  body: string;
+}
+
+/** @deprecated Replaced by technical spec ingestion in v2 */
+export interface ParentIssueDefinition {
+  ref: string;
+  title: string;
+  body: string;
+}
+
+/** @deprecated Replaced by technical spec ingestion + post-ingestion state simulation in v2 */
+export interface SandboxTaskDefinition {
+  ref: string;
+  title: string;
+  body: string;
+  containers: Record<string, string>;
+  parentRef?: string;
+  status: string;
+  labels?: string[];
+  effort?: string;
+  riskLevel?: string;
+  aiSuitability?: string;
+  dependencyRefs?: string[];
+  governanceSignal?: string;
+  seedPR?: { branchName: string; prTitle: string };
+  contextComments?: string[];
+}
+
+/** @deprecated Use TaskDefinition from v1 only. Kept for old scenario compatibility. */
+export interface TaskDefinition {
+  ref: string;
+  title: string;
+  body: string;
+  epicRef: string;
+  wave: string;
+  status: string;
+  effort: string;
+  riskLevel: string;
+  aiSuitability: string;
+  dependencyRefs?: string[];
+  governanceSignal?: string;
+  seedPR?: { branchName: string; prTitle: string };
+  contextComments?: string[];
 }
 
 // ─── Service Types ───
@@ -129,10 +224,12 @@ export interface SandboxCreateResult {
   };
   scenario: string;
   created: {
-    parentIssues: number;
-    containerInstances: number;
+    capabilities: number;
     tasks: number;
     subIssueRelationships: number;
+    containerAssignments: number;
+    stateTransitions: number;
+    violations: number;
     closedTasks: number;
     pullRequests: number;
     contextComments: number;

@@ -102,7 +102,7 @@ export interface IngestSpecResult {
   };
   created: {
     groupIssues: Array<{ ref: string; issueNumber: number; title: string; url: string }>;
-    tasks: Array<{ ref: string; issueNumber: number; title: string; url: string; dependsOn: string[] }>;
+    tasks: Array<{ ref: string; issueNumber: number; title: string; url: string; dependsOn: string[]; groupRef: string | null }>;
     subIssueRelationships: number;
     totalIssues: number;
   };
