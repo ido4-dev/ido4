@@ -4,11 +4,11 @@ ido4 provides methodology-specific planning skills that compose execution contai
 
 | Skill | Methodology | What It Plans |
 |---|---|---|
-| `/ido4:plan-wave` | Hydro | Wave composition with epic integrity |
-| `/ido4:plan-sprint` | Scrum | Sprint planning with type-aware capacity |
-| `/ido4:plan-cycle` | Shape Up | Cycle betting with appetite constraints |
+| `/ido4dev:plan-wave` | Hydro | Wave composition with epic integrity |
+| `/ido4dev:plan-sprint` | Scrum | Sprint planning with type-aware capacity |
+| `/ido4dev:plan-cycle` | Shape Up | Cycle betting with appetite constraints |
 
-## /ido4:plan-wave (Hydro)
+## /ido4dev:plan-wave (Hydro)
 
 Composes waves following all 5 Hydro governance principles.
 
@@ -38,7 +38,7 @@ Composes waves following all 5 Hydro governance principles.
 - After a wave completion/retrospective
 - When re-planning due to scope changes
 
-## /ido4:plan-sprint (Scrum)
+## /ido4dev:plan-sprint (Scrum)
 
 Sprint planning with type-aware capacity estimation.
 
@@ -58,7 +58,7 @@ Sprint planning with type-aware capacity estimation.
 - **Sprint goal alignment**: Prioritizes tasks that contribute to a cohesive sprint goal
 - **Spillover detection**: Warns about unfinished work from previous sprint
 
-## /ido4:plan-cycle (Shape Up)
+## /ido4dev:plan-cycle (Shape Up)
 
 Cycle planning with appetite-driven betting table.
 

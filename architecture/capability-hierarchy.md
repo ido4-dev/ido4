@@ -30,7 +30,7 @@ The decomposition pipeline is functionally complete:
 | Write | Technical spec writer (`technical-spec-writer.md`) | Built, untested end-to-end |
 | Validate | `ingest_spec` dry run | Existing infrastructure |
 | Ingest | `IngestionService` | Existing infrastructure |
-| Orchestrate | `/ido4:decompose` skill | Built |
+| Orchestrate | `/ido4dev:decompose` skill | Built |
 | Test | Dogfooding fixture (`tests/fixtures/strategic-spec-context-pipeline.md`) | Created |
 
 **Pipeline flow:**
@@ -369,7 +369,7 @@ Upon thorough investigation, the context lifecycle loop is already complete:
 The decomposition pipeline has all stages built, but they haven't been run together. The code analysis agent and technical-spec-writer are markdown instructions — their quality depends on output review, not unit tests.
 
 ### Validation plan
-1. Run `/ido4:decompose tests/fixtures/strategic-spec-context-pipeline.md`
+1. Run `/ido4dev:decompose tests/fixtures/strategic-spec-context-pipeline.md`
 2. Review the technical canvas — is the codebase analysis accurate?
 3. Review the technical spec — are tasks right-sized? Are effort/risk realistic?
 4. Run `ingest_spec` dry run — does it parse clean?

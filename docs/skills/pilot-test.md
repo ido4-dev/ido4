@@ -1,4 +1,4 @@
-# /ido4:pilot-test
+# /ido4dev:pilot-test
 
 End-to-end verification of the governance stack. Runs through the complete governance lifecycle to confirm all tools, BRE validation, audit trail, and analytics work correctly.
 

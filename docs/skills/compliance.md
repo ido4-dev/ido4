@@ -5,7 +5,7 @@
 ## Invocation
 
 ```
-/ido4:compliance
+/ido4dev:compliance
 ```
 
 ## What It Does

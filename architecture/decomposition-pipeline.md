@@ -1,6 +1,6 @@
 # ido4 MCP — Strategic Spec Decomposition Pipeline — IMPLEMENTED (v0.3.0-v0.4.0)
 
-The decomposition pipeline bridges "what to build" and "how to build it" — transforming stakeholder understanding (strategic specs from ido4shape) into code-grounded implementation tasks that AI agents can execute with full context. The pipeline is built: strategic spec parser, code analysis agent, technical spec writer, orchestration skill (`/ido4:decompose`), and capability-based ingestion. Awaiting end-to-end validation.
+The decomposition pipeline bridges "what to build" and "how to build it" — transforming stakeholder understanding (strategic specs from ido4shape) into code-grounded implementation tasks that AI agents can execute with full context. The pipeline is built: strategic spec parser, code analysis agent, technical spec writer, orchestration skill (`/ido4dev:decompose`), and capability-based ingestion. Awaiting end-to-end validation.
 
 **This is the ido4-MCP side of a two-project change.** For the ido4shape side (format redesign, skill rewrites, conversation flow — COMPLETE), see `/Users/bogdanionutcoman/dev-projects/ido4shape/references/strategic-spec-adaptation-plan.md`.
 
@@ -217,7 +217,7 @@ Feed the validated technical spec into the existing pipeline. Nothing changes �
 ## Phase 5: Orchestration Skill
 
 ### 5.1 Decompose skill
-`/ido4:decompose path/to/strategic-spec.md` — the orchestrating skill that runs the full pipeline:
+`/ido4dev:decompose path/to/strategic-spec.md` — the orchestrating skill that runs the full pipeline:
 1. Parse strategic spec (Phase 1)
 2. Run code analysis agent (Phase 2)
 3. Present technical canvas for optional review

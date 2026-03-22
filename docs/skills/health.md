@@ -5,7 +5,7 @@
 ## Invocation
 
 ```
-/ido4:health
+/ido4dev:health
 ```
 
 ## What It Does
@@ -35,7 +35,7 @@ HEALTH: GREEN — wave-002-core flowing normally
 Done:2 InProgress:1 Review:2 Blocked:2 Ready:2 Refinement:1
 Compliance:92/A | Throughput:1.4/day | Agents: alpha(working) beta(available)
 
-Suggestion: Run /ido4:board for cascade analysis on the 2 blocked tasks
+Suggestion: Run /ido4dev:board for cascade analysis on the 2 blocked tasks
 ```
 
 Or when things aren't fine:
@@ -47,12 +47,12 @@ Done:2 InProgress:1 Review:2 Blocked:4 Ready:1 Refinement:0
 Compliance:68/D | Throughput:0.3/day | Agents: alpha(stale) beta(idle)
 
 CRITICAL: 40% of tasks blocked, compliance below threshold,
-agent-alpha lock expired. Run /ido4:standup for full analysis.
+agent-alpha lock expired. Run /ido4dev:standup for full analysis.
 ```
 
 ## When to Use
 
-- Start of day — quick check before diving into `/ido4:standup`
+- Start of day — quick check before diving into `/ido4dev:standup`
 - After major transitions — verify nothing broke
 - During demos — show governance status at a glance
 - Between meetings — 5-second project pulse
@@ -60,6 +60,6 @@ agent-alpha lock expired. Run /ido4:standup for full analysis.
 ## Next Steps
 
 Based on the verdict, health suggests which skill to run:
-- **RED** → `/ido4:standup` (full analysis needed)
-- **YELLOW** → `/ido4:board` (investigate specific issues)
-- **GREEN** → Continue working or run `/ido4:compliance` for deeper view
+- **RED** → `/ido4dev:standup` (full analysis needed)
+- **YELLOW** → `/ido4dev:board` (investigate specific issues)
+- **GREEN** → Continue working or run `/ido4dev:compliance` for deeper view

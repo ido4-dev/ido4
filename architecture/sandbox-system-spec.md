@@ -234,7 +234,7 @@ A full strategic spec (ido4shape format) ships with the repo at `specs/notificat
   - Integration Webhook System (outbound webhooks for third parties)
   - API Completion (rate limiting, notification endpoints, rendering endpoints)
 
-This spec is what `/ido4:decompose` runs against. The decomposition pipeline analyzes the real codebase, discovers existing patterns, and produces a technical spec with implementation tasks grounded in actual code.
+This spec is what `/ido4dev:decompose` runs against. The decomposition pipeline analyzes the real codebase, discovers existing patterns, and produces a technical spec with implementation tasks grounded in actual code.
 
 ### 3.6 Reset Infrastructure
 
@@ -373,7 +373,7 @@ The governance violations are methodology-specific (epic integrity vs DoR vs cir
 
 ---
 
-## 5. Guided Demo: `/ido4:demo`
+## 5. Guided Demo: `/ido4dev:demo`
 
 ### 5.1 Purpose
 
@@ -464,7 +464,7 @@ The demo skill produces a structured narrative in markdown, presented section by
 
 ---
 
-## 6. First-Touch Onboarding: `/ido4:onboard`
+## 6. First-Touch Onboarding: `/ido4dev:onboard`
 
 ### 6.1 Purpose
 
@@ -522,12 +522,12 @@ Then fix the issue and retry. BRE passes. Show the audit trail entry.
 
 "You've seen ido4 discover violations, enforce rules, and maintain an audit trail. Here's what to explore next:"
 
-- `/ido4:demo` — Full guided demo with all four acts
-- `/ido4:init` — Initialize ido4 on your own project
-- `/ido4:standup` — Run a governance standup on the sandbox
-- `/ido4:compliance` — Deep dive into compliance scoring
+- `/ido4dev:demo` — Full guided demo with all four acts
+- `/ido4dev:init` — Initialize ido4 on your own project
+- `/ido4dev:standup` — Run a governance standup on the sandbox
+- `/ido4dev:compliance` — Deep dive into compliance scoring
 
-"The sandbox stays active until you destroy it. Explore freely — try to break rules, fix violations, run skills. When you're ready to start with your own project, run `/ido4:init`."
+"The sandbox stays active until you destroy it. Explore freely — try to break rules, fix violations, run skills. When you're ready to start with your own project, run `/ido4dev:init`."
 
 ### 6.3 Tone
 
@@ -535,7 +535,7 @@ Confident but not salesy. Explanatory without being condescending. The system sp
 
 ---
 
-## 7. Interactive Sandbox Exploration: `/ido4:explore`
+## 7. Interactive Sandbox Exploration: `/ido4dev:explore`
 
 ### 7.1 Purpose
 
@@ -546,10 +546,10 @@ After guided experiences (demo or onboarding), users can explore the sandbox fre
 The skill presents available exploration paths based on what the user hasn't yet seen:
 
 **Governance Discovery**
-- "Run a standup briefing" → `/ido4:standup`
-- "Check project health" → `/ido4:health`
-- "Deep dive into compliance" → `/ido4:compliance`
-- "View the full board" → `/ido4:board`
+- "Run a standup briefing" → `/ido4dev:standup`
+- "Check project health" → `/ido4dev:health`
+- "Deep dive into compliance" → `/ido4dev:compliance`
+- "View the full board" → `/ido4dev:board`
 
 **Governance Enforcement**
 - "Try to start a blocked task" → attempts transition, shows BRE response
@@ -563,7 +563,7 @@ The skill presents available exploration paths based on what the user hasn't yet
 - "Simulate a task handoff" → complete a task, show what unblocks, get next recommendation
 
 **Full Pipeline** (requires demo codebase)
-- "Decompose the strategic spec" → run `/ido4:decompose` against real code
+- "Decompose the strategic spec" → run `/ido4dev:decompose` against real code
 - "See what an agent would build" → show task execution context assembly
 - "Review merge readiness" → run merge readiness gate on a completed task
 
@@ -596,7 +596,7 @@ The deepest layer of the sandbox experience. Demonstrates ido4's complete value 
 
 ```
 Input: specs/notification-platform.md (strategic spec)
-Tool: /ido4:decompose
+Tool: /ido4dev:decompose
 Process:
   1. parse_strategic_spec extracts capabilities, constraints, cross-cutting concerns
   2. Code analysis agent explores the demo codebase
@@ -682,7 +682,7 @@ A full reset restores the entire environment to its starting state:
 
 ### 9.2 Reset Command
 
-Enhanced `reset_sandbox` tool or a new `/ido4:sandbox-reset` skill that:
+Enhanced `reset_sandbox` tool or a new `/ido4dev:sandbox-reset` skill that:
 1. Destroys the sandbox project (existing flow)
 2. Resets the demo codebase if detected (git reset to tag)
 3. Recreates the sandbox (existing flow)
@@ -750,7 +750,7 @@ to notification events and routes to channel providers.
 ## Blocked On
 The event model needs a `priority` field for delivery ordering. This wasn't in the
 original spec. Filed as a question on #T3 (event model).
-<!-- /ido4:context -->
+<!-- /ido4dev:context -->
 ```
 
 This demonstrates institutional memory with real substance — the next agent reading this knows exactly what was built, what patterns to follow, and what interfaces to consume.
@@ -785,18 +785,18 @@ This demonstrates institutional memory with real substance — the next agent re
 - Tests: 1,731 total (1,273 core + 458 MCP), all passing
 
 **Block 3: Guided Demo Skill** — COMPLETE (2026-03-22)
-- `/ido4:guided-demo` skill: four-act walkthrough (project, discovery, enforcement, pipeline)
+- `/ido4dev:guided-demo` skill: four-act walkthrough (project, discovery, enforcement, pipeline)
 - Methodology-agnostic: reads active profile, adapts container terminology and violation types
 - Act 4 checks for demo codebase availability, graceful degradation if absent
 
 **Block 4: Onboarding Skill** — COMPLETE (2026-03-22)
-- `/ido4:onboard` skill: zero-friction first touch with auto-clone
+- `/ido4dev:onboard` skill: zero-friction first touch with auto-clone
 - Flow: detect state → welcome → methodology selection → clone demo repo to ~/.ido4/demo/ →
   create sandbox → guided discovery (plain language) → enforcement demo (aha moment) → next steps
 - Handles all error cases: existing project, no token, clone failure, tool not registered
 
 **Block 5: Interactive Exploration Skill** — COMPLETE (2026-03-22)
-- `/ido4:sandbox-explore` skill: 13 exploration paths across 5 categories
+- `/ido4dev:sandbox-explore` skill: 13 exploration paths across 5 categories
 - Categories: governance discovery, enforcement, multi-agent coordination, methodology-specific, pipeline
 - Tracks explored paths, suggests next steps after 5+ explorations
 
@@ -900,7 +900,7 @@ Block 6 (Full Pipeline) ← depends on everything above
 
 7. **Codebase distribution model** — IMPLEMENTED (2026-03-22):
    The onboarding skill handles everything automatically. The user never manually clones.
-   - `/ido4:onboard` detects no project → clones demo repo → creates sandbox with `projectRoot` → guided tour
+   - `/ido4dev:onboard` detects no project → clones demo repo → creates sandbox with `projectRoot` → guided tour
    - Clone target: `~/.ido4/demo/ido4-demo/`
    - Demo repo is public: https://github.com/ido4-dev/ido4-demo
    - `projectRoot` parameter on sandbox tools ensures `.ido4/` config lives alongside the code

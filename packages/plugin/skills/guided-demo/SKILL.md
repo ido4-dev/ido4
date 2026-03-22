@@ -21,7 +21,7 @@ This demo is methodology-agnostic. You read the active profile and adapt your la
 ## Prerequisites
 
 Read `.ido4/project-info.json`:
-- If no sandbox exists: "No sandbox found. Run `/ido4:onboard` to set one up, or `/ido4:sandbox` to create one manually." → Stop.
+- If no sandbox exists: "No sandbox found. Run `/ido4dev:onboard` to set one up, or `/ido4dev:sandbox` to create one manually." → Stop.
 - If sandbox exists: read the `scenarioId` to know which methodology is active.
 
 Read `.ido4/sandbox-memory-seed.md` to internalize the governance context. This tells you what violations exist and what the project state looks like.
@@ -153,7 +153,7 @@ From stakeholder conversation to governed implementation — every task traceabl
 "That's ido4. The governance layer for AI-hybrid software development.
 
 **Explore further:**
-- `/ido4:explore` — Interactive sandbox exploration
-- `/ido4:standup` — Full governance standup briefing
-- `/ido4:compliance` — Deep compliance analysis
-- `/ido4:init` — Initialize ido4 on your own project"
+- `/ido4dev:explore` — Interactive sandbox exploration
+- `/ido4dev:standup` — Full governance standup briefing
+- `/ido4dev:compliance` — Deep compliance analysis
+- `/ido4dev:init` — Initialize ido4 on your own project"

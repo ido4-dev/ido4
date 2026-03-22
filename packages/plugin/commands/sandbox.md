@@ -3,4 +3,4 @@ description: Create and experience a governed sandbox project — live governanc
 allowed-tools: mcp__plugin_ido4_ido4__*, Read, Write
 ---
 
-Run the /ido4:sandbox skill.
+Run the /ido4dev:sandbox skill.

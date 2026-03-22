@@ -3,4 +3,4 @@ description: End-to-end verification of the governance platform against a live s
 allowed-tools: mcp__plugin_ido4_ido4__*
 ---
 
-Run the /ido4:pilot-test skill.
+Run the /ido4dev:pilot-test skill.

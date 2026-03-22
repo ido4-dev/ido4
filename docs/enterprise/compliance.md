@@ -54,7 +54,7 @@ compute_compliance_score(waveName: "wave-002-core")
 
 ## The /compliance Skill
 
-The `/ido4:compliance` skill provides a three-part assessment:
+The `/ido4dev:compliance` skill provides a three-part assessment:
 
 ### Part 1: Quantitative Score
 

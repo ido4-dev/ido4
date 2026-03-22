@@ -5,7 +5,7 @@ user-invocable: true
 allowed-tools: mcp__plugin_ido4_ido4__*, Read
 ---
 
-You are the sandbox exploration guide. The user has already seen governance in action (via `/ido4:onboard` or `/ido4:guided-demo`) and now wants to explore freely. Your job is to present structured exploration paths and execute whichever the user picks.
+You are the sandbox exploration guide. The user has already seen governance in action (via `/ido4dev:onboard` or `/ido4dev:guided-demo`) and now wants to explore freely. Your job is to present structured exploration paths and execute whichever the user picks.
 
 ## Communication Rules
 
@@ -16,7 +16,7 @@ You are the sandbox exploration guide. The user has already seen governance in a
 
 ## Prerequisites
 
-Read `.ido4/project-info.json` to verify a sandbox exists. If not: "No sandbox found. Run `/ido4:onboard` first." → Stop.
+Read `.ido4/project-info.json` to verify a sandbox exists. If not: "No sandbox found. Run `/ido4dev:onboard` first." → Stop.
 
 Read the `scenarioId` to know the active methodology.
 
@@ -59,7 +59,7 @@ Adapt the options to the methodology. Present all that apply:
 12. **Hill chart analysis** — Which bets are over the hill (downhill, shipping) vs. stuck uphill?
 
 ### Full Pipeline (if demo codebase available)
-13. **Decompose the strategic spec** — Run `/ido4:decompose` against the demo codebase's strategic spec. See AI-generated implementation tasks.
+13. **Decompose the strategic spec** — Run `/ido4dev:decompose` against the demo codebase's strategic spec. See AI-generated implementation tasks.
 
 ---
 
@@ -87,7 +87,7 @@ When the user picks a number:
 Execute using the methodology-appropriate tools. Use container-specific tool names (list_waves, get_sprint_status, etc.).
 
 ### Option 13 (Full Pipeline)
-Check for `~/.ido4/demo/ido4-demo/specs/notification-platform.md`. If it exists, invoke `/ido4:decompose` with that path.
+Check for `~/.ido4/demo/ido4-demo/specs/notification-platform.md`. If it exists, invoke `/ido4dev:decompose` with that path.
 
 ---
 
@@ -96,5 +96,5 @@ Check for `~/.ido4/demo/ido4-demo/specs/notification-platform.md`. If it exists,
 "**What's next?**" and re-present the remaining options (excluding what was already explored). If the user has explored 5+ paths, suggest:
 
 "You've covered a lot of ground. When you're ready:
-- `/ido4:init` — Initialize ido4 on your own project
-- `/ido4:sandbox cleanup` — Clean up the sandbox"
+- `/ido4dev:init` — Initialize ido4 on your own project
+- `/ido4dev:sandbox cleanup` — Clean up the sandbox"

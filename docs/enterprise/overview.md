@@ -30,7 +30,7 @@ The compliance score is a 0-100 number computed from audit trail data. The categ
 
 ### Three-Part Assessment
 
-The `/ido4:compliance` skill provides a comprehensive report:
+The `/ido4dev:compliance` skill provides a comprehensive report:
 
 1. **Quantitative**: Numerical score with per-category breakdown
 2. **Structural**: Audit of all governance principles with severity scoring

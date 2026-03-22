@@ -3,4 +3,4 @@ description: Flow intelligence report — surfaces blockers, cascade risks, fals
 allowed-tools: mcp__plugin_ido4_ido4__*, Read
 ---
 
-Run the /ido4:board skill. Pass $ARGUMENTS as the wave name if provided.
+Run the /ido4dev:board skill. Pass $ARGUMENTS as the wave name if provided.

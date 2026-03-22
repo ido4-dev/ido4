@@ -119,7 +119,7 @@ get_analytics(waveName: "wave-002-core")  // or sprintName, cycleName
 
 The compliance score, audit trail, and analytics together provide everything an enterprise client needs:
 
-1. **Compliance report** — `/ido4:compliance` produces a three-part assessment: quantitative score, structural principle audit, and cross-referenced synthesis
+1. **Compliance report** — `/ido4dev:compliance` produces a three-part assessment: quantitative score, structural principle audit, and cross-referenced synthesis
 2. **Audit evidence** — Every transition with actor, timestamp, and validation results
 3. **Velocity metrics** — Real data showing delivery pace and trends
 4. **Risk indicators** — Blocking patterns, stale reviews, process shortcuts

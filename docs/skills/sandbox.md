@@ -5,7 +5,7 @@
 ## Invocation
 
 ```
-/ido4:sandbox
+/ido4dev:sandbox
 ```
 
 ## What It Creates

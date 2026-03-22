@@ -5,8 +5,8 @@
 ## Invocation
 
 ```
-/ido4:plan-wave
-/ido4:plan-wave wave-003-advanced
+/ido4dev:plan-wave
+/ido4dev:plan-wave wave-003-advanced
 ```
 
 ## What It Does

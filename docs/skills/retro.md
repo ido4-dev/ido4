@@ -4,10 +4,10 @@ ido4 provides methodology-specific retrospective skills that analyze completed e
 
 | Skill | Methodology | What It Analyzes |
 |---|---|---|
-| `/ido4:retro` | Hydro (alias) | Completed wave |
-| `/ido4:retro-wave` | Hydro | Wave delivery, epic integrity, velocity |
-| `/ido4:retro-sprint` | Scrum | Sprint delivery, type distribution, DoR/DoD compliance |
-| `/ido4:retro-cycle` | Shape Up | Cycle delivery, bet outcomes, circuit breaker analysis |
+| `/ido4dev:retro` | Hydro (alias) | Completed wave |
+| `/ido4dev:retro-wave` | Hydro | Wave delivery, epic integrity, velocity |
+| `/ido4dev:retro-sprint` | Scrum | Sprint delivery, type distribution, DoR/DoD compliance |
+| `/ido4dev:retro-cycle` | Shape Up | Cycle delivery, bet outcomes, circuit breaker analysis |
 
 ## How Retros Work
 
@@ -21,11 +21,11 @@ All retrospective skills follow the same pattern:
 
 Every claim is backed by data. If the retro says "velocity improved by 15%", it's because the audit trail shows 15% more tasks completed per unit time.
 
-## /ido4:retro-wave (Hydro)
+## /ido4dev:retro-wave (Hydro)
 
 ```
-/ido4:retro
-/ido4:retro wave-001-foundation
+/ido4dev:retro
+/ido4dev:retro wave-001-foundation
 ```
 
 Defaults to the most recently completed wave. Analyzes:
@@ -74,11 +74,11 @@ Every recommendation is data-backed with a specific action:
 - **Not**: "We should communicate better"
 - **Instead**: "Task #38 was blocked for 4.2 days waiting on API spec from #35. Enforce refinement step requiring API contracts before tasks enter Ready for Dev."
 
-## /ido4:retro-sprint (Scrum)
+## /ido4dev:retro-sprint (Scrum)
 
 ```
-/ido4:retro-sprint
-/ido4:retro-sprint "Sprint 14"
+/ido4dev:retro-sprint
+/ido4dev:retro-sprint "Sprint 14"
 ```
 
 Scrum-specific analysis:
@@ -91,11 +91,11 @@ Scrum-specific analysis:
 - **Velocity**: Story points delivered vs committed
 - **Pipeline Effectiveness**: Did type-scoped pipelines catch quality issues?
 
-## /ido4:retro-cycle (Shape Up)
+## /ido4dev:retro-cycle (Shape Up)
 
 ```
-/ido4:retro-cycle
-/ido4:retro-cycle cycle-001-notifications
+/ido4dev:retro-cycle
+/ido4dev:retro-cycle cycle-001-notifications
 ```
 
 Shape Up-specific analysis:

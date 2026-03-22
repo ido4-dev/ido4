@@ -75,13 +75,13 @@ The exact states and transitions depend on your methodology — [Scrum has 6 sta
 ## 5. See what's happening
 
 ```
-> /ido4:standup
+> /ido4dev:standup
 ```
 
 A governance-aware morning briefing: what's blocked, what's in review too long, which task has the highest cascade value, and the single highest-leverage action for the day. Every insight backed by real audit trail data.
 
 ```
-> /ido4:health
+> /ido4dev:health
 ```
 
 Five-second verdict: **GREEN** (everything flowing), **YELLOW** (concerns), or **RED** (action needed).

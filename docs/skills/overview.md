@@ -10,34 +10,34 @@ Together with 4 specialized agents and 2 automation hooks, the plugin layer turn
 
 | Component | Type | What it does |
 |---|---|---|
-| `/ido4:standup` | Skill | Morning briefing — what's blocked, what's at risk, the single highest-leverage action for the day |
-| `/ido4:board` | Skill | Flow intelligence — cascade blockers, false statuses, review bottlenecks, epic cohesion |
-| `/ido4:health` | Skill | GREEN / YELLOW / RED verdict across flow, governance, and team dimensions |
-| `/ido4:compliance` | Skill | Quantitative score (0-100) + structural principle audit + improvement recommendations |
+| `/ido4dev:standup` | Skill | Morning briefing — what's blocked, what's at risk, the single highest-leverage action for the day |
+| `/ido4dev:board` | Skill | Flow intelligence — cascade blockers, false statuses, review bottlenecks, epic cohesion |
+| `/ido4dev:health` | Skill | GREEN / YELLOW / RED verdict across flow, governance, and team dimensions |
+| `/ido4dev:compliance` | Skill | Quantitative score (0-100) + structural principle audit + improvement recommendations |
 
 ### Planning (methodology-specific)
 
 | Component | Type | Methodology | What it produces |
 |---|---|---|---|
-| `/ido4:plan-wave` | Skill | Hydro | Valid-by-construction wave plan respecting all 5 governance principles |
-| `/ido4:plan-sprint` | Skill | Scrum | Sprint backlog with Definition of Ready gates per work item type |
-| `/ido4:plan-cycle` | Skill | Shape Up | Betting table with appetite check and circuit breaker risk assessment |
+| `/ido4dev:plan-wave` | Skill | Hydro | Valid-by-construction wave plan respecting all 5 governance principles |
+| `/ido4dev:plan-sprint` | Skill | Scrum | Sprint backlog with Definition of Ready gates per work item type |
+| `/ido4dev:plan-cycle` | Skill | Shape Up | Betting table with appetite check and circuit breaker risk assessment |
 
 ### Retrospectives (methodology-specific)
 
 | Component | Type | Methodology | What it analyzes |
 |---|---|---|---|
-| `/ido4:retro-wave` | Skill | Hydro | Velocity, epic integrity, blocking time — real data from audit trail |
-| `/ido4:retro-sprint` | Skill | Scrum | Sprint goal achievement, DoR effectiveness, carry-over trends |
-| `/ido4:retro-cycle` | Skill | Shape Up | Bet outcomes, appetite accuracy, circuit breaker decisions |
+| `/ido4dev:retro-wave` | Skill | Hydro | Velocity, epic integrity, blocking time — real data from audit trail |
+| `/ido4dev:retro-sprint` | Skill | Scrum | Sprint goal achievement, DoR effectiveness, carry-over trends |
+| `/ido4dev:retro-cycle` | Skill | Shape Up | Bet outcomes, appetite accuracy, circuit breaker decisions |
 
 ### Specification & Decomposition
 
 | Component | Type | What it does |
 |---|---|---|
-| `/ido4:decompose` | Skill | Transforms a strategic spec into a technical spec with implementation tasks grounded in your codebase |
-| `/ido4:spec-validate` | Skill | Catches format and quality issues before ingestion |
-| `/ido4:spec-quality` | Skill | Quality standards for task descriptions, success conditions, effort/risk calibration |
+| `/ido4dev:decompose` | Skill | Transforms a strategic spec into a technical spec with implementation tasks grounded in your codebase |
+| `/ido4dev:spec-validate` | Skill | Catches format and quality issues before ingestion |
+| `/ido4dev:spec-quality` | Skill | Quality standards for task descriptions, success conditions, effort/risk calibration |
 | Code Analyzer | Agent | Maps strategic capabilities to codebase modules, discovers patterns. Uses Read/Glob/Grep. Model: Opus |
 | Technical Spec Writer | Agent | Decomposes capabilities into right-sized tasks with code-grounded metadata. Model: Opus |
 | Spec Reviewer | Agent | Independent two-stage review — format compliance + quality assessment. Model: Sonnet |
@@ -46,11 +46,11 @@ Together with 4 specialized agents and 2 automation hooks, the plugin layer turn
 
 | Component | Type | What it does |
 |---|---|---|
-| `/ido4:onboard` | Skill | Zero-friction first touch — auto-clones demo codebase, creates sandbox, guided governance discovery |
-| `/ido4:guided-demo` | Skill | Four-act governance walkthrough — project overview, violation discovery, enforcement, full pipeline |
-| `/ido4:sandbox-explore` | Skill | Interactive exploration — 13 structured paths across governance, enforcement, coordination |
-| `/ido4:sandbox` | Skill | Sandbox lifecycle management — create, reset, destroy |
-| `/ido4:pilot-test` | Skill | End-to-end verification that the full governance stack works |
+| `/ido4dev:onboard` | Skill | Zero-friction first touch — auto-clones demo codebase, creates sandbox, guided governance discovery |
+| `/ido4dev:guided-demo` | Skill | Four-act governance walkthrough — project overview, violation discovery, enforcement, full pipeline |
+| `/ido4dev:sandbox-explore` | Skill | Interactive exploration — 13 structured paths across governance, enforcement, coordination |
+| `/ido4dev:sandbox` | Skill | Sandbox lifecycle management — create, reset, destroy |
+| `/ido4dev:pilot-test` | Skill | End-to-end verification that the full governance stack works |
 
 ### Persistent Intelligence
 
@@ -77,10 +77,10 @@ Skills don't make 10+ individual tool calls. They call **composite aggregators**
 
 | Aggregator | What it assembles | Used by |
 |---|---|---|
-| `get_standup_data` | Container status, tasks, PR reviews, blocker analyses, audit trail (24h), analytics, agents, compliance | `/ido4:standup` |
-| `get_board_data` | Container status, tasks with PR + lock annotations, analytics, agents | `/ido4:board` |
-| `get_compliance_data` | Compliance score, audit trail, analytics, tasks, blocker analyses, integrity checks | `/ido4:compliance` |
-| `get_health_data` | Container status, compliance, analytics, agents | `/ido4:health` |
+| `get_standup_data` | Container status, tasks, PR reviews, blocker analyses, audit trail (24h), analytics, agents, compliance | `/ido4dev:standup` |
+| `get_board_data` | Container status, tasks with PR + lock annotations, analytics, agents | `/ido4dev:board` |
+| `get_compliance_data` | Compliance score, audit trail, analytics, tasks, blocker analyses, integrity checks | `/ido4dev:compliance` |
+| `get_health_data` | Container status, compliance, analytics, agents | `/ido4dev:health` |
 | `get_task_execution_data` | Task spec, upstream context (what was built), sibling patterns, downstream consumers, epic progress, risk flags | Task execution |
 
 These are MCP tools defined in `@ido4/mcp` — available to any MCP client, not just skills.
@@ -90,7 +90,7 @@ These are MCP tools defined in `@ido4/mcp` — available to any MCP client, not 
 | | Skills | Prompts | Agents |
 |---|---|---|---|
 | Platform | Claude Code (with plugin) | Any MCP client | Claude Code (with plugin) |
-| Invocation | `/ido4:standup` | MCP prompt protocol | Invoked by skills |
+| Invocation | `/ido4dev:standup` | MCP prompt protocol | Invoked by skills |
 | Features | Memory, file access, hooks | Tool calls + reasoning | Specialized instructions, model selection |
 | Count | 18 | 8 | 4 |
 | Purpose | Intelligent workflows | Portable guidance | Focused AI roles |

@@ -26,9 +26,9 @@ claude --plugin-dir ./packages/plugin
 
 Once loaded, you'll see ido4 tools available in Claude Code.
 
-**First time?** Run `/ido4:onboard` — it auto-clones a [demo codebase](https://github.com/ido4-dev/ido4-demo), creates a governed sandbox with embedded violations, and walks you through governance discovery in ~10 minutes. See the [sandbox demo guide](sandbox.md) for details.
+**First time?** Run `/ido4dev:onboard` — it auto-clones a [demo codebase](https://github.com/ido4-dev/ido4-demo), creates a governed sandbox with embedded violations, and walks you through governance discovery in ~10 minutes. See the [sandbox demo guide](sandbox.md) for details.
 
-**Already have a project?** Run `/ido4:init` to initialize governance on your existing repository, or `/ido4:health` for a quick governance status check.
+**Already have a project?** Run `/ido4dev:init` to initialize governance on your existing repository, or `/ido4dev:health` for a quick governance status check.
 
 ## Option 2: Standalone MCP Server
 
@@ -91,7 +91,7 @@ After setup, verify everything works:
 
 ```bash
 # In Claude Code with the plugin:
-> /ido4:health
+> /ido4dev:health
 
 # Or check project status:
 > What's the status of our project?

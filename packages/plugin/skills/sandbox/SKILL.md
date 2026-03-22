@@ -18,7 +18,7 @@ Read `.ido4/project-info.json` to determine state:
 - **File exists with `sandbox: true`** → Phase 2 (Route to Demo) or Phase 4 (Cleanup)
 - **File exists without `sandbox`** → Real project — DO NOT run sandbox, inform the user
 
-Also check `~/.ido4/demo/ido4-demo/.ido4/project-info.json` — the demo sandbox may live there from `/ido4:onboard`.
+Also check `~/.ido4/demo/ido4-demo/.ido4/project-info.json` — the demo sandbox may live there from `/ido4dev:onboard`.
 
 ---
 
@@ -55,9 +55,9 @@ Read `.ido4/sandbox-memory-seed.md` and write its contents to the auto-memory fi
 ### Step 5: Route to Demo
 
 "Sandbox ready! Here's what to do next:
-- `/ido4:guided-demo` — Four-act governance walkthrough (recommended, ~15 minutes)
-- `/ido4:sandbox-explore` — Interactive exploration (pick what to investigate)
-- `/ido4:standup` — Jump straight into a governance standup briefing"
+- `/ido4dev:guided-demo` — Four-act governance walkthrough (recommended, ~15 minutes)
+- `/ido4dev:sandbox-explore` — Interactive exploration (pick what to investigate)
+- `/ido4dev:standup` — Jump straight into a governance standup briefing"
 
 ---
 
@@ -66,9 +66,9 @@ Read `.ido4/sandbox-memory-seed.md` and write its contents to the auto-memory fi
 Read `.ido4/project-info.json` and check `scenarioId`:
 
 "This is a [methodology] sandbox. What would you like to do?
-- `/ido4:guided-demo` — Full governance walkthrough
-- `/ido4:sandbox-explore` — Interactive exploration
-- `/ido4:standup` — Governance standup briefing
+- `/ido4dev:guided-demo` — Full governance walkthrough
+- `/ido4dev:sandbox-explore` — Interactive exploration
+- `/ido4dev:standup` — Governance standup briefing
 - Say 'reset' to start fresh, or 'destroy' to clean up."
 
 If `$ARGUMENTS` contains "cleanup" or "destroy", jump to Phase 4.
@@ -86,7 +86,7 @@ Call `reset_sandbox` with the optional `scenarioId` from `$ARGUMENTS` (or use th
 
 Offer three options:
 
-1. **Keep** — "Continue experimenting. Run `/ido4:guided-demo` or `/ido4:sandbox-explore`."
+1. **Keep** — "Continue experimenting. Run `/ido4dev:guided-demo` or `/ido4dev:sandbox-explore`."
 
 2. **Reset** — "I'll call `reset_sandbox` to destroy and recreate fresh."
 
@@ -95,6 +95,6 @@ Offer three options:
 ---
 
 ## Anti-patterns — Do NOT:
-- Run a live governance demo yourself — that's the job of `/ido4:guided-demo`
+- Run a live governance demo yourself — that's the job of `/ido4dev:guided-demo`
 - Reference specific task IDs (T7, NCO-01, etc.) — task refs are dynamic
 - Assume a methodology — always check the config or ask the user

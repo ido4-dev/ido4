@@ -162,10 +162,10 @@ These tools aggregate multiple data sources into single responses, optimized for
 
 | Tool | Replaces | Used By |
 |---|---|---|
-| `get_standup_data` | 10-12 individual calls (container status, tasks, PRs, deps, audit, analytics, agents, compliance) | `/ido4:standup` |
-| `get_board_data` | 5-6 individual calls (container status, tasks with PR/lock annotations, analytics, agents) | `/ido4:board` |
-| `get_compliance_data` | 7+ individual calls (compliance score, audit, analytics, containers, tasks, deps) | `/ido4:compliance` |
-| `get_health_data` | 5 individual calls (container status, compliance, analytics, agents) | `/ido4:health` |
+| `get_standup_data` | 10-12 individual calls (container status, tasks, PRs, deps, audit, analytics, agents, compliance) | `/ido4dev:standup` |
+| `get_board_data` | 5-6 individual calls (container status, tasks with PR/lock annotations, analytics, agents) | `/ido4dev:board` |
+| `get_compliance_data` | 7+ individual calls (compliance score, audit, analytics, containers, tasks, deps) | `/ido4dev:compliance` |
+| `get_health_data` | 5 individual calls (container status, compliance, analytics, agents) | `/ido4dev:health` |
 | `get_task_execution_data` | 5-10 individual calls (task spec, upstream deps with context, siblings, downstream, progress) | Task execution |
 
 ## Response Format

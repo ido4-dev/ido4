@@ -5,8 +5,8 @@
 ## Invocation
 
 ```
-/ido4:board
-/ido4:board wave-002-core
+/ido4dev:board
+/ido4dev:board wave-002-core
 ```
 
 ## What It Does

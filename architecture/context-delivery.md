@@ -226,7 +226,7 @@ export interface Ido4ContextBlock {
 }
 
 export function parseIdo4ContextComments(comments: TaskComment[]): Ido4ContextBlock[] {
-  const IDO4_PATTERN = /<!-- ido4:context\s+(.*?)-->([\s\S]*?)<!-- \/ido4:context -->/g;
+  const IDO4_PATTERN = /<!-- ido4:context\s+(.*?)-->([\s\S]*?)<!-- \/ido4dev:context -->/g;
   // Parse attributes from opening tag, extract body between tags
   // Return structured blocks for each ido4 context comment found
 }
@@ -331,7 +331,7 @@ This project uses **ido4** for specs-driven development governance (${profile.na
 
 ### Workflow
 
-1. **Check the board** before starting work: use the \`${ctx.toolNames.getStatus}\` tool or the \`/ido4:board\` skill
+1. **Check the board** before starting work: use the \`${ctx.toolNames.getStatus}\` tool or the \`/ido4dev:board\` skill
 2. **Pick your next ${item}**: use \`get_next_task\` for a scored recommendation, or check the board
 3. **Start work**: call \`start_task\` — read the full briefing (spec, dependencies, downstream needs) before writing code
 4. **Work from the spec**: the GitHub issue body IS the specification — read it completely, understand acceptance criteria
@@ -353,12 +353,12 @@ ${profile.containers.filter(c => c.id !== profile.containers.find(cc => cc.manag
 
 ### Available Skills
 
-- \`/ido4:standup\` — Governance-aware briefing
-- \`/ido4:board\` — Flow intelligence
-- \`/ido4:compliance\` — Governance audit
-- \`/ido4:health\` — Quick health check
-- \`/ido4:plan-${container}\` — ${Container} composition
-- \`/ido4:retro-${container}\` — ${Container} retrospective
+- \`/ido4dev:standup\` — Governance-aware briefing
+- \`/ido4dev:board\` — Flow intelligence
+- \`/ido4dev:compliance\` — Governance audit
+- \`/ido4dev:health\` — Quick health check
+- \`/ido4dev:plan-${container}\` — ${Container} composition
+- \`/ido4dev:retro-${container}\` — ${Container} retrospective
 
 ### Configuration
 
@@ -926,7 +926,7 @@ ido4 context comments are valid Markdown with HTML comment markers for machine p
 **Key interfaces expected:**
 - Will create `/auth/rotate` endpoint
 - Will extend `TokenService` with rotation logic
-<!-- /ido4:context -->
+<!-- /ido4dev:context -->
 ```
 
 For completion:
@@ -955,7 +955,7 @@ For completion:
 **Test coverage:**
 - Unit: `token-rotation.test.ts` (12 tests)
 - Integration: `auth-flow.test.ts` (3 tests, includes rotation + circuit breaker)
-<!-- /ido4:context -->
+<!-- /ido4dev:context -->
 ```
 
 **Design decisions:**
@@ -1007,7 +1007,7 @@ export function formatIdo4ContextComment(options: {
   return [
     `<!-- ido4:context transition=${options.transition}${agentAttr} timestamp=${timestamp} -->`,
     options.content,
-    `<!-- /ido4:context -->`,
+    `<!-- /ido4dev:context -->`,
   ].join('\n');
 }
 ```

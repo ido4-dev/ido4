@@ -1,10 +1,10 @@
-# /ido4:spec-validate
+# /ido4dev:spec-validate
 
 The spec-validate skill runs pre-ingestion validation on a technical spec artifact, checking format compliance and content quality before feeding it into the ingestion pipeline.
 
 ## What It Does
 
-`/ido4:spec-validate path/to/technical-spec.md` performs two stages of validation:
+`/ido4dev:spec-validate path/to/technical-spec.md` performs two stages of validation:
 
 ### Stage 1: Format Compliance
 
@@ -43,7 +43,7 @@ Spec Validation: Real-time Notification System
 
 ## When to Use
 
-- After the technical spec writer produces a spec (as part of `/ido4:decompose`)
+- After the technical spec writer produces a spec (as part of `/ido4dev:decompose`)
 - When manually authoring a technical spec
 - Before running `ingest_spec` to catch issues early
 - As a quality gate in the decomposition pipeline
@@ -69,5 +69,5 @@ Spec Validation: Real-time Notification System
 
 ## Related
 
-- [/ido4:decompose](decompose.md) — Full decomposition pipeline (includes validation)
+- [/ido4dev:decompose](decompose.md) — Full decomposition pipeline (includes validation)
 - [Tool Reference: ingest_spec](../reference/tools.md) — The ingestion tool that consumes validated specs

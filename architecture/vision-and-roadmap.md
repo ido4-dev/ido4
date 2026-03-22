@@ -47,7 +47,7 @@ This isn't a better project management tool. It's the infrastructure that makes 
 | **@ido4/mcp** | Complete | 458 tests. Dynamic tool/resource/prompt generation from profile. Sandbox tools with projectRoot parameter |
 | **Plugin** | Complete | 21 skills (incl. onboard, guided-demo, explore), 4 agents, 2 hooks |
 | **Methodology Runner** | Complete | Profile-driven engine. Hydro (57 tools), Scrum (56), Shape Up (53) |
-| **Decomposition Pipeline** | Complete | Strategic spec parser, code-analyzer, technical-spec-writer, /ido4:decompose |
+| **Decomposition Pipeline** | Complete | Strategic spec parser, code-analyzer, technical-spec-writer, /ido4dev:decompose |
 | **Capability Hierarchy** | Complete | Capabilities -> epic/bet, two-level GitHub issue hierarchy |
 | **Sandbox System** | Complete (Blocks 1-5) | Demo codebase ([ido4-demo](https://github.com/ido4-dev/ido4-demo)), pipeline-based creation, zero-friction onboarding. See `architecture/sandbox-system-spec.md` |
 
@@ -126,7 +126,7 @@ Work distribution service (4-dimension scoring), coordination service, merge rea
 
 ### Decomposition Pipeline (v0.3.0-v0.4.0)
 
-Strategic spec parser (41 tests), `parse_strategic_spec` MCP tool, code analysis agent, technical spec writer agent, `/ido4:decompose` orchestration skill. Capability-based hierarchy: capabilities become epic/bet, tasks become sub-issues.
+Strategic spec parser (41 tests), `parse_strategic_spec` MCP tool, code analysis agent, technical spec writer agent, `/ido4dev:decompose` orchestration skill. Capability-based hierarchy: capabilities become epic/bet, tasks become sub-issues.
 
 ---
 

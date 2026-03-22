@@ -3,4 +3,4 @@ description: Zero-friction ido4 onboarding — auto-clones demo project, creates
 allowed-tools: mcp__plugin_ido4_ido4__*, Read, Write, Bash(git *), Bash(npm *), Bash(ls *), Bash(mkdir *), Bash(cd *)
 ---
 
-Run the /ido4:onboard skill.
+Run the /ido4dev:onboard skill.

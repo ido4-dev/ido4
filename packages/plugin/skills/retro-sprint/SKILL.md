@@ -163,7 +163,7 @@ Carry forward: [items for next sprint]
 ---
 ```
 
-Tell the user: "These findings should be saved to memory so `/ido4:standup` and `/ido4:plan-sprint` can reference them. Would you like me to update the project memory?"
+Tell the user: "These findings should be saved to memory so `/ido4dev:standup` and `/ido4dev:plan-sprint` can reference them. Would you like me to update the project memory?"
 
 ### Anti-patterns — Do NOT:
 - Give generic advice ("communicate better") — tie every recommendation to specific data

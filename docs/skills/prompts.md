@@ -7,7 +7,7 @@ ido4 provides 8 MCP prompts — portable intelligence frameworks that work with 
 | Aspect | Skills | Prompts |
 |---|---|---|
 | Platform | Claude Code only | Any MCP client |
-| Invocation | `/ido4:standup` | MCP prompt protocol |
+| Invocation | `/ido4dev:standup` | MCP prompt protocol |
 | Features | Memory, file access, hooks | Tool calls only |
 | Count | 18 | 8 |
 

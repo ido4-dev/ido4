@@ -56,7 +56,7 @@ The sandbox creates a real GitHub project from a [demo codebase](https://github.
 
 ```
 $ claude --plugin-dir ./packages/plugin
-> /ido4:onboard
+> /ido4dev:onboard
 
 Demo project cloned. Creating governed sandbox...
 ✓ Tasks ingested via pipeline, violations embedded, agents registered
@@ -137,7 +137,7 @@ export GITHUB_TOKEN=$(gh auth token)
 claude --plugin-dir ./packages/plugin
 
 # Try the interactive sandbox demo
-> /ido4:onboard
+> /ido4dev:onboard
 ```
 
 ### As a Standalone MCP Server
@@ -233,15 +233,15 @@ Skills are intelligent workflows that compose multiple tools into project intell
 
 | Skill | What It Does |
 |---|---|
-| `/ido4:standup` | Morning briefing — risks, leverage points, highest-impact action |
-| `/ido4:board` | Flow intelligence — blockers, cascade risks, false statuses, epic cohesion |
-| `/ido4:compliance` | Three-part assessment: quantitative score + structural audit + synthesis |
-| `/ido4:plan-wave` | Principle-aware wave composition — valid-by-construction plans |
-| `/ido4:retro-wave` | Data-backed wave retrospective (Hydro). Also: `/retro-sprint` (Scrum), `/retro-cycle` (Shape Up) |
-| `/ido4:health` | 5-second governance verdict: RED / YELLOW / GREEN |
-| `/ido4:sandbox` | Interactive demo — routes to methodology-specific sandbox (Hydro, Scrum, Shape Up) |
-| `/ido4:decompose` | Decompose a strategic spec into a technical spec via codebase analysis |
-| `/ido4:pilot-test` | End-to-end verification of the entire governance stack |
+| `/ido4dev:standup` | Morning briefing — risks, leverage points, highest-impact action |
+| `/ido4dev:board` | Flow intelligence — blockers, cascade risks, false statuses, epic cohesion |
+| `/ido4dev:compliance` | Three-part assessment: quantitative score + structural audit + synthesis |
+| `/ido4dev:plan-wave` | Principle-aware wave composition — valid-by-construction plans |
+| `/ido4dev:retro-wave` | Data-backed wave retrospective (Hydro). Also: `/retro-sprint` (Scrum), `/retro-cycle` (Shape Up) |
+| `/ido4dev:health` | 5-second governance verdict: RED / YELLOW / GREEN |
+| `/ido4dev:sandbox` | Interactive demo — routes to methodology-specific sandbox (Hydro, Scrum, Shape Up) |
+| `/ido4dev:decompose` | Decompose a strategic spec into a technical spec via codebase analysis |
+| `/ido4dev:pilot-test` | End-to-end verification of the entire governance stack |
 
 ### CI/CD Quality Gate
 

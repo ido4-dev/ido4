@@ -4,27 +4,27 @@ The sandbox is the fastest way to experience ido4 governance. It creates a real 
 
 ## Quick Start
 
-The fastest path: `/ido4:onboard` handles everything — clones the demo codebase, creates the sandbox, and walks you through governance discovery.
+The fastest path: `/ido4dev:onboard` handles everything — clones the demo codebase, creates the sandbox, and walks you through governance discovery.
 
 ```bash
 # Launch Claude Code with ido4
 claude --plugin-dir ./packages/plugin
 
 # Zero-friction onboarding (recommended for first-time users)
-> /ido4:onboard
+> /ido4dev:onboard
 
 # Or manual sandbox creation
-> /ido4:sandbox
+> /ido4dev:sandbox
 ```
 
 ## Available Skills
 
 | Skill | Purpose |
 |---|---|
-| `/ido4:onboard` | Zero-friction first touch — auto-clones demo, creates sandbox, guided discovery |
-| `/ido4:sandbox` | Manual sandbox lifecycle — create, reset, destroy |
-| `/ido4:guided-demo` | Four-act governance walkthrough (~15 minutes) |
-| `/ido4:sandbox-explore` | Interactive exploration — pick what to investigate |
+| `/ido4dev:onboard` | Zero-friction first touch — auto-clones demo, creates sandbox, guided discovery |
+| `/ido4dev:sandbox` | Manual sandbox lifecycle — create, reset, destroy |
+| `/ido4dev:guided-demo` | Four-act governance walkthrough (~15 minutes) |
+| `/ido4dev:sandbox-explore` | Interactive exploration — pick what to investigate |
 
 All three methodologies are supported: Hydro (wave-based), Scrum (sprint-based), Shape Up (cycle-based). The sandbox uses the same technical spec across all methodologies — demonstrating that one project can be governed by different profiles.
 
@@ -60,8 +60,8 @@ Each sandbox has methodology-appropriate violations that governance skills disco
 
 ## After the Demo
 
-- `/ido4:sandbox-explore` — Try breaking rules, fixing violations, running work distribution
-- `/ido4:standup` — Full governance standup briefing
-- `/ido4:compliance` — Deep compliance analysis
-- `/ido4:init` — Initialize ido4 on your own project
-- `/ido4:sandbox cleanup` — Clean up: closes issues, deletes project, removes config
+- `/ido4dev:sandbox-explore` — Try breaking rules, fixing violations, running work distribution
+- `/ido4dev:standup` — Full governance standup briefing
+- `/ido4dev:compliance` — Deep compliance analysis
+- `/ido4dev:init` — Initialize ido4 on your own project
+- `/ido4dev:sandbox cleanup` — Clean up: closes issues, deletes project, removes config

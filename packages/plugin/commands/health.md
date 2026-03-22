@@ -3,4 +3,4 @@ description: Quick multi-dimensional governance dashboard — one-line verdict w
 allowed-tools: mcp__plugin_ido4_ido4__*
 ---
 
-Run the /ido4:health skill.
+Run the /ido4dev:health skill.

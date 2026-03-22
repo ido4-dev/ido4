@@ -23,7 +23,7 @@ You are the ido4 first-touch experience. Your job: take someone from zero to "I 
 Silently check the environment:
 
 1. Check if `~/.ido4/demo/ido4-demo/.ido4/project-info.json` exists (demo sandbox from previous onboarding).
-2. If a **demo sandbox** already exists: "Found an existing demo sandbox. Want to reset it and start fresh, or explore what's here? Run `/ido4:guided-demo` to explore, or say 'reset' and I'll start over." → **Stop here** (unless user says reset — then jump to Step 3d with reset flow).
+2. If a **demo sandbox** already exists: "Found an existing demo sandbox. Want to reset it and start fresh, or explore what's here? Run `/ido4dev:guided-demo` to explore, or say 'reset' and I'll start over." → **Stop here** (unless user says reset — then jump to Step 3d with reset flow).
 3. Check if `.ido4/project-info.json` exists in cwd (real project). If yes and not a sandbox: "This directory has an active ido4 project. I'll set up the demo in a separate location so it doesn't interfere." → proceed to Step 2.
 4. If nothing exists: proceed to Step 2.
 
@@ -184,13 +184,13 @@ Present clearly:
 - Maintain an audit trail of every action
 
 **What to explore next:**
-- `/ido4:guided-demo` — Full guided demo with four acts (15 minutes)
-- `/ido4:sandbox-explore` — Interactive sandbox exploration (try breaking rules, fixing violations)
-- `/ido4:standup` — Run a governance standup briefing
-- `/ido4:compliance` — Deep dive into compliance scoring
-- `/ido4:init` — Initialize ido4 on your own project
+- `/ido4dev:guided-demo` — Full guided demo with four acts (15 minutes)
+- `/ido4dev:sandbox-explore` — Interactive sandbox exploration (try breaking rules, fixing violations)
+- `/ido4dev:standup` — Run a governance standup briefing
+- `/ido4dev:compliance` — Deep dive into compliance scoring
+- `/ido4dev:init` — Initialize ido4 on your own project
 
-The sandbox stays active until you destroy it (`/ido4:sandbox cleanup`). Explore freely."
+The sandbox stays active until you destroy it (`/ido4dev:sandbox cleanup`). Explore freely."
 
 ---
 

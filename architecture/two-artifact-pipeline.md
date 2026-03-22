@@ -52,7 +52,7 @@ The strategic spec is the interface between the two systems. It's defined and ow
 
 ## How ido4 MCP Consumes Strategic Specs
 
-The decomposition pipeline (`/ido4:decompose` skill):
+The decomposition pipeline (`/ido4dev:decompose` skill):
 
 1. **Parse** — `parseStrategicSpec()` extracts structured AST from the markdown
 2. **Analyze** — Code analysis agent explores the codebase per capability, produces a technical canvas

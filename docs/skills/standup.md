@@ -5,7 +5,7 @@
 ## Invocation
 
 ```
-/ido4:standup
+/ido4dev:standup
 ```
 
 ## What It Does

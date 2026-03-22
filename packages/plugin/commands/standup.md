@@ -3,4 +3,4 @@ description: Governance-aware morning briefing that detects risks, surfaces leve
 allowed-tools: mcp__plugin_ido4_ido4__*, Read
 ---
 
-Run the /ido4:standup skill.
+Run the /ido4dev:standup skill.

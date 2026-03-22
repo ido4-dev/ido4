@@ -1,10 +1,10 @@
-# /ido4:decompose
+# /ido4dev:decompose
 
 The decompose skill orchestrates the strategic-to-technical spec pipeline — transforming a strategic spec (from ido4shape) into a technical spec with implementation tasks grounded in the actual codebase.
 
 ## What It Does
 
-`/ido4:decompose path/to/strategic-spec.md` runs a four-stage pipeline:
+`/ido4dev:decompose path/to/strategic-spec.md` runs a four-stage pipeline:
 
 ```
 Strategic Spec (from ido4shape)
@@ -104,7 +104,7 @@ Groups from the strategic spec provide decomposition context but don't become Gi
 ## Usage
 
 ```
-> /ido4:decompose path/to/strategic-spec.md
+> /ido4dev:decompose path/to/strategic-spec.md
 ```
 
 The skill will:

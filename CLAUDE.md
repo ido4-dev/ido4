@@ -46,7 +46,7 @@ ido4shape (conversation) → strategic spec → ido4 MCP decomposition → techn
 - `parse_strategic_spec` MCP tool
 - Code analysis agent: `packages/plugin/agents/code-analyzer.md`
 - Technical spec writer: `packages/plugin/agents/technical-spec-writer.md`
-- Orchestration skill: `/ido4:decompose`
+- Orchestration skill: `/ido4dev:decompose`
 - Architecture: `architecture/decomposition-pipeline.md`
 
 **Capability-based hierarchy (v0.4.0):**
@@ -105,7 +105,7 @@ Prerequisites:
 - `GITHUB_TOKEN` env var set (or `export GITHUB_TOKEN=$(gh auth token)`)
 - Build completed: `npm run build`
 
-Skills are namespaced: `/ido4:standup`, `/ido4:board`, `/ido4:decompose`, etc.
+Skills are namespaced: `/ido4dev:standup`, `/ido4dev:board`, `/ido4dev:decompose`, etc.
 
 ## Releasing
 

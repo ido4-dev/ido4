@@ -154,7 +154,7 @@ The artifact uses a compact, product-friendly vocabulary. ido4's `ingest_spec` m
 
 ## Full Example: Real-time Notification System
 
-The following is a complete spec artifact showing all features: capabilities with metadata, tasks with effort/risk/type/AI suitability, dependency chains, success conditions, and cross-cutting concerns. This is what the decomposition pipeline (`/ido4:decompose`) produces and what the ingestion engine (`ingest_spec`) consumes to create governed GitHub issues.
+The following is a complete spec artifact showing all features: capabilities with metadata, tasks with effort/risk/type/AI suitability, dependency chains, success conditions, and cross-cutting concerns. This is what the decomposition pipeline (`/ido4dev:decompose`) produces and what the ingestion engine (`ingest_spec`) consumes to create governed GitHub issues.
 
 # Real-time Notification System
 

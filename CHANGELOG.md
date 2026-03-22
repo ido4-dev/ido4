@@ -11,13 +11,13 @@ Sandbox system redesign. The sandbox now uses ido4's own ingestion pipeline — 
 - **Pipeline-based sandbox creation**: `SandboxService` calls `IngestionService.ingestSpec()` to create governed issues from a technical spec, replacing 2,000+ lines of hardcoded scenario definitions.
 - **Algorithmic ScenarioBuilder**: Pure function that computes container assignments, state distribution, violations, audit events, context comments, narrative, and memory seed from the dependency graph. Zero hardcoded task refs — adapts automatically to any technical spec.
 - **Demo codebase** ([ido4-demo](https://github.com/ido4-dev/ido4-demo)): TypeScript notification platform API, ~40% complete, 132 tests. Strategic spec (16 capabilities) + technical spec (17 tasks) validated against ido4's parsers. Public, v0.1.0 tagged.
-- **`/ido4:onboard` skill**: Zero-friction first touch — auto-clones demo repo, creates sandbox with `projectRoot` parameter, runs guided governance discovery.
-- **`/ido4:guided-demo` skill**: Four-act governance walkthrough — project overview, violation discovery, live enforcement, full pipeline demonstration. Methodology-agnostic.
-- **`/ido4:sandbox-explore` skill**: Interactive exploration with 13 structured paths across governance discovery, enforcement, multi-agent coordination, and methodology-specific analysis.
+- **`/ido4dev:onboard` skill**: Zero-friction first touch — auto-clones demo repo, creates sandbox with `projectRoot` parameter, runs guided governance discovery.
+- **`/ido4dev:guided-demo` skill**: Four-act governance walkthrough — project overview, violation discovery, live enforcement, full pipeline demonstration. Methodology-agnostic.
+- **`/ido4dev:sandbox-explore` skill**: Interactive exploration with 13 structured paths across governance discovery, enforcement, multi-agent coordination, and methodology-specific analysis.
 - **`projectRoot` parameter**: Added to `create_sandbox`, `destroy_sandbox`, `reset_sandbox` tools. Enables onboarding skill to point sandbox at the cloned demo repo directory.
 - **`groupRef` on `IngestSpecResult`**: Tasks now carry their capability group reference from the ingestion pipeline — builder reads it directly without re-parsing.
 - **BREAKING**: `SandboxCreateResult.created.parentIssues` renamed to `capabilities`. New fields: `containerAssignments`, `stateTransitions`, `violations`.
-- **Deprecated**: `/ido4:sandbox-hydro`, `/ido4:sandbox-scrum`, `/ido4:sandbox-shape-up` — replaced by methodology-agnostic `/ido4:guided-demo`.
+- **Deprecated**: `/ido4dev:sandbox-hydro`, `/ido4dev:sandbox-scrum`, `/ido4dev:sandbox-shape-up` — replaced by methodology-agnostic `/ido4dev:guided-demo`.
 
 1,731 tests. Build clean. Demo codebase: 132 tests.
 
@@ -41,7 +41,7 @@ Decomposition pipeline. ido4 MCP can now consume strategic specs from ido4shape 
 - **`parse_strategic_spec` MCP tool**: Gives agents structured input from the parser — project overview, dependency graph, validation errors.
 - **Code analysis agent**: Explores the codebase per strategic capability. Produces a technical canvas — intermediate artifact mapping capabilities to code modules, patterns, architecture, and complexity assessments.
 - **Technical spec writer agent**: Reads the technical canvas, decomposes capabilities into right-sized implementation tasks with code-grounded metadata (effort, risk, type, AI suitability, dependencies). Follows the Goldilocks principle for task sizing.
-- **`/ido4:decompose` skill**: Orchestrates the full pipeline — parse → analyze codebase → write technical tasks → validate → optionally ingest. Produces reviewable canvas and ingestion-ready technical spec.
+- **`/ido4dev:decompose` skill**: Orchestrates the full pipeline — parse → analyze codebase → write technical tasks → validate → optionally ingest. Produces reviewable canvas and ingestion-ready technical spec.
 - **Dogfooding test fixture**: Synthetic strategic spec (Development Context Pipeline) targeting the ido4 codebase for end-to-end validation.
 
 1,767 tests. Build clean.
