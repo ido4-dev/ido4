@@ -27,7 +27,7 @@ The domain layer. Context assembly, task intelligence, work distribution, instit
 The MCP server. Wraps @ido4/core domain services as MCP tools, resources, and prompts — dynamically generated from the active methodology profile. Composite aggregators assemble full project context in single calls. Uses STDIO transport for Claude Code integration. Hydro: 57 tools, Scrum: 56 tools, Shape Up: 53 tools.
 
 ### plugin/
-Claude Code plugin bundle. Contains 18 skills (standup, planning, retrospectives, compliance, decomposition, sandbox demos), 4 agents (PM, code-analyzer, technical-spec-writer, spec-reviewer), and automation hooks. Skills turn raw data into project intelligence — every session starts with full context.
+Claude Code plugin bundle. Contains 21 skills (standup, planning, retrospectives, compliance, decomposition, sandbox lifecycle, onboarding, guided demo, exploration), 4 agents (PM, code-analyzer, technical-spec-writer, spec-reviewer), and automation hooks. Skills turn raw data into project intelligence — every session starts with full context.
 
 ## Two-Artifact Architecture (Strategic Spec → Technical Spec) — IMPLEMENTED (v0.3.0+)
 

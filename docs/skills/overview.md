@@ -42,14 +42,14 @@ Together with 4 specialized agents and 2 automation hooks, the plugin layer turn
 | Technical Spec Writer | Agent | Decomposes capabilities into right-sized tasks with code-grounded metadata. Model: Opus |
 | Spec Reviewer | Agent | Independent two-stage review — format compliance + quality assessment. Model: Sonnet |
 
-### Sandbox & Verification
+### Sandbox & Onboarding
 
-| Component | Type | What it demonstrates |
+| Component | Type | What it does |
 |---|---|---|
-| `/ido4:sandbox` | Skill | Creates a real GitHub project with embedded violations — then discovers them live |
-| `/ido4:sandbox-hydro` | Skill | Hydro demo: epic integrity violations, cascade blockers, work distribution |
-| `/ido4:sandbox-scrum` | Skill | Scrum demo: DoR violations, type mismatches, sprint planning |
-| `/ido4:sandbox-shape-up` | Skill | Shape Up demo: circuit breaker countdown, scope creep, killed bets |
+| `/ido4:onboard` | Skill | Zero-friction first touch — auto-clones demo codebase, creates sandbox, guided governance discovery |
+| `/ido4:guided-demo` | Skill | Four-act governance walkthrough — project overview, violation discovery, enforcement, full pipeline |
+| `/ido4:sandbox-explore` | Skill | Interactive exploration — 13 structured paths across governance, enforcement, coordination |
+| `/ido4:sandbox` | Skill | Sandbox lifecycle management — create, reset, destroy |
 | `/ido4:pilot-test` | Skill | End-to-end verification that the full governance stack works |
 
 ### Persistent Intelligence
