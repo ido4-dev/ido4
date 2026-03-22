@@ -762,27 +762,27 @@ This demonstrates institutional memory with real substance — the next agent re
 ### 12.1 Implementation Blocks
 
 **Block 1: Demo Codebase Repository** — COMPLETE (2026-03-21)
-- Created `ido4-demo` repo at `/Users/bogdanionutcoman/dev-projects/ido4-demo/`
+- Published: https://github.com/ido4-dev/ido4-demo (public, v0.1.0 tagged)
+- Local: `/Users/bogdanionutcoman/dev-projects/ido4-demo/`
 - 1,879 lines of source, 1,193 lines of tests, 132 tests passing
 - Modules: shared (100%), auth (100%), notifications (50%), templates (40%), channels (10%), api (30%)
-- Strategic spec: 16 capabilities, 6 groups, validated against ido4's parseStrategicSpec() — 0 errors
-- Tagged `v0.1.0`, reset script at `sandbox/reset.sh`
-- CLAUDE.md with full agent guidance (patterns, conventions, dependency chain)
-- Remaining for Block 1: PR patches for seeded PRs (deferred to Block 2 when scenarios reference real code)
+- Strategic spec: `specs/notification-platform.md` — 16 capabilities, 6 groups, 0 parse errors
+- Technical spec: `specs/notification-platform-technical.md` — 17 tasks, 6 capabilities, ingestion format
+- CLAUDE.md with agent guidance (patterns, conventions, specs, reset info)
 
 **Block 2: Sandbox Rearchitecture (Pipeline + Algorithmic Builder)** — COMPLETE (2026-03-22)
 - Rearchitected SandboxService: technical spec → IngestionService → ScenarioBuilder → execution
-- **ScenarioBuilder** (new): Algorithmically computes container assignments, state distribution,
-  violations, audit events, context comments, narrative, and memory seed from ingestion output.
-  Pure function — no hardcoded task refs. Adapts automatically to any technical spec.
-- **ScenarioConfig** (new): Minimal ~30-line configs per methodology (container layout only).
-  All task-level decisions computed by the builder from the dependency graph.
-- Algorithm: dependency layers → cascade values → container assignment → role identification
-  (blocker, blocked, review bottleneck, false status) → state assignment → violation injection
-- Three scenario configs: Hydro (4 waves), Scrum (2 sprints), Shape Up (2 cycles + 3 bets)
-- Shared technical spec (17 tasks, 6 capabilities) inline — replaceable by decomposition output
-- Tests: 77 scenario integrity (run builder, verify output), 9 service tests, 458 MCP = 1,731 total
-- No hand-written task refs in scenarios — fully pipeline-driven sandbox creation
+- **ScenarioBuilder** (pure function, 5 modules): dependency graph analysis → container assignment →
+  role identification → state assignment → violation injection → seeding generation
+  Input validation, shared utilities, documented constants.
+- **ScenarioConfig**: ~30-line configs per methodology (container layout only).
+- `projectRoot` parameter added to create_sandbox/destroy_sandbox/reset_sandbox tools —
+  enables onboarding skill to point sandbox at cloned demo repo directory
+- `groupRef` added to IngestSpecResult task type — builder reads directly, no spec re-parsing
+- Old methodology-specific demo skills (sandbox-hydro/scrum/shape-up) deprecated → guided-demo
+- Killed groups derived from groupingContainers state, not index coupling
+- Context comments and PR seeds include real code file references extracted from task bodies
+- Tests: 1,731 total (1,273 core + 458 MCP), all passing
 
 **Block 3: Guided Demo Skill** — COMPLETE (2026-03-22)
 - `/ido4:guided-demo` skill: four-act walkthrough (project, discovery, enforcement, pipeline)
@@ -898,10 +898,10 @@ Block 6 (Full Pipeline) ← depends on everything above
 
 6. **Plugin distribution**: The new skills need to ship with the plugin. How does this affect the install story for `npx @ido4/mcp` (which doesn't include the plugin)?
 
-7. **Codebase distribution model** — DECIDED (2026-03-21):
-   The onboarding/sandbox skill handles everything automatically. The user never manually clones.
-   - `/ido4:onboard` detects no project → clones demo repo → creates sandbox → launches guided tour
-   - Clone target: `~/.ido4/demo/` or temp directory (invisible to user)
-   - Demo repo must be public on GitHub (clone without auth)
-   - GitHub template option available for pilots who want their own copy to modify
-   - **Design principle**: Zero-friction first touch. One command from zero to "wow." The demo codebase is an implementation detail the user never thinks about.
+7. **Codebase distribution model** — IMPLEMENTED (2026-03-22):
+   The onboarding skill handles everything automatically. The user never manually clones.
+   - `/ido4:onboard` detects no project → clones demo repo → creates sandbox with `projectRoot` → guided tour
+   - Clone target: `~/.ido4/demo/ido4-demo/`
+   - Demo repo is public: https://github.com/ido4-dev/ido4-demo
+   - `projectRoot` parameter on sandbox tools ensures `.ido4/` config lives alongside the code
+   - GitHub template option available for pilots who want their own copy
