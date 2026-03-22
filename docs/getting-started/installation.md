@@ -21,7 +21,7 @@ npm install && npm run build
 export GITHUB_TOKEN=$(gh auth token)
 
 # Launch Claude Code with ido4
-claude --plugin-dir ./packages/plugin
+claude --plugin-dir ../ido4dev
 ```
 
 Once loaded, you'll see ido4 tools available in Claude Code.

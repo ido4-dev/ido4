@@ -32,7 +32,7 @@ npm run test
 
 ```bash
 export GITHUB_TOKEN=$(gh auth token)
-claude --plugin-dir ./packages/plugin
+claude --plugin-dir ../ido4dev
 ```
 
 ## Project Structure

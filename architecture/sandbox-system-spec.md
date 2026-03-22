@@ -90,7 +90,7 @@ ido4-MCP/packages/core/                 ENHANCED
 │       ├── scrum-sprint.ts             Enhanced: narrative, code references
 │       └── shape-up-cycle.ts           Enhanced: narrative, code references
 
-ido4-MCP/packages/plugin/               ENHANCED + NEW
+ido4-dev/ido4dev (standalone repo)
 ├── skills/
 │   ├── sandbox.md                      Enhanced: methodology guidance
 │   ├── guided-demo.md                  NEW: Choreographed demo walkthrough

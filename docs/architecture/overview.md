@@ -6,7 +6,7 @@ ido4 is a layered system where each layer has a clear responsibility and strict 
 
 ```
 +--------------------------------------------------------------+
-|  Layer 3: Experience (packages/plugin)                        |
+|  Layer 3: Experience ([ido4dev](https://github.com/ido4-dev/ido4dev))                        |
 |                                                               |
 |  21 Skills         4 Agents          2 Governance Hooks       |
 |  /standup          PM Agent,         PostToolUse:             |

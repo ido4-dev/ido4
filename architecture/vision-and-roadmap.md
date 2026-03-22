@@ -55,7 +55,7 @@ This isn't a better project management tool. It's the infrastructure that makes 
 
 ```
 +--------------------------------------------------------------+
-|  Layer 3: Experience (packages/plugin)                        |
+|  Layer 3: Experience ([ido4dev](https://github.com/ido4-dev/ido4dev))                        |
 |  21 Skills, 4 Agents, 2 Hooks                                |
 +--------------------------------------------------------------+
 |  Layer 2: MCP Server (packages/mcp -- @ido4/mcp)             |

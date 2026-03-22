@@ -94,9 +94,9 @@ Technical tasks use suffixed refs from their parent capability. Strategic NCO-01
 Implementation-level instructional content from ido4shape has been adapted as MCP plugin assets:
 
 **Created:**
-- `packages/plugin/skills/spec-quality/SKILL.md` — effort/risk/AI suitability definitions with governance implications
-- `packages/plugin/skills/spec-validate/SKILL.md` — pre-ingestion validation skill for technical specs
-- `packages/plugin/agents/spec-reviewer.md` — independent two-stage review agent
+- `[ido4dev](https://github.com/ido4-dev/ido4dev) skills/spec-quality/SKILL.md` — effort/risk/AI suitability definitions with governance implications
+- `[ido4dev](https://github.com/ido4-dev/ido4dev) skills/spec-validate/SKILL.md` — pre-ingestion validation skill for technical specs
+- `[ido4dev](https://github.com/ido4-dev/ido4dev) agents/spec-reviewer.md` — independent two-stage review agent
 
 These validate the OUTPUT of decomposition (technical specs), not the input (strategic specs).
 

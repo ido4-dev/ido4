@@ -55,7 +55,7 @@ Traditional project management tools (Linear, Jira, Notion) track work after the
 The sandbox creates a real GitHub project from a [demo codebase](https://github.com/ido4-dev/ido4-demo), embeds governance violations, and discovers them live — using the same tools that govern real projects:
 
 ```
-$ claude --plugin-dir ./packages/plugin
+$ claude --plugin-dir ../ido4dev
 > /ido4dev:onboard
 
 Demo project cloned. Creating governed sandbox...
@@ -134,7 +134,7 @@ npm install && npm run build
 export GITHUB_TOKEN=$(gh auth token)
 
 # Launch Claude Code with ido4 governance
-claude --plugin-dir ./packages/plugin
+claude --plugin-dir ../ido4dev
 
 # Try the interactive sandbox demo
 > /ido4dev:onboard
@@ -301,7 +301,7 @@ ido4's governance model is built on 5 principles that cannot be bypassed:
 |---|---|---|
 | [`@ido4/core`](packages/core/) | `npm i @ido4/core` | Domain logic — BRE (34 steps), profile-driven services, repositories. Zero CLI dependencies. |
 | [`@ido4/mcp`](packages/mcp/) | `npm i @ido4/mcp` | MCP server — STDIO transport, 57 tools (Hydro), 9 resources, 8 prompts. |
-| [`plugin`](packages/plugin/) | — | Claude Code plugin — 21 skills, 4 agents, governance hooks. |
+| [`ido4dev`](https://github.com/ido4-dev/ido4dev) | — | Claude Code plugin — 21 skills, 4 agents, governance hooks. |
 
 ### 51 MCP Tools
 
@@ -387,7 +387,7 @@ npm run build
 npm run test          # 1,768 tests
 
 # Run with plugin
-claude --plugin-dir ./packages/plugin
+claude --plugin-dir ../ido4dev
 ```
 
 ## License

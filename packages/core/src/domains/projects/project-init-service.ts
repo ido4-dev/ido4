@@ -510,7 +510,7 @@ This project uses **ido4** for specs-driven development governance (${profile.na
 
 ### Workflow
 
-1. **Check the board** before starting work: use the \`get_${containerLabel}_status\` tool or the \`/ido4:board\` skill
+1. **Check the board** before starting work: use the \`get_${containerLabel}_status\` tool or the \`/ido4dev:board\` skill
 2. **Pick your next ${itemLabel}**: use \`get_next_task\` for a scored recommendation, or check the board
 3. **Start work**: call \`start_task\` — read the full briefing (spec, dependencies, downstream needs) before writing code
 4. **Work from the spec**: the GitHub issue body IS the specification — read it completely, understand acceptance criteria
@@ -529,12 +529,12 @@ ${containerStructure}
 
 ### Available Skills
 
-- \`/ido4:standup\` — Governance-aware briefing with risk detection
-- \`/ido4:board\` — Flow intelligence and bottleneck analysis
-- \`/ido4:compliance\` — Governance audit with quantitative scoring
-- \`/ido4:health\` — Quick health check (RED/YELLOW/GREEN)
-- \`/ido4:plan-${containerLabel}\` — ${containerSingular} composition with principle validation
-- \`/ido4:retro-${containerLabel}\` — ${containerSingular} retrospective with data-backed analysis
+- \`/ido4dev:standup\` — Governance-aware briefing with risk detection
+- \`/ido4dev:board\` — Flow intelligence and bottleneck analysis
+- \`/ido4dev:compliance\` — Governance audit with quantitative scoring
+- \`/ido4dev:health\` — Quick health check (RED/YELLOW/GREEN)
+- \`/ido4dev:plan-${containerLabel}\` — ${containerSingular} composition with principle validation
+- \`/ido4dev:retro-${containerLabel}\` — ${containerSingular} retrospective with data-backed analysis
 
 ### Configuration
 

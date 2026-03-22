@@ -99,8 +99,8 @@ ido4shape and ido4 MCP are independent systems connected by the strategic spec c
 
 - Strategic spec parser: `packages/core/src/domains/ingestion/strategic-spec-parser.ts`
 - `parse_strategic_spec` MCP tool: `packages/mcp/src/tools/ingestion-tools.ts`
-- Code analysis agent: `packages/plugin/agents/code-analyzer.md`
-- Technical spec writer: `packages/plugin/agents/technical-spec-writer.md`
-- Decompose skill: `packages/plugin/skills/decompose/SKILL.md`
+- Code analysis agent: `[ido4dev](https://github.com/ido4-dev/ido4dev) agents/code-analyzer.md`
+- Technical spec writer: `[ido4dev](https://github.com/ido4-dev/ido4dev) agents/technical-spec-writer.md`
+- Decompose skill: `[ido4dev](https://github.com/ido4-dev/ido4dev) skills/decompose/SKILL.md`
 - Technical spec format: `architecture/spec-artifact-format.md`
 - ido4shape repo: `/Users/bogdanionutcoman/dev-projects/ido4shape/`

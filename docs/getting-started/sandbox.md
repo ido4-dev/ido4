@@ -8,7 +8,11 @@ The fastest path: `/ido4dev:onboard` handles everything — clones the demo code
 
 ```bash
 # Launch Claude Code with ido4
-claude --plugin-dir ./packages/plugin
+# Install via marketplace:
+# /plugin marketplace add ido4-dev/ido4-plugins
+# /plugin install ido4dev@ido4-plugins
+# Or for local development:
+claude --plugin-dir ../ido4dev
 
 # Zero-friction onboarding (recommended for first-time users)
 > /ido4dev:onboard

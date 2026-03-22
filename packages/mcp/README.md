@@ -33,7 +33,7 @@ Add to your MCP client configuration (`.mcp.json` or Claude Code settings):
 The ido4 plugin bundles the MCP server with skills, an agent, and hooks:
 
 ```bash
-claude --plugin-dir ./packages/plugin
+claude --plugin-dir ../ido4dev
 ```
 
 ### Standalone
