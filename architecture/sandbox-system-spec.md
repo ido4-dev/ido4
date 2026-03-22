@@ -784,22 +784,21 @@ This demonstrates institutional memory with real substance — the next agent re
 - Tests: 77 scenario integrity (run builder, verify output), 9 service tests, 458 MCP = 1,731 total
 - No hand-written task refs in scenarios — fully pipeline-driven sandbox creation
 
-**Block 3: Guided Demo Skill**
-- Implement `/ido4:demo` skill with four-act structure
-- Methodology adaptation logic
-- Act 4 conditional on demo codebase availability
+**Block 3: Guided Demo Skill** — COMPLETE (2026-03-22)
+- `/ido4:guided-demo` skill: four-act walkthrough (project, discovery, enforcement, pipeline)
+- Methodology-agnostic: reads active profile, adapts container terminology and violation types
+- Act 4 checks for demo codebase availability, graceful degradation if absent
 
-**Block 4: Onboarding Skill**
-- Implement `/ido4:onboard` skill
-- Beginner-friendly violation descriptions
-- Interactive enforcement demonstration
-- Next steps guidance
+**Block 4: Onboarding Skill** — COMPLETE (2026-03-22)
+- `/ido4:onboard` skill: zero-friction first touch with auto-clone
+- Flow: detect state → welcome → methodology selection → clone demo repo to ~/.ido4/demo/ →
+  create sandbox → guided discovery (plain language) → enforcement demo (aha moment) → next steps
+- Handles all error cases: existing project, no token, clone failure, tool not registered
 
-**Block 5: Interactive Exploration Skill**
-- Implement `/ido4:explore` skill
-- Exploration path catalog
-- Session state tracking for "what haven't you seen yet"
-- Methodology-specific paths
+**Block 5: Interactive Exploration Skill** — COMPLETE (2026-03-22)
+- `/ido4:sandbox-explore` skill: 13 exploration paths across 5 categories
+- Categories: governance discovery, enforcement, multi-agent coordination, methodology-specific, pipeline
+- Tracks explored paths, suggests next steps after 5+ explorations
 
 **Block 6: Full Pipeline Integration**
 - Ensure decomposition pipeline works against demo codebase
