@@ -4,7 +4,7 @@ ido4 provides MCP tools organized into categories. The exact count varies by met
 
 | Profile | Tools | Reason |
 |---|---|---|
-| Hydro | 57 | 2 containers (Wave, Epic) + 9 transitions |
+| Hydro | 58 | 2 containers (Wave, Epic) + 9 transitions |
 | Scrum | 56 | 2 containers (Sprint, Epic) + 8 transitions |
 | Shape Up | 53 | 3 containers (Cycle, Bet, Scope) + 10 transitions |
 

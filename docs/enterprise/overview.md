@@ -46,7 +46,7 @@ Every claim is backed by data. Every metric is derived from actual events. The c
 
 | Profile | Key Feature | Tool Count |
 |---|---|---|
-| Hydro | Wave-based with epic integrity | 57 |
+| Hydro | 58 |
 | Scrum | Sprint-based with type-scoped DoR/DoD | 56 |
 | Shape Up | Cycle-based with circuit breaker | 53 |
 

@@ -6,7 +6,7 @@
 |---|---|---|
 | Language | TypeScript (strict mode) | Type safety for a governance engine. No `any` types. No `@ts-ignore`. |
 | Runtime | Node.js | MCP SDK requirement. STDIO transport for local development. |
-| Package Manager | npm workspaces | Monorepo with `@ido4/core`, `@ido4/mcp`, `plugin/` packages. |
+| Package Manager | npm workspaces | Monorepo with `@ido4/core` and `@ido4/mcp`. Plugin distributed separately via [ido4-dev/ido4dev](https://github.com/ido4-dev/ido4dev). |
 
 ## Core Dependencies
 
@@ -92,7 +92,7 @@ The engine reads methodology profiles (TypeScript constants or JSON files) and g
 **Test counts (v0.4.0):**
 - `@ido4/core`: 1,310 tests
 - `@ido4/mcp`: 457 tests (including server integration)
-- **Total**: 1,767 tests
+- **Total**: 1,731 tests
 
 **Test philosophy**: Tests must test real behavior, not existence. `expect(true).toBe(true)` is forbidden. Cross-profile tests verify methodology-agnosticism — if a test only passes with one profile, there's a hardcoded string hiding.
 
@@ -117,12 +117,14 @@ Both packages are published at the same version. `./scripts/release.sh <version>
 
 ## Plugin Architecture (Claude Code)
 
+The ido4dev plugin lives in a separate repository ([ido4-dev/ido4dev](https://github.com/ido4-dev/ido4dev)) and is distributed via the [ido4-plugins marketplace](https://github.com/ido4-dev/ido4-plugins). Install: `/plugin install ido4dev@ido4-plugins`.
+
 | Component | Count | Description |
 |---|---|---|
-| Skills | 18 | SKILL.md files — governance workflows composing MCP tools |
+| Skills | 21 | SKILL.md files — governance workflows composing MCP tools (incl. onboard, guided-demo, sandbox-explore) |
 | Agents | 4 | PM agent, spec-reviewer, code-analyzer, technical-spec-writer |
-| Hooks | 2 | PostToolUse governance triggers |
-| MCP Config | 1 | `.mcp.json` pointing to `@ido4/mcp` |
+| Hooks | 2 | SessionStart (MCP server auto-install) + PostToolUse (governance signals) |
+| MCP Server | npm | `@ido4/mcp` installed automatically via SessionStart hook to `${CLAUDE_PLUGIN_DATA}` |
 
 ## File Persistence
 

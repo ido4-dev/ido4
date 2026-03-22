@@ -6,7 +6,7 @@ ido4 is methodology-agnostic. The governance engine reads methodology profiles t
 
 | Profile | ID | Tools | Key Feature |
 |---|---|---|---|
-| **Hydro** | `hydro` | 57 | Wave-based governance with epic integrity |
+| **Hydro | 58 | Wave-based governance with epic integrity |
 | **Scrum** | `scrum` | 56 | Sprint-based with type-scoped pipelines |
 | **Shape Up** | `shape-up` | 53 | Fixed time, variable scope, circuit breaker |
 

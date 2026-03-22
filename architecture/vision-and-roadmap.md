@@ -46,7 +46,7 @@ This isn't a better project management tool. It's the infrastructure that makes 
 | **@ido4/core** | Complete | 1,273 tests. BRE (34 steps), ServiceContainer (9 layers), profile-driven state machine, algorithmic ScenarioBuilder |
 | **@ido4/mcp** | Complete | 458 tests. Dynamic tool/resource/prompt generation from profile. Sandbox tools with projectRoot parameter |
 | **Plugin** | Complete | 21 skills (incl. onboard, guided-demo, explore), 4 agents, 2 hooks |
-| **Methodology Runner** | Complete | Profile-driven engine. Hydro (57 tools), Scrum (56), Shape Up (53) |
+| **Methodology Runner** | Complete | Profile-driven engine. Hydro (58 tools), Scrum (56), Shape Up (53) |
 | **Decomposition Pipeline** | Complete | Strategic spec parser, code-analyzer, technical-spec-writer, /ido4dev:decompose |
 | **Capability Hierarchy** | Complete | Capabilities -> epic/bet, two-level GitHub issue hierarchy |
 | **Sandbox System** | Complete (Blocks 1-5) | Demo codebase ([ido4-demo](https://github.com/ido4-dev/ido4-demo)), pipeline-based creation, zero-friction onboarding. See `architecture/sandbox-system-spec.md` |
@@ -184,7 +184,7 @@ GitHub Projects V2 provides: native issue tracking, sub-issues, labels, custom f
 
 | Metric | Target | Actual |
 |---|---|---|
-| Test coverage | >90% | 1,767 tests |
+| Test coverage | >90% | 1,731 tests |
 | Zero `any` types in core | 100% | Achieved |
 | Zero `@ts-ignore` | 100% | Achieved |
 | BRE validation time | <500ms | Achieved |

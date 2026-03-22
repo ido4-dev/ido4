@@ -23,7 +23,7 @@ ido4-MCP/
 The domain layer. Context assembly, task intelligence, work distribution, institutional memory (audit trail, analytics, compliance scoring), BRE (Business Rule Engine) validation pipeline (34 steps), container management, integrity enforcement, dependency analysis, merge readiness, ingestion pipeline, strategic spec parser. Profile-driven state machine. **Zero dependencies on CLI frameworks, terminal formatting, or MCP SDK.**
 
 ### @ido4/mcp
-The MCP server. Wraps @ido4/core domain services as MCP tools, resources, and prompts — dynamically generated from the active methodology profile. Composite aggregators assemble full project context in single calls. Uses STDIO transport for Claude Code integration. Hydro: 57 tools, Scrum: 56 tools, Shape Up: 53 tools.
+The MCP server. Wraps @ido4/core domain services as MCP tools, resources, and prompts — dynamically generated from the active methodology profile. Composite aggregators assemble full project context in single calls. Uses STDIO transport for Claude Code integration. Hydro: 58 tools, Scrum: 56 tools, Shape Up: 53 tools.
 
 ### ido4dev Plugin (separate repo)
 The Claude Code plugin lives at [ido4-dev/ido4dev](https://github.com/ido4-dev/ido4dev). 21 skills, 4 agents, 2 hook types. Distributed via the [ido4-plugins marketplace](https://github.com/ido4-dev/ido4-plugins). Install: `/plugin install ido4dev@ido4-plugins`.
@@ -92,9 +92,16 @@ npm run test         # Run all tests (1,731 tests)
 npm run clean        # Remove all dist/ directories
 ```
 
-## Local Development with Plugin
+## Using the Plugin
 
-To run Claude Code with the full ido4 plugin (skills, agents, hooks, MCP server):
+**For users** — install from the marketplace (no clone, no build):
+
+```bash
+/plugin marketplace add ido4-dev/ido4-plugins
+/plugin install ido4dev@ido4-plugins
+```
+
+**For local development** — point Claude Code at the ido4dev repo clone:
 
 ```bash
 claude --plugin-dir ../ido4dev

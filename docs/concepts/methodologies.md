@@ -44,7 +44,7 @@ Backlog -> In Refinement -> Ready for Dev -> In Progress -> In Review -> Done
 4. **Self-Contained Execution** — Every wave has everything it needs.
 5. **Atomic Completion** — A wave at 90% is not complete.
 
-### 57 tools
+### 58 tools
 
 ---
 
@@ -208,4 +208,4 @@ Everything else inherits from Scrum. See [Configurable Methodology](../enterpris
 | Work Item Types | 5 | 5 | 1 |
 | Type-Scoped Pipelines | No | Yes | No |
 | Terminal States | 1 | 1 | 2 |
-| MCP Tools | 57 | 56 | 53 |
+| MCP Tools | 58 | 56 | 53 |

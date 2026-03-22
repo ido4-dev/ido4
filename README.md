@@ -14,7 +14,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/MCP-compatible-7C3AED" alt="MCP Compatible">
-  <img src="https://img.shields.io/badge/tools-57-2563EB" alt="57 MCP Tools">
+  <img src="https://img.shields.io/badge/tools-58-2563EB" alt="58 MCP Tools">
   <img src="https://img.shields.io/badge/tests-1731-16A34A" alt="1731 Tests">
   <img src="https://img.shields.io/npm/l/@ido4/core" alt="MIT License">
 </p>
@@ -227,20 +227,23 @@ Every governance action creates an immutable audit entry:
 - **Real analytics** — Cycle time, lead time, throughput, blocking time — computed from actual events, not estimates
 - **Queryable** — Filter by time range, actor, transition type, issue number, session
 
-### 18 Intelligence Skills
+### 21 Intelligence Skills
 
 Skills are intelligent workflows that compose multiple tools into project intelligence and governance insights. Core skills work across all methodologies; methodology-specific variants speak your methodology's language:
 
 | Skill | What It Does |
 |---|---|
+| `/ido4dev:onboard` | Zero-friction onboarding — auto-clones demo, creates sandbox, guided governance discovery |
+| `/ido4dev:guided-demo` | Four-act governance walkthrough — project, discovery, enforcement, pipeline |
+| `/ido4dev:sandbox-explore` | Interactive exploration — 13 structured paths across governance capabilities |
 | `/ido4dev:standup` | Morning briefing — risks, leverage points, highest-impact action |
-| `/ido4dev:board` | Flow intelligence — blockers, cascade risks, false statuses, epic cohesion |
+| `/ido4dev:board` | Flow intelligence — blockers, cascade risks, false statuses, capability cohesion |
 | `/ido4dev:compliance` | Three-part assessment: quantitative score + structural audit + synthesis |
-| `/ido4dev:plan-wave` | Principle-aware wave composition — valid-by-construction plans |
-| `/ido4dev:retro-wave` | Data-backed wave retrospective (Hydro). Also: `/retro-sprint` (Scrum), `/retro-cycle` (Shape Up) |
 | `/ido4dev:health` | 5-second governance verdict: RED / YELLOW / GREEN |
-| `/ido4dev:sandbox` | Interactive demo — routes to methodology-specific sandbox (Hydro, Scrum, Shape Up) |
+| `/ido4dev:plan-wave` | Principle-aware wave composition. Also: `/plan-sprint` (Scrum), `/plan-cycle` (Shape Up) |
+| `/ido4dev:retro-wave` | Data-backed retrospective. Also: `/retro-sprint` (Scrum), `/retro-cycle` (Shape Up) |
 | `/ido4dev:decompose` | Decompose a strategic spec into a technical spec via codebase analysis |
+| `/ido4dev:sandbox` | Sandbox lifecycle — create, reset, destroy |
 | `/ido4dev:pilot-test` | End-to-end verification of the entire governance stack |
 
 ### CI/CD Quality Gate
@@ -300,7 +303,7 @@ ido4's governance model is built on 5 principles that cannot be bypassed:
 | Package | npm | Description |
 |---|---|---|
 | [`@ido4/core`](packages/core/) | `npm i @ido4/core` | Domain logic — BRE (34 steps), profile-driven services, repositories. Zero CLI dependencies. |
-| [`@ido4/mcp`](packages/mcp/) | `npm i @ido4/mcp` | MCP server — STDIO transport, 57 tools (Hydro), 9 resources, 8 prompts. |
+| [`@ido4/mcp`](packages/mcp/) | `npm i @ido4/mcp` | MCP server — STDIO transport, 58 tools (Hydro), 9 resources, 8 prompts. |
 | [`ido4dev`](https://github.com/ido4-dev/ido4dev) | — | Claude Code plugin — 21 skills, 4 agents, governance hooks. |
 
 ### 51 MCP Tools

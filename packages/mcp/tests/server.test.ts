@@ -145,7 +145,7 @@ describe('createServer', () => {
     expect(hasRegisteredTool(server, 'check_merge_readiness')).toBe(true);
   });
 
-  it('registers 57 tools total', () => {
+  it('registers 58 tools total', () => {
     const server = createServer(HYDRO_PROFILE);
     expect(getRegisteredToolNames(server)).toHaveLength(58);
   });
