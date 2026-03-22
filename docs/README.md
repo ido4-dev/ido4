@@ -25,7 +25,7 @@ AI coding agents are powerful but stateless. Each session starts fresh — no me
 
 ido4 solves this by being the **governance layer** between your agents and your project:
 
-- **32 validation steps** enforce your workflow before any status changes
+- **34 validation steps** enforce your workflow before any status changes
 - **Full audit trail** records who did what, when, and whether the rules were followed
 - **Context delivery** assembles upstream decisions, downstream needs, and sibling progress into a single call
 - **Multi-agent coordination** with task locking, intelligent work distribution, and handoff

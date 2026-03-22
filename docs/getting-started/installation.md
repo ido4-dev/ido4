@@ -9,7 +9,7 @@
 
 ## Option 1: Claude Code Plugin (Recommended)
 
-The plugin bundles the MCP server with 18 governance skills, 4 agents, and governance hooks.
+The plugin bundles the MCP server with 21 governance skills, 4 agents, and governance hooks.
 
 ```bash
 # Clone and build
@@ -24,7 +24,11 @@ export GITHUB_TOKEN=$(gh auth token)
 claude --plugin-dir ./packages/plugin
 ```
 
-Once loaded, you'll see ido4 tools available in Claude Code. Try `/ido4:health` for a quick governance status check.
+Once loaded, you'll see ido4 tools available in Claude Code.
+
+**First time?** Run `/ido4:onboard` — it auto-clones a [demo codebase](https://github.com/ido4-dev/ido4-demo), creates a governed sandbox with embedded violations, and walks you through governance discovery in ~10 minutes. See the [sandbox demo guide](sandbox.md) for details.
+
+**Already have a project?** Run `/ido4:init` to initialize governance on your existing repository, or `/ido4:health` for a quick governance status check.
 
 ## Option 2: Standalone MCP Server
 
