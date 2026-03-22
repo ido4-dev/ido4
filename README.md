@@ -52,74 +52,73 @@ Traditional project management tools (Linear, Jira, Notion) track work after the
 
 ## See It In Action
 
-The sandbox creates a real GitHub project with governed tasks, embedded violations, and a seeded audit trail — then discovers them live:
+The sandbox creates a real GitHub project from a [demo codebase](https://github.com/ido4-dev/ido4-demo), embeds governance violations, and discovers them live — using the same tools that govern real projects:
 
 ```
 $ claude --plugin-dir ./packages/plugin
 > /ido4:onboard
 
-Demo project ready. Creating governed sandbox...
-✓ Tasks ingested via pipeline, governance violations embedded, agents registered
+Demo project cloned. Creating governed sandbox...
+✓ Tasks ingested via pipeline, violations embedded, agents registered
 
 ══════════════════════════════════════════════
   LIVE GOVERNANCE ANALYSIS
 ══════════════════════════════════════════════
 
-CASCADE BLOCKER: Delivery Engine Core → downstream tasks
-  which blocks API rate limiting. 3 tasks — 30% of the active
-  wave — chained to one root cause.
+CASCADE BLOCKER: Delivery Engine Core blocking 11 downstream tasks
+  Working in src/notifications/delivery-engine.ts.
+  Channel providers, template renderer, and API endpoint all waiting.
 
-FALSE STATUS: #270 "In Review" with no pull request
-  Moved to review 5 days ago but implementation isn't finished.
-  Status should reflect reality.
+FALSE STATUS: Delivery Status Tracking shows "In Review" — no PR
+  Status updated during sync meeting. Implementation not started.
 
-REVIEW BOTTLENECK: #272 PR open 4 days, 0 reviews
-  Code is ready but sitting idle. Blocks the Auth epic.
+REVIEW BOTTLENECK: Retry Policy PR open 3 days, 0 reviews
+  Changes in src/notifications/retry-policy.ts. Code ready, idle.
 
-EPIC INTEGRITY: Auth epic split across waves
-  Token service, OAuth, Session management in wave-002 — but
-  RBAC in wave-003. Security domain shipping incomplete.
+INTEGRITY VIOLATION: Idempotency Guard in wrong wave
+  Part of Notification Core capability but assigned to wave-003
+  instead of wave-002. Delivery pipeline can't ship atomically.
 
 ══════════════════════════════════════════════
   INTELLIGENT WORK DISTRIBUTION
 ══════════════════════════════════════════════
 
-agent-alpha (backend/data — locked on #267):
-  → #273 Data export     score:50  cascade:15 epic:7 cap:13 fresh:15
-  → #274 Batch proc      score:17  cascade:0  epic:7 cap:10 fresh:0
+agent-alpha (notification core — locked on Delivery Engine):
+  → Email Provider       score:47  cascade:15 epic:12 cap:10 fresh:10
+  → Webhook Provider     score:35  cascade:8  epic:12 cap:10 fresh:5
 
-agent-beta (frontend/auth — available):
-  → #273 Data export     score:47  cascade:15 epic:7 cap:10 fresh:15
-  → #271 OAuth           score:13  cascade:0  epic:0 cap:13 fresh:0
+agent-beta (channel providers — available):
+  → Email Provider       score:44  cascade:15 epic:12 cap:7  fresh:10
+  → SMS Provider         score:30  cascade:8  epic:12 cap:7  fresh:3
 
 Every score is deterministic — computed from dependency graphs,
-epic completion ratios, agent capabilities, and audit timestamps.
+capability completion ratios, agent capabilities, and audit timestamps.
 
 ══════════════════════════════════════════════
   MERGE READINESS GATE (6 checks)
 ══════════════════════════════════════════════
 
-check_merge_readiness(#272 Session management):
+check_merge_readiness(Retry Policy):
   ✓ Workflow Compliance   — full audit trail (start → review)
   ✗ PR Review             — 0 approvals, 1 required
   ✓ Dependency Completion — all upstream satisfied
-  ⚠ Epic Integrity        — Auth epic split across waves
+  ✓ Capability Integrity  — Notification Core in single wave
   ✓ Security Gates        — no vulnerability alerts
-  ✓ Compliance Threshold  — score 92 (A)
+  ✓ Compliance Threshold  — score 88 (B+)
   Verdict: NOT READY TO MERGE
 
 ══════════════════════════════════════════════
   BRE ENFORCEMENT
 ══════════════════════════════════════════════
 
-validate_all_transitions(#268 — Blocked):
-  start   → BLOCKED (dependency #267 not complete)
+validate_all_transitions(Email Provider — Blocked):
+  start   → BLOCKED (dependency Delivery Engine not complete)
   review  → BLOCKED (wrong status, no PR)
   approve → BLOCKED (can't jump to Done)
   unblock → ALLOWED ← the only valid path
 ```
 
-These aren't hypothetical checks. These are the same governance rules that run on every real task, every real transition, every real project.
+These aren't hypothetical checks. These are the same governance rules that run on every real task, every real transition, every real project. [Try the sandbox demo →](https://hydro-dev.gitbook.io/ido4/getting-started/sandbox)
 
 ## Quick Start
 
