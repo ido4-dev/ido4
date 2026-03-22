@@ -4,6 +4,23 @@ All notable changes to ido4 are documented here.
 
 Both `@ido4/core` and `@ido4/mcp` are released together at the same version.
 
+## [0.5.0] — 2026-03-22
+
+Sandbox system redesign. The sandbox now uses ido4's own ingestion pipeline — the same code path that governs real projects creates the demo project. A companion demo codebase (ido4-demo) provides real TypeScript code for agents to analyze and build against.
+
+- **Pipeline-based sandbox creation**: `SandboxService` calls `IngestionService.ingestSpec()` to create governed issues from a technical spec, replacing 2,000+ lines of hardcoded scenario definitions.
+- **Algorithmic ScenarioBuilder**: Pure function that computes container assignments, state distribution, violations, audit events, context comments, narrative, and memory seed from the dependency graph. Zero hardcoded task refs — adapts automatically to any technical spec.
+- **Demo codebase** ([ido4-demo](https://github.com/ido4-dev/ido4-demo)): TypeScript notification platform API, ~40% complete, 132 tests. Strategic spec (16 capabilities) + technical spec (17 tasks) validated against ido4's parsers. Public, v0.1.0 tagged.
+- **`/ido4:onboard` skill**: Zero-friction first touch — auto-clones demo repo, creates sandbox with `projectRoot` parameter, runs guided governance discovery.
+- **`/ido4:guided-demo` skill**: Four-act governance walkthrough — project overview, violation discovery, live enforcement, full pipeline demonstration. Methodology-agnostic.
+- **`/ido4:sandbox-explore` skill**: Interactive exploration with 13 structured paths across governance discovery, enforcement, multi-agent coordination, and methodology-specific analysis.
+- **`projectRoot` parameter**: Added to `create_sandbox`, `destroy_sandbox`, `reset_sandbox` tools. Enables onboarding skill to point sandbox at the cloned demo repo directory.
+- **`groupRef` on `IngestSpecResult`**: Tasks now carry their capability group reference from the ingestion pipeline — builder reads it directly without re-parsing.
+- **BREAKING**: `SandboxCreateResult.created.parentIssues` renamed to `capabilities`. New fields: `containerAssignments`, `stateTransitions`, `violations`.
+- **Deprecated**: `/ido4:sandbox-hydro`, `/ido4:sandbox-scrum`, `/ido4:sandbox-shape-up` — replaced by methodology-agnostic `/ido4:guided-demo`.
+
+1,731 tests. Build clean. Demo codebase: 132 tests.
+
 ## [0.4.0] — 2026-03-19
 
 Capability-based architecture. Capabilities (from ido4shape strategic specs) are now the structural unit — they become epic/bet GitHub issues with tasks as sub-issues. Groups provide decomposition context but don't become GitHub issues.
