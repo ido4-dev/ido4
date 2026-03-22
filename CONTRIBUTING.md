@@ -24,7 +24,7 @@ npm install
 # Build all packages
 npm run build
 
-# Run all tests (1,768 tests)
+# Run all tests (1,731 tests)
 npm run test
 ```
 

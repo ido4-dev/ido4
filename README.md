@@ -15,7 +15,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/MCP-compatible-7C3AED" alt="MCP Compatible">
   <img src="https://img.shields.io/badge/tools-57-2563EB" alt="57 MCP Tools">
-  <img src="https://img.shields.io/badge/tests-1768-16A34A" alt="1768 Tests">
+  <img src="https://img.shields.io/badge/tests-1731-16A34A" alt="1731 Tests">
   <img src="https://img.shields.io/npm/l/@ido4/core" alt="MIT License">
 </p>
 
@@ -384,7 +384,7 @@ We welcome contributions. See [CONTRIBUTING.md](CONTRIBUTING.md) for development
 # Development
 npm install
 npm run build
-npm run test          # 1,768 tests
+npm run test          # 1,731 tests
 
 # Run with plugin
 claude --plugin-dir ../ido4dev

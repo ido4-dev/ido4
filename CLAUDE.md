@@ -88,7 +88,7 @@ These are enforced by the BRE. Which principles apply depends on the methodology
 ```bash
 npm install          # Install all workspace dependencies
 npm run build        # Build all packages
-npm run test         # Run all tests (1,768 tests)
+npm run test         # Run all tests (1,731 tests)
 npm run clean        # Remove all dist/ directories
 ```
 
