@@ -60,7 +60,7 @@ The MCP server. Dynamically generates tools, resources, and prompts from the act
 
 ### plugin/
 
-Claude Code plugin bundle. 18 skills (governance, planning, retrospectives, sandbox demos, spec validation, decomposition), 4 agents (PM, code-analyzer, technical-spec-writer, spec-reviewer), and governance hooks.
+Claude Code plugin bundle. 21 skills (governance, planning, retrospectives, onboarding, guided demo, sandbox exploration, spec validation, decomposition), 4 agents (PM, code-analyzer, technical-spec-writer, spec-reviewer), and governance hooks.
 
 ## Architecture Principles
 

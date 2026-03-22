@@ -60,7 +60,7 @@ Together with 4 specialized agents and 2 automation hooks, the plugin layer turn
 | Post-transition | Hook | Fires after state changes. Checks: did this unblock downstream? Create new blocker? Reach milestone? |
 | Post-wave-assignment | Hook | Fires after wave assignment. Checks epic integrity and dependency violations. |
 
-**Totals: 18 skills + 4 agents + 2 hooks**
+**Totals: 21 skills + 4 agents + 2 hooks**
 
 ## How Skills Work
 

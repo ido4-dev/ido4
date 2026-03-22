@@ -51,7 +51,7 @@ That's it. ido4 creates the GitHub Project, sets up fields and statuses matching
 
 **57 MCP tools** (Hydro) / 56 (Scrum) / 53 (Shape Up) — generated dynamically from your methodology profile. Every write tool validates through the BRE, supports dry-run, and creates an audit entry.
 
-**18 skills** — intelligent governance workflows. Morning standup that spots cascade blockers. Sprint planning that enforces Definition of Ready per work item type. Retrospectives with real cycle time data, not feelings.
+**21 skills** — intelligent governance workflows. Morning standup that spots cascade blockers. Sprint planning that enforces Definition of Ready per work item type. Retrospectives with real cycle time data. Zero-friction onboarding with auto-clone demo, guided four-act demo walkthrough, and interactive sandbox exploration.
 
 **4 agents** — a PM agent with persistent memory, a code analyzer for spec decomposition, a technical spec writer, and a spec reviewer.
 

@@ -274,7 +274,7 @@ ido4's governance model is built on 5 principles that cannot be bypassed:
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │  Claude Code Plugin                                          │
-│  18 Skills · 4 Agents · 2 Governance Hooks                   │
+│  21 Skills · 4 Agents · 2 Governance Hooks                   │
 ├──────────────────────────────────────────────────────────────┤
 │  MCP Server (@ido4/mcp)                                      │
 │  58 Tools · 9 Resources · 7 Prompts · STDIO Transport        │
@@ -302,7 +302,7 @@ ido4's governance model is built on 5 principles that cannot be bypassed:
 |---|---|---|
 | [`@ido4/core`](packages/core/) | `npm i @ido4/core` | Domain logic — BRE (34 steps), profile-driven services, repositories. Zero CLI dependencies. |
 | [`@ido4/mcp`](packages/mcp/) | `npm i @ido4/mcp` | MCP server — STDIO transport, 57 tools (Hydro), 9 resources, 8 prompts. |
-| [`plugin`](packages/plugin/) | — | Claude Code plugin — 18 skills, 4 agents, governance hooks. |
+| [`plugin`](packages/plugin/) | — | Claude Code plugin — 21 skills, 4 agents, governance hooks. |
 
 ### 51 MCP Tools
 

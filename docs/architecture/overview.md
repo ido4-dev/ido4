@@ -8,7 +8,7 @@ ido4 is a layered system where each layer has a clear responsibility and strict 
 +--------------------------------------------------------------+
 |  Layer 3: Experience (packages/plugin)                        |
 |                                                               |
-|  18 Skills         4 Agents          2 Governance Hooks       |
+|  21 Skills         4 Agents          2 Governance Hooks       |
 |  /standup          PM Agent,         PostToolUse:             |
 |  /plan-wave        Spec Reviewer,    state transitions,       |
 |  /plan-sprint      Code Analyzer,    container assignments    |

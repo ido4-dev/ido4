@@ -43,19 +43,20 @@ This isn't a better project management tool. It's the infrastructure that makes 
 
 | Component | Status | Details |
 |---|---|---|
-| **@ido4/core** | Complete | 1,310 tests. BRE (34 steps), ServiceContainer (9 layers), profile-driven state machine |
-| **@ido4/mcp** | Complete | 457 tests. Dynamic tool/resource/prompt generation from profile |
-| **Plugin** | Complete | 18 skills, 4 agents, 2 hooks |
+| **@ido4/core** | Complete | 1,273 tests. BRE (34 steps), ServiceContainer (9 layers), profile-driven state machine, algorithmic ScenarioBuilder |
+| **@ido4/mcp** | Complete | 458 tests. Dynamic tool/resource/prompt generation from profile. Sandbox tools with projectRoot parameter |
+| **Plugin** | Complete | 21 skills (incl. onboard, guided-demo, explore), 4 agents, 2 hooks |
 | **Methodology Runner** | Complete | Profile-driven engine. Hydro (57 tools), Scrum (56), Shape Up (53) |
 | **Decomposition Pipeline** | Complete | Strategic spec parser, code-analyzer, technical-spec-writer, /ido4:decompose |
 | **Capability Hierarchy** | Complete | Capabilities -> epic/bet, two-level GitHub issue hierarchy |
+| **Sandbox System** | Complete (Blocks 1-5) | Demo codebase ([ido4-demo](https://github.com/ido4-dev/ido4-demo)), pipeline-based creation, zero-friction onboarding. See `architecture/sandbox-system-spec.md` |
 
 ### Architecture (Implemented)
 
 ```
 +--------------------------------------------------------------+
 |  Layer 3: Experience (packages/plugin)                        |
-|  18 Skills, 4 Agents, 2 Hooks                                |
+|  21 Skills, 4 Agents, 2 Hooks                                |
 +--------------------------------------------------------------+
 |  Layer 2: MCP Server (packages/mcp -- @ido4/mcp)             |
 |  58 Tools (Hydro), 9 Resources, 7 Prompts, 5 Aggregators     |
