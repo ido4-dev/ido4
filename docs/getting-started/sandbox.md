@@ -2,102 +2,66 @@
 
 The sandbox is the fastest way to experience ido4 governance. It creates a real GitHub Project V2 with tasks, containers, and **deliberately embedded governance violations** — then discovers them live using the same tools that govern real projects.
 
-ido4 provides methodology-specific sandbox variants so you can experience governance in the methodology you plan to use.
+## Quick Start
 
-## Available Sandboxes
-
-| Skill | Methodology | Tasks | Containers | Violations |
-|---|---|---|---|---|
-| `/ido4:sandbox` | Hydro (default) | 20 | 4 Waves, 5 Epics | 5 |
-| `/ido4:sandbox-hydro` | Hydro | 20 | 4 Waves, 5 Epics | 5 |
-| `/ido4:sandbox-scrum` | Scrum | 20 | 3 Sprints, 4 Epics | 5 |
-| `/ido4:sandbox-shape-up` | Shape Up | 15 | 1 Cycle, 3 Bets | 5 |
-
-## Running the Sandbox
+The fastest path: `/ido4:onboard` handles everything — clones the demo codebase, creates the sandbox, and walks you through governance discovery.
 
 ```bash
 # Launch Claude Code with ido4
 claude --plugin-dir ./packages/plugin
 
-# Start the default sandbox (Hydro)
-> /ido4:sandbox
+# Zero-friction onboarding (recommended for first-time users)
+> /ido4:onboard
 
-# Or pick a specific methodology
-> /ido4:sandbox-scrum
-> /ido4:sandbox-shape-up
+# Or manual sandbox creation
+> /ido4:sandbox
 ```
 
-The skill will ask which GitHub repository to use (format: `owner/repo`). It then:
+## Available Skills
 
-1. **Creates** a GitHub Project V2 with tasks and methodology-appropriate containers
-2. **Seeds** pull requests, temporal context comments, audit events, and registered agents
-3. **Runs** live governance analysis, discovering all violations in real-time
-4. **Demonstrates** BRE enforcement — showing what's blocked and why
-5. **Shows** intelligent work distribution and merge readiness gates
+| Skill | Purpose |
+|---|---|
+| `/ido4:onboard` | Zero-friction first touch — auto-clones demo, creates sandbox, guided discovery |
+| `/ido4:sandbox` | Manual sandbox lifecycle — create, reset, destroy |
+| `/ido4:guided-demo` | Four-act governance walkthrough (~15 minutes) |
+| `/ido4:sandbox-explore` | Interactive exploration — pick what to investigate |
 
-## Hydro Sandbox
+All three methodologies are supported: Hydro (wave-based), Scrum (sprint-based), Shape Up (cycle-based). The sandbox uses the same technical spec across all methodologies — demonstrating that one project can be governed by different profiles.
 
-20 tasks across 5 epics and 4 waves. The sandbox demonstrates wave-based governance with epic integrity enforcement.
+## What Gets Created
 
-### What Gets Created
+The sandbox uses ido4's own ingestion pipeline to create governed issues from a technical spec. Tasks are distributed algorithmically across containers with roles assigned from the dependency graph:
 
-| Component | Count | Purpose |
-|---|---|---|
-| GitHub Issues | 20 | Tasks with full governance fields |
-| Epics | 5 | Setup, Data Pipeline, Auth, Dashboard, Docs |
-| Waves | 4 | Foundation (done), Core (active), Advanced, Polish |
-| Pull Request | 1 | Seeded for review bottleneck detection |
-| Audit Events | 28 | Realistic timeline for analytics and compliance |
-| Agents | 2 | alpha (backend/data) + beta (frontend/auth) |
+| Component | Details |
+|---|---|
+| **Tasks** | Created from a technical spec via the ingestion pipeline |
+| **Capabilities** | Mapped to epics (Hydro/Scrum) or bets (Shape Up) |
+| **Containers** | Waves, sprints, or cycles — methodology-specific execution units |
+| **Governance violations** | Cascade blockers, false status, review bottlenecks, integrity violations |
+| **Audit trail** | Backdated events creating realistic temporal history |
+| **Agents** | Two registered agents with task locks and capability profiles |
+| **Seeded PR** | Real code file for review bottleneck demonstration |
 
-### The 5 Embedded Violations
+## Governance Violations
 
-1. **Cascade Blocker** — T7 blocks T8, which blocks T9. Three tasks chained to a single root cause.
-2. **False Status** — T10 is marked "In Review" but has no pull request.
-3. **Review Bottleneck** — T12 has a PR open for 4 days with zero reviews.
-4. **Epic Integrity Violation** — Auth epic has tasks in both wave-002 and wave-003.
-5. **Stale Work** — T7 has been In Progress for 4 days with no review submission.
+Each sandbox has methodology-appropriate violations that governance skills discover:
 
-## Scrum Sandbox
+**All methodologies:**
+- **Cascade blocker** — A critical-path task blocking multiple downstream tasks
+- **False status** — A task shows "In Review" but has no pull request
+- **Review bottleneck** — A PR open for days with zero reviewers
 
-20 tasks across 4 epics and 3 sprints. The sandbox demonstrates sprint-based governance with type-scoped pipelines.
+**Hydro-specific:**
+- **Epic integrity violation** — A capability's tasks split across different waves
 
-### Scrum-Specific Violations
-
-- **Sprint spillover** — Tasks from Sprint 13 not completed, carried into Sprint 14
-- **Story without acceptance criteria** — User story planned into sprint without DoR checks
-- **Spike past timebox** — Research spike In Progress for 5 days without findings
-- **Type mismatch** — Bug classified as story, getting wrong pipeline
-
-## Shape Up Sandbox
-
-15 tasks across 3 bets in 1 cycle. The sandbox demonstrates fixed-time governance with the circuit breaker.
-
-### Shape Up-Specific Violations
-
-- **Appetite exceeded** — Bet scope has grown beyond original pitch appetite
+**Shape Up-specific:**
 - **Circuit breaker countdown** — Cycle approaching deadline with incomplete bets
-- **Scope creep** — New tasks added mid-cycle outside original pitch
-- **Bet integrity violation** — Task assigned to wrong cycle
-- **Stale building** — Task stuck in Building status for half the cycle
+- **Killed bet** — Correct governance behavior when a bet isn't viable
 
 ## After the Demo
 
-The sandbox offers three options:
-
-- **Keep** — Continue experimenting. Run other skills (`/ido4:standup`, `/ido4:compliance`, `/ido4:board`), attempt transitions, modify task states — watch how governance responds.
-- **Reset** — Destroy and recreate fresh for another demo.
-- **Destroy** — Clean up everything: closes all issues, deletes the PR and branch, removes the project and config.
-
-## What You'll See
-
-The sandbox demonstrates every layer of the governance stack:
-
-- **BRE validation** — Watch 32 validation steps evaluate transitions (configurable per methodology profile)
-- **Work distribution** — See 4-dimension scoring differentiate task recommendations
-- **Merge readiness** — See the 6-check gate catch process violations
-- **Audit trail** — Real event-sourced data powering analytics and compliance
-- **Multi-agent coordination** — Two agents with different capabilities getting different recommendations
-- **Methodology-specific governance** — Epic integrity (Hydro), type-scoped DoR/DoD (Scrum), circuit breaker (Shape Up)
-
-Every finding comes from a real tool call. Nothing is hardcoded or simulated.
+- `/ido4:sandbox-explore` — Try breaking rules, fixing violations, running work distribution
+- `/ido4:standup` — Full governance standup briefing
+- `/ido4:compliance` — Deep compliance analysis
+- `/ido4:init` — Initialize ido4 on your own project
+- `/ido4:sandbox cleanup` — Clean up: closes issues, deletes project, removes config

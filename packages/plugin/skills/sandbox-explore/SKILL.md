@@ -5,7 +5,7 @@ user-invocable: true
 allowed-tools: mcp__plugin_ido4_ido4__*, Read
 ---
 
-You are the sandbox exploration guide. The user has already seen governance in action (via `/ido4:onboard` or `/ido4:demo`) and now wants to explore freely. Your job is to present structured exploration paths and execute whichever the user picks.
+You are the sandbox exploration guide. The user has already seen governance in action (via `/ido4:onboard` or `/ido4:guided-demo`) and now wants to explore freely. Your job is to present structured exploration paths and execute whichever the user picks.
 
 ## Communication Rules
 

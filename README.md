@@ -52,21 +52,20 @@ Traditional project management tools (Linear, Jira, Notion) track work after the
 
 ## See It In Action
 
-The sandbox creates a real GitHub project with 20 tasks, 5 epics, and 5 embedded governance violations — then discovers them live:
+The sandbox creates a real GitHub project with governed tasks, embedded violations, and a seeded audit trail — then discovers them live:
 
 ```
 $ claude --plugin-dir ./packages/plugin
-> /ido4:sandbox
+> /ido4:onboard
 
-Creating sandbox on your-org/your-repo...
-✓ 20 tasks, 5 epics, 4 waves, 1 PR, 28 audit events, 2 agents
+Demo project ready. Creating governed sandbox...
+✓ Tasks ingested via pipeline, governance violations embedded, agents registered
 
 ══════════════════════════════════════════════
   LIVE GOVERNANCE ANALYSIS
 ══════════════════════════════════════════════
 
-CASCADE BLOCKER: #267 → #268 → #269
-  ETL transformations (In Progress) blocks Data validation,
+CASCADE BLOCKER: Delivery Engine Core → downstream tasks
   which blocks API rate limiting. 3 tasks — 30% of the active
   wave — chained to one root cause.
 
@@ -139,7 +138,7 @@ export GITHUB_TOKEN=$(gh auth token)
 claude --plugin-dir ./packages/plugin
 
 # Try the interactive sandbox demo
-> /ido4:sandbox
+> /ido4:onboard
 ```
 
 ### As a Standalone MCP Server

@@ -62,7 +62,19 @@ describe('Sandbox Tools', () => {
         success: true,
         project: { id: 'PVT_1', number: 1, title: 'Sandbox', url: 'https://example.com', repository: 'owner/repo' },
         scenario: 'hydro-governance',
-        created: { parentIssues: 5, containerInstances: 4, tasks: 20, subIssueRelationships: 20, closedTasks: 8, pullRequests: 1, contextComments: 5, auditEvents: 28, registeredAgents: 2 },
+        created: {
+          capabilities: 6,
+          tasks: 17,
+          subIssueRelationships: 17,
+          containerAssignments: 17,
+          stateTransitions: 10,
+          violations: 2,
+          closedTasks: 1,
+          pullRequests: 1,
+          contextComments: 4,
+          auditEvents: 15,
+          registeredAgents: 2,
+        },
         configPath: '/test/.ido4/project-info.json',
       };
       mockCreateSandbox.mockResolvedValue(createResult);
@@ -73,7 +85,10 @@ describe('Sandbox Tools', () => {
 
       const parsed = JSON.parse(result.content[0]!.text);
       expect(parsed.success).toBe(true);
-      expect(parsed.created.tasks).toBe(20);
+      expect(parsed.created.tasks).toBe(17);
+      expect(parsed.created.capabilities).toBe(6);
+      expect(parsed.created.violations).toBe(2);
+      expect(parsed.created.parentIssues).toBeUndefined();
       expect(mockCreateSandbox).toHaveBeenCalledWith(
         expect.objectContaining({ repository: 'owner/repo' }),
       );
@@ -135,7 +150,7 @@ describe('Sandbox Tools', () => {
 
       const resetResult = {
         destroyed: { success: true, projectId: 'PVT_1', issuesClosed: 5, projectDeleted: true, configRemoved: true },
-        created: { success: true, project: { id: 'PVT_2' }, scenario: 'hydro-governance', created: { epics: 5, tasks: 20 } },
+        created: { success: true, project: { id: 'PVT_2' }, scenario: 'hydro-governance', created: { capabilities: 6, tasks: 17 } },
       };
       mockResetSandbox.mockResolvedValue(resetResult);
 

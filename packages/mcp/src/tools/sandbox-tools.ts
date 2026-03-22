@@ -34,19 +34,17 @@ function getProjectRoot(): string {
 export function registerSandboxTools(server: McpServer): void {
   server.tool(
     'create_sandbox',
-    'Create a governed sandbox project with embedded governance violations for skill validation and onboarding. Supports multiple methodologies: hydro-governance (Hydro: 20 tasks, waves, epics), scrum-sprint (Scrum: 15 tasks, sprints, type labels), shape-up-cycle (Shape Up: 16 tasks, cycles, bets, scopes). Each scenario has deliberate violations appropriate to its methodology.',
+    'Create a governed sandbox project with embedded governance violations. Uses the ingestion pipeline to create tasks from a technical spec, then applies methodology-specific state simulation and violation injection. Supports: hydro-governance (Hydro), scrum-sprint (Scrum), shape-up-cycle (Shape Up).',
     CreateSandboxSchema,
     async (args) => handleErrors(async () => {
       const service = createSandboxService();
-      const projectRoot = getProjectRoot();
+      const projectRoot = args.projectRoot ?? getProjectRoot();
       const result = await service.createSandbox({
         repository: args.repository,
         projectRoot,
         scenarioId: args.scenarioId,
       });
-      // Reset container so next tool call picks up the new config
       resetContainer();
-      // Dynamically register methodology-specific tools (bootstrap mode only)
       await activateMethodology(server);
       return toCallToolResult(result);
     }),
@@ -56,9 +54,9 @@ export function registerSandboxTools(server: McpServer): void {
     'destroy_sandbox',
     'Destroy a sandbox project — closes all issues, deletes the project, removes config. Safety: refuses on non-sandbox projects.',
     DestroySandboxSchema,
-    async () => handleErrors(async () => {
+    async (args) => handleErrors(async () => {
       const service = createSandboxService();
-      const projectRoot = getProjectRoot();
+      const projectRoot = args.projectRoot ?? getProjectRoot();
       const result = await service.destroySandbox(projectRoot);
       resetContainer();
       return toCallToolResult(result);
@@ -71,9 +69,8 @@ export function registerSandboxTools(server: McpServer): void {
     ResetSandboxSchema,
     async (args) => handleErrors(async () => {
       const service = createSandboxService();
-      const projectRoot = getProjectRoot();
+      const projectRoot = args.projectRoot ?? getProjectRoot();
 
-      // Read repository from existing config before destroying
       const fs = await import('node:fs/promises');
       const path = await import('node:path');
       const configPath = path.join(projectRoot, '.ido4', 'project-info.json');
@@ -86,7 +83,6 @@ export function registerSandboxTools(server: McpServer): void {
         scenarioId: args.scenarioId,
       });
       resetContainer();
-      // Dynamically register methodology-specific tools (bootstrap mode only)
       await activateMethodology(server);
       return toCallToolResult(result);
     }),

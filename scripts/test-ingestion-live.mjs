@@ -44,7 +44,7 @@ async function main() {
       scenarioId: SCENARIO,
     });
     console.log(`Sandbox created: ${sandboxResult.project.url}`);
-    console.log(`  Tasks: ${sandboxResult.created.tasks}, Parent issues: ${sandboxResult.created.parentIssues}\n`);
+    console.log(`  Tasks: ${sandboxResult.created.tasks}, Capabilities: ${sandboxResult.created.capabilities}\n`);
   } catch (err) {
     console.error('Failed to create sandbox:', err.message);
     process.exit(1);

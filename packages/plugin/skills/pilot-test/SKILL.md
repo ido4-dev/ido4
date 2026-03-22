@@ -317,7 +317,7 @@ Scenario: hydro-governance
 Date: [timestamp]
 
 PHASE 1: SETUP                          [PASS/FAIL]
-  Sandbox creation ✓  |  4 waves ✓  |  20 tasks ✓
+  Sandbox creation ✓  |  containers ✓  |  tasks ✓
 
 PHASE 2: GOVERNED OPERATIONS            [PASS/FAIL]
   Valid transitions: 6/6 ✓
