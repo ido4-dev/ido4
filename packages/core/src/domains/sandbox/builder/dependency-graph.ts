@@ -60,6 +60,8 @@ export function computeCascadeValues(
   tasks: readonly Task[],
   reverseDeps: ReadonlyMap<string, readonly string[]>,
 ): Map<string, number> {
+  // Depth-weighted scoring adapted from WorkDistributionService:
+  // Direct dependents (depth 1) are high-value unblocks, deeper ones less so.
   const DEPTH_WEIGHTS = [15, 8, 4];
   const values = new Map<string, number>();
 

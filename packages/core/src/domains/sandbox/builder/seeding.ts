@@ -5,6 +5,7 @@
 
 import type { BuildContext, ScenarioRoles } from './types.js';
 import type { AuditSeedEvent, PRSeedDefinition } from '../types.js';
+import { extractCodeRefs } from './utils.js';
 
 /** Generate backdated audit trail events based on task states and roles. */
 export function generateAuditEvents(
@@ -119,11 +120,6 @@ export class ${className} {
 `;
 }
 
-/** Extract file path references (src/...) from a task body. */
-function extractCodeRefs(body: string): string[] {
-  const matches = body.match(/src\/[a-zA-Z0-9_\-/.]+\.ts/g);
-  return matches ? [...new Set(matches)] : [];
-}
 
 /** Generate context comments that reference governance signals, task relationships, and real code paths. */
 export function generateContextComments(ctx: BuildContext, roles: ScenarioRoles): Record<string, string[]> {

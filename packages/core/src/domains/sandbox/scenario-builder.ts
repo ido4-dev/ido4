@@ -34,6 +34,16 @@ export class ScenarioBuilder {
     profile: MethodologyProfile,
     config: ScenarioConfig,
   ): SandboxScenario {
+    if (!ingestionResult.success && ingestionResult.created.tasks.length === 0) {
+      throw new Error('ScenarioBuilder: ingestion produced no tasks — cannot build scenario');
+    }
+    if (!profile.semantics?.terminalStates?.length) {
+      throw new Error('ScenarioBuilder: profile missing semantics.terminalStates');
+    }
+    if (!config.executionContainers?.length) {
+      throw new Error('ScenarioBuilder: config has no executionContainers');
+    }
+
     const ctx = createBuildContext(ingestionResult, profile, config);
     const containerAssignments = assignContainers(ctx);
 
@@ -137,7 +147,12 @@ function createBuildContext(
 
 // ─── Container Assignment ───
 
-/** Tasks with high cascade value stay in active even if they have no dependencies. */
+/**
+ * Tasks with cascade value above this threshold stay in the active container
+ * even if they have no dependencies (layer 0). This prevents critical-path
+ * tasks from being placed in the "completed" container. Value of 10 means
+ * a task blocking at least one direct dependent (weight 15) stays active.
+ */
 const CASCADE_THRESHOLD = 10;
 
 function assignContainers(ctx: BuildContext): Record<string, Record<string, string>> {

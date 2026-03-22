@@ -8,6 +8,7 @@
  */
 
 import type { BuildContext, ScenarioRoles } from './types.js';
+import { extractCodeRefs } from './utils.js';
 import type { ScenarioNarrative } from '../types.js';
 
 /** Generate the scenario narrative from computed facts and profile context. */
@@ -33,7 +34,7 @@ export function generateNarrative(ctx: BuildContext, roles: ScenarioRoles): Scen
   const violationContext: Record<string, string> = {};
 
   if (blocker) {
-    const blockerCodeRefs = extractCodePaths(blocker.body);
+    const blockerCodeRefs = extractCodeRefs(blocker.body);
     const codeHint = blockerCodeRefs.length > 0 ? ` The work centers on ${blockerCodeRefs[0]}.` : '';
     violationContext['CASCADE_BLOCKER'] = `${blocker.title} (${blocker.ref}) is the critical path — ${downstreamCount} tasks depend on it. Agent alpha has been working on it for several days but the implementation proved more complex than estimated.${codeHint}`;
   }
@@ -105,11 +106,6 @@ function buildResolution(roles: ScenarioRoles, containerLabel: string): string {
     : 'Review governance signals and address violations.';
 }
 
-/** Extract file path references from task body text. */
-function extractCodePaths(body: string): string[] {
-  const matches = body.match(/src\/[a-zA-Z0-9_\-/.]+\.ts/g);
-  return matches ? [...new Set(matches)] : [];
-}
 
 /** Generate governance memory seed from computed facts. */
 export function generateMemorySeed(ctx: BuildContext, roles: ScenarioRoles): string {
@@ -120,7 +116,7 @@ export function generateMemorySeed(ctx: BuildContext, roles: ScenarioRoles): str
 
   const signals: string[] = [];
   if (blocker) {
-    const codeRefs = extractCodePaths(blocker.body);
+    const codeRefs = extractCodeRefs(blocker.body);
     const codeHint = codeRefs.length > 0 ? ` (working in ${codeRefs[0]})` : '';
     signals.push(`- **Cascade Blocker**: ${blocker.title} (${blocker.ref})${codeHint} blocking ${downstreamCount} downstream tasks`);
   }

@@ -44,7 +44,11 @@ import type {
   ViolationInjection,
 } from './types.js';
 
-/** Delay between post-ingestion field updates to avoid GitHub API race conditions */
+/**
+ * Delay between post-ingestion field updates. GitHub's ProjectV2 API can reset
+ * field values when mutations arrive too quickly. 500ms is empirically safe
+ * (same pattern as SUB_ISSUE_DELAY_MS in IngestionService, which uses 1000ms).
+ */
 const FIELD_UPDATE_DELAY_MS = 500;
 
 export class SandboxService implements ISandboxService {
@@ -479,7 +483,11 @@ export class SandboxService implements ISandboxService {
         // field update needed; the violation is the absence of a PR.
         break;
       case 'label':
-        // Labels would be set via GitHub API — for now, tracked in scenario metadata
+        // Label support requires GitHub REST API (not in current GraphQL interface).
+        // Violation is tracked in scenario metadata; label is not applied to the issue.
+        this.logger.debug('Label violation recorded in metadata (no GitHub label API)', {
+          issueNumber, labels: violation.action.labels,
+        });
         break;
     }
 
