@@ -8,12 +8,16 @@ The BRE is the automated quality checkpoint that runs on every task state transi
 
 <details>
 <summary>BRE Validation Pipeline — 34-step flow diagram</summary>
-<iframe src="/diagrams/04-bre-pipeline.html" width="100%" height="880" style="border: none; border-radius: 8px;" loading="lazy"></iframe>
+<div style="width: 100%; height: 605px; overflow: hidden;">
+<iframe src="/diagrams/04-bre-pipeline.html" width="1300" height="1100" style="transform: scale(0.55); transform-origin: top left; border: none;" loading="lazy"></iframe>
+</div>
 </details>
 
 <details>
 <summary>Request Flow — tool call lifecycle diagram</summary>
-<iframe src="/diagrams/02-request-flow.html" width="100%" height="880" style="border: none; border-radius: 8px;" loading="lazy"></iframe>
+<div style="width: 100%; height: 605px; overflow: hidden;">
+<iframe src="/diagrams/02-request-flow.html" width="1300" height="1100" style="transform: scale(0.55); transform-origin: top left; border: none;" loading="lazy"></iframe>
+</div>
 </details>
 
 ## Key Design Principles

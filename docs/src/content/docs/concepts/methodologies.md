@@ -8,7 +8,9 @@ Methodologies are **profiles** — data structures that define states, transitio
 
 <details>
 <summary>Profile Generation — how a profile drives tool and pipeline generation</summary>
-<iframe src="/diagrams/05-profile-generation.html" width="100%" height="880" style="border: none; border-radius: 8px;" loading="lazy"></iframe>
+<div style="width: 100%; height: 605px; overflow: hidden;">
+<iframe src="/diagrams/05-profile-generation.html" width="1300" height="1100" style="transform: scale(0.55); transform-origin: top left; border: none;" loading="lazy"></iframe>
+</div>
 </details>
 
 ## Hydro
