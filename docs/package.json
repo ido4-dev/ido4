@@ -3,9 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "astro dev",
-    "generate-previews": "node scripts/generate-previews.mjs",
-    "build": "node scripts/generate-previews.mjs && astro build",
+    "sync-diagrams": "mkdir -p public/diagrams && cp ../diagrams/*.html public/diagrams/",
+    "dev": "npm run sync-diagrams && astro dev",
+    "generate-previews": "npm run sync-diagrams && node scripts/generate-previews.mjs",
+    "build": "npm run generate-previews && astro build",
     "preview": "astro preview"
   },
   "dependencies": {
