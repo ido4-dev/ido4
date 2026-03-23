@@ -6,11 +6,11 @@
 <title>ido4 MCP — Request Flow</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { overflow: hidden; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; color: #1c2028; padding: 40px 48px 32px; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; color: #1c2028; padding: 40px 48px 32px; }
   h1 { font-size: 26px; font-weight: 700; color: #0d1117; margin-bottom: 4px; letter-spacing: -0.4px; }
   .subtitle { font-size: 13px; color: #656d76; margin-bottom: 36px; }
 
-  .canvas { transform-origin: top left; transform: scale(var(--diagram-scale, 1)); position: relative; width: 1100px; height: 780px; margin: 0 auto; }
+  .canvas { position: relative; width: 1100px; height: 780px; margin: 0 auto; }
 
   /* Lane headers — positioned absolutely to match SVG x positions */
   .lane {
@@ -77,7 +77,7 @@
   .sw-bre { background: #ffeeba; border: 1px solid #e5c76b; }
   .sw-audit { background: #f5f0ff; border: 1px solid #d8b9ff; }
 </style>
-</head>
+<style>html{overflow:hidden}body{transform-origin:0 0}</style><script>window.addEventListener("load",function(){var w=document.body.scrollWidth;var s=window.innerWidth/w;if(s<1){document.body.style.transform="scale("+s+")";document.documentElement.style.height=document.body.scrollHeight*s+"px"}})</script></head>
 <body>
 
 <h1>Request Flow — Tool Call Lifecycle</h1>
@@ -189,5 +189,5 @@
   <div class="legend-item"><div class="legend-swatch sw-audit"></div>Event / Audit</div>
 </div>
 
-<script>function fit(){var c=document.querySelector(".canvas");if(c){var s=Math.min(1,(window.innerWidth-20)/c.offsetWidth);c.style.setProperty("--diagram-scale",s);document.body.style.height=(c.offsetHeight*s+100)+"px"}}fit();window.addEventListener("resize",fit)</script></body>
+</body>
 </html>

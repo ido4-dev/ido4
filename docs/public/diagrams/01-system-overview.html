@@ -7,7 +7,7 @@
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
-  body { overflow: hidden;
+  body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background: #ffffff;
     color: #1c2028;
@@ -29,7 +29,7 @@
   }
 
   /* ── Canvas (positioned container) ── */
-  .canvas { transform-origin: top left; transform: scale(var(--diagram-scale, 1));
+  .canvas {
     position: relative;
     width: 1280px;
     height: 820px;
@@ -95,7 +95,7 @@
   .system-header .title { font-size: 17px; font-weight: 700; color: #fff; }
   .system-header .version { font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 500; }
 
-  .system-body { overflow: hidden;
+  .system-body {
     padding: 14px;
     display: flex;
     flex-direction: column;
@@ -219,7 +219,7 @@
   .legend-line { display: inline-block; width: 20px; height: 0; border-top: 2.5px solid #8b949e; vertical-align: middle; }
   .legend-line-dash { border-top-style: dashed; }
 </style>
-</head>
+<style>html{overflow:hidden}body{transform-origin:0 0}</style><script>window.addEventListener("load",function(){var w=document.body.scrollWidth;var s=window.innerWidth/w;if(s<1){document.body.style.transform="scale("+s+")";document.documentElement.style.height=document.body.scrollHeight*s+"px"}})</script></head>
 <body>
 
 <h1>ido4 MCP — System Overview</h1>
@@ -421,5 +421,5 @@
 
 </div>
 
-<script>function fit(){var c=document.querySelector(".canvas");if(c){var s=Math.min(1,(window.innerWidth-20)/c.offsetWidth);c.style.setProperty("--diagram-scale",s);document.body.style.height=(c.offsetHeight*s+100)+"px"}}fit();window.addEventListener("resize",fit)</script></body>
+</body>
 </html>

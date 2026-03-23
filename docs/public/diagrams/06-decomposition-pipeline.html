@@ -6,11 +6,11 @@
 <title>ido4 MCP — Decomposition Pipeline</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { overflow: hidden; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; color: #1c2028; padding: 40px 48px 32px; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; color: #1c2028; padding: 40px 48px 32px; }
   h1 { font-size: 26px; font-weight: 700; color: #0d1117; margin-bottom: 4px; }
   .subtitle { font-size: 13px; color: #656d76; margin-bottom: 36px; }
 
-  .canvas { transform-origin: top left; transform: scale(var(--diagram-scale, 1)); width: 1100px; margin: 0 auto; }
+  .canvas { width: 1100px; margin: 0 auto; }
 
   /* Pipeline stages (horizontal) */
   .pipeline { display: flex; align-items: stretch; gap: 0; margin-bottom: 24px; }
@@ -93,7 +93,7 @@
   .map-gray { background: #f6f8fa; border-color: #d1d9e0; }
   .map-gray .mt { color: #4d5760; } .map-gray .md { color: #656d76; }
 </style>
-</head>
+<style>html{overflow:hidden}body{transform-origin:0 0}</style><script>window.addEventListener("load",function(){var w=document.body.scrollWidth;var s=window.innerWidth/w;if(s<1){document.body.style.transform="scale("+s+")";document.documentElement.style.height=document.body.scrollHeight*s+"px"}})</script></head>
 <body>
 
 <h1>Two-Artifact Decomposition Pipeline</h1>
@@ -211,5 +211,5 @@
 
 </div>
 
-<script>function fit(){var c=document.querySelector(".canvas");if(c){var s=Math.min(1,(window.innerWidth-20)/c.offsetWidth);c.style.setProperty("--diagram-scale",s);document.body.style.height=(c.offsetHeight*s+100)+"px"}}fit();window.addEventListener("resize",fit)</script></body>
+</body>
 </html>
