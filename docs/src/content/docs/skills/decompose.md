@@ -6,9 +6,13 @@ The decompose skill orchestrates the strategic-to-technical spec pipeline — tr
 
 <details>
 <summary>Decomposition Pipeline — full pipeline architecture</summary>
-<div style="width: 100%; height: 605px; overflow: hidden;">
-<iframe src="/diagrams/06-decomposition-pipeline.html" width="1300" height="1100" style="transform: scale(0.55); transform-origin: top left; border: none;" loading="lazy"></iframe>
-</div>
+
+<a href="/diagrams/06-decomposition-pipeline.html" target="_blank" rel="noopener" title="Click to open interactive diagram">
+
+![Decomposition Pipeline](/diagrams/previews/06-decomposition-pipeline.png)
+
+</a>
+
 </details>
 
 ## What It Does

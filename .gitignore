@@ -18,6 +18,9 @@ Thumbs.db
 # Astro/Starlight
 .astro/
 
+# Generated diagram previews (build artifacts)
+docs/public/diagrams/previews/
+
 # Firebase
 .firebase/
 

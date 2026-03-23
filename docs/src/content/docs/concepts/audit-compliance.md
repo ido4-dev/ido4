@@ -8,9 +8,13 @@ Every action in ido4 creates an immutable audit entry — an append-only record 
 
 <details>
 <summary>Event Sourcing — audit trail to analytics and compliance</summary>
-<div style="width: 100%; height: 605px; overflow: hidden;">
-<iframe src="/diagrams/03-event-sourcing.html" width="1300" height="1100" style="transform: scale(0.55); transform-origin: top left; border: none;" loading="lazy"></iframe>
-</div>
+
+<a href="/diagrams/03-event-sourcing.html" target="_blank" rel="noopener" title="Click to open interactive diagram">
+
+![Event Sourcing — audit trail to analytics and compliance](/diagrams/previews/03-event-sourcing.png)
+
+</a>
+
 </details>
 
 ## Audit Trail

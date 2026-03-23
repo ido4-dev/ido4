@@ -8,16 +8,24 @@ For teams deploying **multiple AI agents on the same codebase**, ido4 adds coord
 
 <details>
 <summary>Multi-Agent Coordination — architecture diagram</summary>
-<div style="width: 100%; height: 605px; overflow: hidden;">
-<iframe src="/diagrams/07-multi-agent.html" width="1300" height="1100" style="transform: scale(0.55); transform-origin: top left; border: none;" loading="lazy"></iframe>
-</div>
+
+<a href="/diagrams/07-multi-agent.html" target="_blank" rel="noopener" title="Click to open interactive diagram">
+
+![Multi-Agent Coordination](/diagrams/previews/07-multi-agent.png)
+
+</a>
+
 </details>
 
 <details>
 <summary>Agent Workflow — daily agent loop</summary>
-<div style="width: 100%; height: 605px; overflow: hidden;">
-<iframe src="/diagrams/10-agent-workflow.html" width="1300" height="1100" style="transform: scale(0.55); transform-origin: top left; border: none;" loading="lazy"></iframe>
-</div>
+
+<a href="/diagrams/10-agent-workflow.html" target="_blank" rel="noopener" title="Click to open interactive diagram">
+
+![Agent Workflow — daily agent loop](/diagrams/previews/10-agent-workflow.png)
+
+</a>
+
 </details>
 
 ## Agent Registration

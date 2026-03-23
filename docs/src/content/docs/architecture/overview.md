@@ -6,23 +6,35 @@ ido4 is a layered system where each layer has a clear responsibility and strict 
 
 <details>
 <summary>System Block — how ido4 fits in the ecosystem</summary>
-<div style="width: 100%; height: 605px; overflow: hidden;">
-<iframe src="/diagrams/00-system-block.html" width="1300" height="1100" style="transform: scale(0.55); transform-origin: top left; border: none;" loading="lazy"></iframe>
-</div>
+
+<a href="/diagrams/00-system-block.html" target="_blank" rel="noopener" title="Click to open interactive diagram">
+
+![System Block — how ido4 fits in the ecosystem](/diagrams/previews/00-system-block.png)
+
+</a>
+
 </details>
 
 <details>
 <summary>Service Container — 9-layer dependency graph</summary>
-<div style="width: 100%; height: 605px; overflow: hidden;">
-<iframe src="/diagrams/08-service-container.html" width="1300" height="1100" style="transform: scale(0.55); transform-origin: top left; border: none;" loading="lazy"></iframe>
-</div>
+
+<a href="/diagrams/08-service-container.html" target="_blank" rel="noopener" title="Click to open interactive diagram">
+
+![Service Container — 9-layer dependency graph](/diagrams/previews/08-service-container.png)
+
+</a>
+
 </details>
 
 <details>
 <summary>Plugin Layer — skills, agents, and hooks</summary>
-<div style="width: 100%; height: 605px; overflow: hidden;">
-<iframe src="/diagrams/09-plugin-layer.html" width="1300" height="1100" style="transform: scale(0.55); transform-origin: top left; border: none;" loading="lazy"></iframe>
-</div>
+
+<a href="/diagrams/09-plugin-layer.html" target="_blank" rel="noopener" title="Click to open interactive diagram">
+
+![Plugin Layer — skills, agents, and hooks](/diagrams/previews/09-plugin-layer.png)
+
+</a>
+
 </details>
 
 ## System Layers
