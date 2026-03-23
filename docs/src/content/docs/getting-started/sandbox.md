@@ -1,5 +1,9 @@
 ---
 title: "Sandbox Demo"
+sidebar:
+  badge:
+    text: Try it
+    variant: tip
 ---
 
 The sandbox is the fastest way to experience ido4 governance. It creates a real GitHub Project V2 with tasks, containers, and **deliberately embedded governance violations** — then discovers them live using the same tools that govern real projects.
@@ -15,7 +19,7 @@ The sandbox is fully isolated — violations are intentional and safe to explore
 | `/ido4dev:guided-demo` | **After sandbox exists.** Four-act structured governance walkthrough (~15 min). |
 | `/ido4dev:sandbox-explore` | **After sandbox exists.** Pick what to investigate from 13 structured paths. |
 
-```bash
+```
 # Recommended for first-time users
 > /ido4dev:onboard
 ```

@@ -2,6 +2,8 @@
 title: "Methodologies"
 ---
 
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
 ido4 doesn't force a methodology on you. It ships three — pick the one that fits how your team works, or extend one to make it yours.
 
 Methodologies are **profiles** — data structures that define states, transitions, containers, validation pipelines, and principles. The engine reads the profile and generates everything: tools, prompts, BRE pipelines, compliance scoring. Tool counts vary because each methodology has different containers and state machines.
@@ -17,22 +19,23 @@ Methodologies are **profiles** — data structures that define states, transitio
 
 </details>
 
-## Hydro
+<Tabs>
+<TabItem label="Hydro" icon="rocket">
 
-**For teams that ship features whole.**
+### For teams that ship features whole.
 
 Hydro organizes work into **waves** — self-contained delivery units executed one at a time. Related tasks group into **epics**, and the defining rule is: all tasks in an epic must be in the same wave. You don't ship half a feature.
 
 This is the methodology built for AI-augmented consulting — where a small senior team governs multiple AI agents delivering complete features to enterprise clients.
 
-### Why Hydro
+#### Why Hydro
 
 - **Epic Integrity** prevents partial feature delivery — no shipping auth tokens in wave-002 and RBAC in wave-003
 - **Wave sequencing** gives clear execution order with dependency coherence
 - **Five principles** provide comprehensive governance without methodology overhead
 - **Refinement pipeline** (Backlog -> In Refinement -> Ready for Dev) ensures tasks are well-specified before agents touch them
 
-### The workflow
+#### The workflow
 
 ```
 Backlog -> In Refinement -> Ready for Dev -> In Progress -> In Review -> Done
@@ -42,14 +45,14 @@ Backlog -> In Refinement -> Ready for Dev -> In Progress -> In Review -> Done
 
 7 states, 9 transitions (including backward transitions and administrative completion).
 
-### Containers
+#### Containers
 
 | Container | Role | Key Rule |
 |---|---|---|
 | **Wave** | When work happens | Only one active at a time. Named `wave-001-auth-system`. |
 | **Epic** | What ships together | All tasks in an epic must share the same wave. |
 
-### The five principles
+#### The five principles
 
 1. **Epic Integrity** — All tasks in an epic, same wave. Non-negotiable.
 2. **Active Wave Singularity** — One wave at a time. Focus.
@@ -57,26 +60,25 @@ Backlog -> In Refinement -> Ready for Dev -> In Progress -> In Review -> Done
 4. **Self-Contained Execution** — Every wave has everything it needs.
 5. **Atomic Completion** — A wave at 90% is not complete.
 
-### 58 tools
+**58 MCP tools** generated from profile.
 
----
+</TabItem>
+<TabItem label="Scrum" icon="list-format">
 
-## Scrum
-
-**For teams with different types of work.**
+### For teams with different types of work.
 
 Scrum organizes work into **sprints** with a defining feature that sets it apart: **type-scoped validation pipelines**. User stories, bugs, spikes, and tech debt each get different quality gates. A story needs acceptance criteria before entering the sprint. A spike doesn't need PR approval to close. Tech debt requires two reviewers.
 
 This isn't Scrum with governance bolted on — it's Scrum where the Definition of Ready and Definition of Done are enforced by code, not by team norms.
 
-### Why Scrum
+#### Why Scrum
 
 - **Type-scoped DoR/DoD** — Different work deserves different validation. The BRE knows the difference.
 - **Epics span sprints** — Unlike Hydro, there's no epic-sprint integrity rule. An epic can take three sprints. That's normal.
 - **Familiar terminology** — Product Backlog, Sprint Backlog, User Stories. Your team already knows this.
 - **Lightweight governance** — One principle (Sprint Singularity) plus type-aware pipelines. Not five principles — just the ones that matter for sprint execution.
 
-### The workflow
+#### The workflow
 
 ```
 Product Backlog -> Sprint Backlog -> In Progress -> In Review -> Done
@@ -86,14 +88,14 @@ Product Backlog -> Sprint Backlog -> In Progress -> In Review -> Done
 
 6 states, 8 transitions.
 
-### Containers
+#### Containers
 
 | Container | Role | Key Rule |
 |---|---|---|
 | **Sprint** | When work happens | Only one active. Named `Sprint 14`. |
 | **Epic** | Long-running themes | Spans sprints freely. No integrity constraint. |
 
-### Type-scoped pipelines
+#### Type-scoped pipelines
 
 This is Scrum's superpower in ido4:
 
@@ -107,26 +109,25 @@ This is Scrum's superpower in ido4:
 
 The BRE checks `plan:story`, `plan:bug`, `plan:spike` as separate pipelines. Different work, different gates.
 
-### 56 tools
+**56 MCP tools** generated from profile.
 
----
+</TabItem>
+<TabItem label="Shape Up" icon="setting">
 
-## Shape Up
-
-**For teams that bet on outcomes, not tasks.**
+### For teams that bet on outcomes, not tasks.
 
 Shape Up works in fixed **cycles** (default 6 weeks) where teams commit to **bets** — shaped pitches with defined appetite. The defining discipline: the **circuit breaker**. If a bet doesn't ship by cycle end, it's killed. No extensions. No carry-over. Scope gets hammered, not timelines.
 
 This forces honesty about scope — and it's the only methodology in ido4 with two terminal states: **Shipped** and **Killed**. Both are valid outcomes.
 
-### Why Shape Up
+#### Why Shape Up
 
 - **Circuit breaker** kills runaway projects before they eat your roadmap
 - **Fixed appetite** means time is the constraint, scope is the variable. Agents cut scope, not quality.
 - **Shaping pipeline** (Raw Idea -> Shaped -> Bet On) ensures work is well-understood before building starts
 - **Killed bets are healthy** — they mean the governance worked, not that the team failed
 
-### The workflow
+#### The workflow
 
 ```
 Raw Idea -> Shaped -> Bet On -> Building -> QA -> Shipped
@@ -136,7 +137,7 @@ Raw Idea -> Shaped -> Bet On -> Building -> QA -> Shipped
 
 8 states, 10 transitions. The `kill` transition is available from Building, QA, and Blocked — the circuit breaker can fire at any point.
 
-### Containers
+#### Containers
 
 | Container | Role | Key Rule |
 |---|---|---|
@@ -144,16 +145,17 @@ Raw Idea -> Shaped -> Bet On -> Building -> QA -> Shipped
 | **Bet** | Committed pitch | All tasks in a bet share the same cycle. |
 | **Scope** | Optional sub-grouping | Within a bet. Not managed by governance. Emerges during building. |
 
-### Four principles
+#### Four principles
 
 1. **Bet Integrity** — All tasks in a bet, same cycle.
 2. **Active Cycle Singularity** — One cycle at a time.
 3. **Circuit Breaker** — Unfinished at cycle end = killed. No extensions.
 4. **Fixed Appetite** — Time fixed, scope variable.
 
-### 54 tools
+**54 MCP tools** generated from profile.
 
----
+</TabItem>
+</Tabs>
 
 ## Choosing your methodology
 
@@ -173,8 +175,6 @@ Raw Idea -> Shaped -> Bet On -> Building -> QA -> Shipped
 | How many governance principles? | 5 | 1 | 4 |
 | Shaping/refinement pipeline? | 2-stage (refine, ready) | 1-stage (plan) | 2-stage (shape, bet) |
 | Terminal states | Done | Done | Shipped, Killed |
-
----
 
 ## How profiles work
 

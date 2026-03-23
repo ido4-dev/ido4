@@ -1,5 +1,9 @@
 ---
 title: "Enterprise Features"
+sidebar:
+  badge:
+    text: Pro
+    variant: caution
 ---
 
 ido4 provides the infrastructure that enterprise AI-hybrid development requires — context intelligence for every agent session, institutional memory that compounds across teams, compliance documentation, configurable methodology, quality gates, and full audit trails. All features work across all three built-in methodologies (Hydro, Scrum, Shape Up) and custom profiles.

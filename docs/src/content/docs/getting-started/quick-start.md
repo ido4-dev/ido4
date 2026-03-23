@@ -1,5 +1,9 @@
 ---
 title: "Quick Start"
+sidebar:
+  badge:
+    text: 5 min
+    variant: note
 ---
 
 From zero to AI-hybrid development in under 5 minutes. Set up ido4 and give your AI agents full project context, task intelligence, and quality enforcement. This guide uses Hydro (wave-based) as the example — the flow is identical for Scrum and Shape Up, just with different terminology. Multi-agent setup (Step 7) is optional — ido4 works fully with a single agent.

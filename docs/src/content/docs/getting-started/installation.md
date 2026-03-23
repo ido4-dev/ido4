@@ -104,7 +104,7 @@ ido4 interacts with GitHub Projects V2 via the GraphQL API. Your token needs:
 
 After setup, verify everything works:
 
-```bash
+```
 # In Claude Code with the plugin:
 > /ido4dev:health
 
