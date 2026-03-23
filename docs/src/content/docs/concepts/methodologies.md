@@ -6,7 +6,10 @@ ido4 doesn't force a methodology on you. It ships three — pick the one that fi
 
 Methodologies are **profiles** — data structures that define states, transitions, containers, validation pipelines, and principles. The engine reads the profile and generates everything: tools, prompts, BRE pipelines, compliance scoring. Tool counts vary because each methodology has different containers and state machines.
 
-<iframe src="/diagrams/05-profile-generation.html" width="100%" height="880" style="border: 1px solid var(--sl-color-gray-5); border-radius: 8px;" loading="lazy"></iframe>
+<details>
+<summary>Profile Generation — how a profile drives tool and pipeline generation</summary>
+<iframe src="/diagrams/05-profile-generation.html" width="100%" height="880" style="border: none; border-radius: 8px;" loading="lazy"></iframe>
+</details>
 
 ## Hydro
 

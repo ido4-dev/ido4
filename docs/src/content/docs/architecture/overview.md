@@ -4,17 +4,20 @@ title: "Architecture Overview"
 
 ido4 is a layered system where each layer has a clear responsibility and strict dependency direction: upper layers depend on lower layers, never the reverse. This design ensures governance rules are enforced consistently across all operations — validation before mutation, audit trail capture, no bypasses.
 
-### System Block
+<details>
+<summary>System Block — how ido4 fits in the ecosystem</summary>
+<iframe src="/diagrams/00-system-block.html" width="100%" height="820" style="border: none; border-radius: 8px;" loading="lazy"></iframe>
+</details>
 
-<iframe src="/diagrams/00-system-block.html" width="100%" height="820" style="border: 1px solid var(--sl-color-gray-5); border-radius: 8px;" loading="lazy"></iframe>
+<details>
+<summary>Service Container — 9-layer dependency graph</summary>
+<iframe src="/diagrams/08-service-container.html" width="100%" height="820" style="border: none; border-radius: 8px;" loading="lazy"></iframe>
+</details>
 
-### Service Container
-
-<iframe src="/diagrams/08-service-container.html" width="100%" height="820" style="border: 1px solid var(--sl-color-gray-5); border-radius: 8px;" loading="lazy"></iframe>
-
-### Plugin Layer
-
-<iframe src="/diagrams/09-plugin-layer.html" width="100%" height="820" style="border: 1px solid var(--sl-color-gray-5); border-radius: 8px;" loading="lazy"></iframe>
+<details>
+<summary>Plugin Layer — skills, agents, and hooks</summary>
+<iframe src="/diagrams/09-plugin-layer.html" width="100%" height="820" style="border: none; border-radius: 8px;" loading="lazy"></iframe>
+</details>
 
 ## System Layers
 

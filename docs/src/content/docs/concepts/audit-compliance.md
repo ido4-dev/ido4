@@ -6,7 +6,10 @@ Every action in ido4 creates an immutable audit entry — an append-only record 
 
 **Why this matters:** For enterprises, the audit trail provides the compliance evidence that regulated industries demand — who did what, when, and whether the rules were followed. For any team, it means real analytics (cycle time, blocking time, throughput) computed from actual events, not estimates. For the platform, it's how knowledge compounds: every action enriches the system's understanding of how your project is progressing.
 
-<iframe src="/diagrams/03-event-sourcing.html" width="100%" height="820" style="border: 1px solid var(--sl-color-gray-5); border-radius: 8px;" loading="lazy"></iframe>
+<details>
+<summary>Event Sourcing — audit trail to analytics and compliance</summary>
+<iframe src="/diagrams/03-event-sourcing.html" width="100%" height="820" style="border: none; border-radius: 8px;" loading="lazy"></iframe>
+</details>
 
 ## Audit Trail
 
