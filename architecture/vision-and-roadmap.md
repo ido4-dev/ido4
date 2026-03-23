@@ -135,7 +135,7 @@ Strategic spec parser (41 tests), `parse_strategic_spec` MCP tool, code analysis
 ### Near-Term: Validation & Polish
 
 - **End-to-end validation**: Run the decomposition pipeline with a real strategic spec from ido4shape
-- **Documentation expansion**: Multi-methodology GitBook docs, foundational architecture documents
+- **Documentation expansion**: Multi-methodology docs (Starlight), foundational architecture documents
 - **Profile edge cases**: Custom profile validation, profile migration tooling
 
 ### Medium-Term: Multi-Agent Scale

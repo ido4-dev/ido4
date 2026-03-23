@@ -1,0 +1,79 @@
+---
+title: "ido4"
+---
+
+**Your AI agents write code. ido4 gives them shared understanding, institutional memory, and quality enforcement.**
+
+ido4 is the platform that makes AI-hybrid software development work at scale. It sits inside your AI coding environment and gives every session full project context — what to build, what was built before, who depends on your output. Task intelligence recommends the highest-leverage work. Deterministic governance validates every action. Institutional memory compounds knowledge across sessions.
+
+```
+> What should I work on?
+
+get_next_task { agentId: "agent-alpha" }
+  Recommended: #42 Auth token rotation (score: 72)
+  Unblocks 3 downstream. Epic is 60% complete — finish it.
+
+> Load context for #42
+
+get_task_execution_data { issueNumber: 42 }
+  ✓ Upstream: #38 built JWT refresh (RSA-256, 30min TTL)
+  ✓ Siblings: #39, #40 established error handling pattern
+  ✓ Downstream: #45, #47, #51 waiting on this task
+
+> Start the task
+
+start_task { issueNumber: 42 }
+  ✓ BRE: 6/6 steps passed. Transitioning to In Progress.
+```
+
+The agent didn't start from scratch. It knew what to work on, why it matters, what was built upstream, and who depends on its output. That's ido4.
+
+## Why ido4 exists
+
+AI coding agents are powerful but stateless. Each session starts fresh — no memory of what other agents built, no understanding of your methodology, no awareness of dependencies or deadlines.
+
+ido4 bridges this gap with four capabilities:
+
+- **Context intelligence** — one call assembles task spec, upstream decisions, sibling patterns, downstream consumers, risk flags. No agent starts blind.
+- **Task intelligence** — 4-dimension scoring (cascade value, epic momentum, capability match, freshness) recommends the highest-leverage work for each agent.
+- **Quality enforcement** — 34 deterministic validation steps enforce your workflow. Dependencies, integrity rules, quality gates — real code, not LLM instructions.
+- **Institutional memory** — structured context comments capture what was built, what was decided, what interfaces were created. The next agent inherits accumulated understanding.
+
+Plus multi-agent coordination (task locking, work distribution, handoff), full audit trail, compliance scoring, and three built-in methodologies.
+
+## Pick your methodology
+
+ido4 is methodology-agnostic. The engine reads profiles; profiles define everything.
+
+**Hydro** — Wave-based delivery with epic integrity. All tasks in an epic ship together. Five governance principles. Built for AI-augmented consulting teams.
+
+**Scrum** — Sprint-based execution with type-scoped pipelines. User stories need acceptance criteria. Bugs skip dependency checks. Spikes have relaxed DoD. Tech debt requires 2 reviewers.
+
+**Shape Up** — Fixed time, variable scope. Six-week cycles with a circuit breaker — if a bet doesn't ship by deadline, it's killed. No extensions. Scope gets hammered, not timelines.
+
+```
+> Initialize ido4 with Scrum for my-org/my-project
+```
+
+That's it. ido4 creates the GitHub Project, sets up fields and statuses matching your methodology, and starts governing.
+
+## What you get
+
+**58 MCP tools** (Hydro) / 56 (Scrum) / 54 (Shape Up) — generated dynamically from your methodology profile. Every write tool validates through the BRE, supports dry-run, and creates an audit entry.
+
+**21 skills** — intelligent governance workflows. Morning standup that spots cascade blockers. Sprint planning that enforces Definition of Ready per work item type. Retrospectives with real cycle time data. Zero-friction onboarding with auto-clone demo, guided four-act demo walkthrough, and interactive sandbox exploration.
+
+**4 agents** — a PM agent with persistent memory, a code analyzer for spec decomposition, a technical spec writer, and a spec reviewer.
+
+## Quick links
+
+| I want to... | Go here |
+|---|---|
+| Get running in 5 minutes | [Installation](getting-started/installation.md) |
+| See governance in action | [Sandbox Demo](getting-started/sandbox.md) |
+| Understand the methodology options | [Methodologies](concepts/methodologies.md) |
+| See all available tools | [Tool Reference](reference/tools.md) |
+| Learn how the BRE works | [Business Rule Engine](concepts/business-rule-engine.md) |
+| Set up multiple AI agents | [Multi-Agent Governance](concepts/multi-agent.md) |
+| Configure for enterprise | [Enterprise Features](enterprise/overview.md) |
+| Look up a term | [Glossary](concepts/glossary.md) |

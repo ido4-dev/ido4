@@ -129,7 +129,7 @@ CI Workflows (`.github/workflows/`):
 
 - **npm**: `@ido4/core`, `@ido4/mcp` (v0.5.0) — https://www.npmjs.com/org/ido4
 - **GitHub**: https://github.com/ido4-dev/ido4
-- **Docs (GitBook)**: https://hydro-dev.gitbook.io/ido4 — auto-syncs from `docs/` directory
+- **Docs (Starlight)**: https://docs.ido4.dev — built with Astro Starlight, hosted on Firebase
 - **Website**: ido4.dev (separate repo)
 
 ## Documentation Sync

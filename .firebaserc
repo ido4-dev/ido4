@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "ido4-2f468"
+  },
+  "targets": {
+    "ido4-2f468": {
+      "hosting": {
+        "docs": [
+          "ido4-documentation"
+        ]
+      }
+    }
+  }
+}

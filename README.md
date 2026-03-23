@@ -110,7 +110,7 @@ Every score is deterministic — computed from dependency graphs,
 capability completion ratios, agent capabilities, and audit timestamps.
 ```
 
-The sandbox works identically for all three methodologies — Hydro (waves/epics), Scrum (sprints), and Shape Up (cycles/bets). The governance adapts to your methodology; the engine stays the same. [Try the sandbox demo →](https://hydro-dev.gitbook.io/ido4/getting-started/sandbox)
+The sandbox works identically for all three methodologies — Hydro (waves/epics), Scrum (sprints), and Shape Up (cycles/bets). The governance adapts to your methodology; the engine stays the same. [Try the sandbox demo →](https://docs.ido4.dev/getting-started/sandbox/)
 
 ## Quick Start
 

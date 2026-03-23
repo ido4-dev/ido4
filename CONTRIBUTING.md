@@ -50,7 +50,7 @@ ido4-MCP/
 │   └── mcp/        # @ido4/mcp — MCP server (STDIO transport)
 ├── architecture/   # Architecture decision docs
 ├── diagrams/       # HTML architecture diagrams
-├── docs/           # Documentation (GitBook — auto-syncs)
+├── docs/           # Documentation (Astro Starlight)
 ├── ideas/          # Ideas backlog
 ├── package.json    # Workspace root
 └── tsconfig.json   # Shared TypeScript config

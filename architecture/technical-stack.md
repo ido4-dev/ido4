@@ -112,7 +112,7 @@ Both packages are published at the same version. `./scripts/release.sh <version>
 | npm | `@ido4/core@0.5.0` | Public |
 | npm | `@ido4/mcp@0.5.0` | Public |
 | GitHub | `ido4-dev/ido4` | Public |
-| GitBook | `hydro-dev.gitbook.io/ido4` | Auto-syncs from `docs/` |
+| Docs (Starlight) | `docs.ido4.dev` | Built with Astro Starlight, hosted on Firebase |
 | Global install | `npx @ido4/mcp` | Works |
 
 ## Plugin Architecture (Claude Code)
