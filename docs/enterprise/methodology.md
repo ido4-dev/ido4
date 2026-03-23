@@ -6,9 +6,9 @@ ido4 is methodology-agnostic. The governance engine reads methodology profiles t
 
 | Profile | ID | Tools | Key Feature |
 |---|---|---|---|
-| **Hydro | 58 | Wave-based governance with epic integrity |
+| **Hydro** | `hydro` | 58 | Wave-based governance with epic integrity |
 | **Scrum** | `scrum` | 56 | Sprint-based with type-scoped pipelines |
-| **Shape Up** | `shape-up` | 53 | Fixed time, variable scope, circuit breaker |
+| **Shape Up** | `shape-up` | 54 | Fixed time, variable scope, circuit breaker |
 
 Select during initialization:
 
@@ -202,6 +202,6 @@ Shape Up with required completion context on every ship:
 }
 ```
 
-## 32 Available Validation Steps
+## 34 Available Validation Steps
 
 All steps are available for composition in custom profiles. See the [Business Rule Engine](../concepts/business-rule-engine.md) documentation for the complete step reference with parameters.

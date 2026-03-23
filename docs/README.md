@@ -2,34 +2,42 @@
 
 **Your AI agents write code. ido4 gives them shared understanding, institutional memory, and quality enforcement.**
 
-ido4 is the MCP server that makes AI-hybrid software development work at scale. It sits inside your AI coding environment and gives every session full project context — what to build, what was built before, who depends on your output. Deterministic governance validates every action. Institutional memory compounds knowledge across sessions. Task intelligence ensures agents focus on the highest-leverage work.
+ido4 is the platform that makes AI-hybrid software development work at scale. It sits inside your AI coding environment and gives every session full project context — what to build, what was built before, who depends on your output. Task intelligence recommends the highest-leverage work. Deterministic governance validates every action. Institutional memory compounds knowledge across sessions.
 
 ```
-Agent: "Start task #42"
+> What should I work on?
 
-ido4 BRE:
-  + Dependencies satisfied (#38, #41 both Done)
-  + Assigned to active sprint
-  + Spec has acceptance criteria
-  + AI suitability: assisted (human review required)
+get_next_task { agentId: "agent-alpha" }
+  Recommended: #42 Auth token rotation (score: 72)
+  Unblocks 3 downstream. Epic is 60% complete — finish it.
 
-  Transitioning to In Progress.
-  3 downstream tasks will unblock when this ships.
+> Load context for #42
+
+get_task_execution_data { issueNumber: 42 }
+  ✓ Upstream: #38 built JWT refresh (RSA-256, 30min TTL)
+  ✓ Siblings: #39, #40 established error handling pattern
+  ✓ Downstream: #45, #47, #51 waiting on this task
+
+> Start the task
+
+start_task { issueNumber: 42 }
+  ✓ BRE: 6/6 steps passed. Transitioning to In Progress.
 ```
 
-Every state change validated. Every decision audited. Every agent coordinated.
+The agent didn't start from scratch. It knew what to work on, why it matters, what was built upstream, and who depends on its output. That's ido4.
 
 ## Why ido4 exists
 
 AI coding agents are powerful but stateless. Each session starts fresh — no memory of what other agents built, no understanding of your methodology, no awareness of dependencies or deadlines.
 
-ido4 solves this by being the **governance layer** between your agents and your project:
+ido4 bridges this gap with four capabilities:
 
-- **34 validation steps** enforce your workflow before any status changes
-- **Full audit trail** records who did what, when, and whether the rules were followed
-- **Context delivery** assembles upstream decisions, downstream needs, and sibling progress into a single call
-- **Multi-agent coordination** with task locking, intelligent work distribution, and handoff
-- **Three methodologies** built in — or bring your own
+- **Context intelligence** — one call assembles task spec, upstream decisions, sibling patterns, downstream consumers, risk flags. No agent starts blind.
+- **Task intelligence** — 4-dimension scoring (cascade value, epic momentum, capability match, freshness) recommends the highest-leverage work for each agent.
+- **Quality enforcement** — 34 deterministic validation steps enforce your workflow. Dependencies, integrity rules, quality gates — real code, not LLM instructions.
+- **Institutional memory** — structured context comments capture what was built, what was decided, what interfaces were created. The next agent inherits accumulated understanding.
+
+Plus multi-agent coordination (task locking, work distribution, handoff), full audit trail, compliance scoring, and three built-in methodologies.
 
 ## Pick your methodology
 
@@ -49,7 +57,7 @@ That's it. ido4 creates the GitHub Project, sets up fields and statuses matching
 
 ## What you get
 
-**58 MCP tools** (Hydro) / 56 (Scrum) / 53 (Shape Up) — generated dynamically from your methodology profile. Every write tool validates through the BRE, supports dry-run, and creates an audit entry.
+**58 MCP tools** (Hydro) / 56 (Scrum) / 54 (Shape Up) — generated dynamically from your methodology profile. Every write tool validates through the BRE, supports dry-run, and creates an audit entry.
 
 **21 skills** — intelligent governance workflows. Morning standup that spots cascade blockers. Sprint planning that enforces Definition of Ready per work item type. Retrospectives with real cycle time data. Zero-friction onboarding with auto-clone demo, guided four-act demo walkthrough, and interactive sandbox exploration.
 

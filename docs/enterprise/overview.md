@@ -46,9 +46,9 @@ Every claim is backed by data. Every metric is derived from actual events. The c
 
 | Profile | Key Feature | Tool Count |
 |---|---|---|
-| Hydro | 58 |
+| Hydro | Wave-based governance with epic integrity | 58 |
 | Scrum | Sprint-based with type-scoped DoR/DoD | 56 |
-| Shape Up | Cycle-based with circuit breaker | 53 |
+| Shape Up | Cycle-based with circuit breaker | 54 |
 
 ### Profile Inheritance
 

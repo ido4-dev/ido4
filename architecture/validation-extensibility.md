@@ -40,7 +40,7 @@ ValidationResult { canProceed, reason, details[], suggestions[] }
 
 ## How Steps Are Registered
 
-The `registerAllBuiltinSteps()` function registers all 32 built-in steps with the registry. Each registration is a factory function:
+The `registerAllBuiltinSteps()` function registers all 34 built-in steps with the registry. Each registration is a factory function:
 
 ```typescript
 // Stateless steps — no dependencies needed

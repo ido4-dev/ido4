@@ -23,7 +23,7 @@ ido4-MCP/
 The domain layer. Context assembly, task intelligence, work distribution, institutional memory (audit trail, analytics, compliance scoring), BRE (Business Rule Engine) validation pipeline (34 steps), container management, integrity enforcement, dependency analysis, merge readiness, ingestion pipeline, strategic spec parser. Profile-driven state machine. **Zero dependencies on CLI frameworks, terminal formatting, or MCP SDK.**
 
 ### @ido4/mcp
-The MCP server. Wraps @ido4/core domain services as MCP tools, resources, and prompts — dynamically generated from the active methodology profile. Composite aggregators assemble full project context in single calls. Uses STDIO transport for Claude Code integration. Hydro: 58 tools, Scrum: 56 tools, Shape Up: 53 tools.
+The MCP server. Wraps @ido4/core domain services as MCP tools, resources, and prompts — dynamically generated from the active methodology profile. Composite aggregators assemble full project context in single calls. Uses STDIO transport for Claude Code integration. Hydro: 58 tools, Scrum: 56 tools, Shape Up: 54 tools.
 
 ### ido4dev Plugin (separate repo)
 The Claude Code plugin lives at [ido4-dev/ido4dev](https://github.com/ido4-dev/ido4dev). 21 skills, 4 agents, 2 hook types. Distributed via the [ido4-plugins marketplace](https://github.com/ido4-dev/ido4-plugins). Install: `/plugin install ido4dev@ido4-plugins`.
@@ -127,7 +127,7 @@ CI Workflows (`.github/workflows/`):
 
 ## Distribution
 
-- **npm**: `@ido4/core`, `@ido4/mcp` (v0.4.0) — https://www.npmjs.com/org/ido4
+- **npm**: `@ido4/core`, `@ido4/mcp` (v0.5.0) — https://www.npmjs.com/org/ido4
 - **GitHub**: https://github.com/ido4-dev/ido4
 - **Docs (GitBook)**: https://hydro-dev.gitbook.io/ido4 — auto-syncs from `docs/` directory
 - **Website**: ido4.dev (separate repo)

@@ -1,6 +1,6 @@
 # Sandbox System Specification
 
-> **Status**: Design Complete — Ready for Implementation
+> **Status**: IMPLEMENTED (Blocks 1-5) — Algorithmic ScenarioBuilder from ingestion pipeline. See `packages/core/src/domains/sandbox/scenario-builder.ts`.
 > **Author**: AI-Hybrid Session (2026-03-21)
 > **Scope**: Full sandbox system redesign — enhanced governance scenarios, demo codebase, guided demo, onboarding, interactive exploration, full pipeline demonstration
 > **Touches**: @ido4/core (scenarios, types), @ido4/mcp (tools), plugin (skills), new repo (ido4-demo)

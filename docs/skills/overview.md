@@ -92,7 +92,7 @@ These are MCP tools defined in `@ido4/mcp` — available to any MCP client, not 
 | Platform | Claude Code (with plugin) | Any MCP client | Claude Code (with plugin) |
 | Invocation | `/ido4dev:standup` | MCP prompt protocol | Invoked by skills |
 | Features | Memory, file access, hooks | Tool calls + reasoning | Specialized instructions, model selection |
-| Count | 18 | 8 | 4 |
+| Count | 21 | 8 | 4 |
 | Purpose | Intelligent workflows | Portable guidance | Focused AI roles |
 
 ## Cross-Skill Intelligence Loop

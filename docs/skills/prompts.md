@@ -9,7 +9,7 @@ ido4 provides 8 MCP prompts — portable intelligence frameworks that work with 
 | Platform | Claude Code only | Any MCP client |
 | Invocation | `/ido4dev:standup` | MCP prompt protocol |
 | Features | Memory, file access, hooks | Tool calls only |
-| Count | 18 | 8 |
+| Count | 21 | 8 |
 
 If you're using Claude Code with the plugin, use skills. If you're using another MCP client (Cursor, Windsurf, etc.), use prompts.
 

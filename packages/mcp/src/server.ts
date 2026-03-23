@@ -45,7 +45,7 @@ function registerMethodologyTools(server: McpServer, profile: MethodologyProfile
 export function createServer(profile: MethodologyProfile | null): McpServer {
   const server = new McpServer({
     name: 'ido4',
-    version: '0.1.0',
+    version: '0.5.0',
   });
 
   if (profile) {

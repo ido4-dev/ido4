@@ -69,9 +69,9 @@ Rather than storing pre-computed context, ido4 assembles context on demand:
 
 ## The Four AI Touchpoints
 
-### 1. Skills (18)
+### 1. Skills (21)
 
-Claude Code SKILL.md files that compose MCP tools into governance workflows. Skills are structured prompts — they tell Claude what to do, not how to think.
+Claude Code SKILL.md files that compose MCP tools into governance workflows. Skills are structured prompts — they tell Claude what to do, not how to think. Includes onboard, guided-demo, sandbox-explore, decompose, and methodology-specific variants.
 
 ### 2. Agents (4)
 
@@ -81,9 +81,9 @@ Claude Code AGENT.md files for specialized roles:
 - **Technical Spec Writer** — Produces implementation tasks from canvas
 - **Spec Reviewer** — Independent quality review of specs
 
-### 3. Prompts (7)
+### 3. Prompts (8)
 
-MCP server prompts portable to any MCP-compatible client. Same content as skills but without Claude Code-specific features (memory, file access).
+MCP server prompts portable to any MCP-compatible client. Same content as skills but without Claude Code-specific features (memory, file access). Includes the execute-task prompt for methodology-aware task execution guidance.
 
 ### 4. Execution Prompts (per methodology)
 

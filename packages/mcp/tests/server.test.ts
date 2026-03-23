@@ -258,7 +258,7 @@ describe('createServer — Scrum profile', () => {
 });
 
 describe('createServer — Shape Up profile', () => {
-  it('registers 53 tools total', () => {
+  it('registers 54 tools total', () => {
     const server = createServer(SHAPE_UP_PROFILE);
     expect(getRegisteredToolNames(server)).toHaveLength(54);
   });

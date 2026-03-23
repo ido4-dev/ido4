@@ -24,7 +24,7 @@ ido4 is a layered system where each layer has a clear responsibility and strict 
 +--------------------------------------------------------------+
 |  Layer 2: MCP Server (packages/mcp -- @ido4/mcp)             |
 |                                                               |
-|  58 Tools (Hydro)  9 Resources       7 Prompts               |
+|  58 Tools (Hydro)  9 Resources       8 Prompts               |
 |  56 Tools (Scrum)  project://        standup                  |
 |  54 Tools (ShapeUp)methodology://    plan-container           |
 |                    audit://          board                     |
@@ -32,10 +32,10 @@ ido4 is a layered system where each layer has a clear responsibility and strict 
 |  profile:          compliance://     health                    |
 |  - Transitions     coordination://   retro                    |
 |  - Containers                        execute-task             |
-|                    5 Aggregators                               |
+|                    6 Aggregators                               |
 |                    standup-data, board-data,                   |
 |                    compliance-data, health-data,               |
-|                    task-execution-data                         |
+|                    coordination-data, task-execution-data      |
 +--------------------------------------------------------------+
 |  Layer 1: Core Domain (packages/core -- @ido4/core)           |
 |                                                               |
@@ -149,10 +149,10 @@ Zero dependencies on CLI frameworks, MCP SDK, or terminal formatting. Contains:
 ### @ido4/mcp
 
 Depends on `@ido4/core` and `@modelcontextprotocol/sdk`. Contains:
-- Dynamic tool registration from profile (Hydro: 57, Scrum: 56, Shape Up: 53)
+- Dynamic tool registration from profile (Hydro: 58, Scrum: 56, Shape Up: 54)
 - Resource providers (9 resources)
-- Prompt definitions (7 prompts, methodology-specific)
-- Aggregators (5 composite data fetchers for skills)
+- Prompt definitions (8 prompts, methodology-specific)
+- Aggregators (6 composite data fetchers for skills)
 - STDIO transport setup
 
 **Can be used with any MCP client**, not just Claude Code.

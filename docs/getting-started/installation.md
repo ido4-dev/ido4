@@ -9,19 +9,15 @@
 
 ## Option 1: Claude Code Plugin (Recommended)
 
-The plugin bundles the MCP server with 21 governance skills, 4 agents, and governance hooks.
+The plugin bundles the MCP server with 21 governance skills, 4 agents, and governance hooks. Install from the marketplace — no clone, no build:
 
 ```bash
-# Clone and build
-git clone https://github.com/ido4-dev/ido4.git
-cd ido4-MCP
-npm install && npm run build
-
 # Set your GitHub token
 export GITHUB_TOKEN=$(gh auth token)
 
-# Launch Claude Code with ido4
-claude --plugin-dir ../ido4dev
+# Add the marketplace and install
+/plugin marketplace add ido4-dev/ido4-plugins
+/plugin install ido4dev@ido4-plugins
 ```
 
 Once loaded, you'll see ido4 tools available in Claude Code.
@@ -71,8 +67,25 @@ const container = await ServiceContainer.create({
 });
 
 // Use any service
-const status = await container.waveService.getWaveStatus('wave-001');
+const status = await container.containerService.getContainerStatus('wave-001');
 const result = await container.taskService.validateTransition(42, 'start', actor);
+```
+
+## Option 4: Local Development (Plugin Contributors)
+
+For developing the ido4dev plugin itself:
+
+```bash
+# Clone the plugin repo
+git clone https://github.com/ido4-dev/ido4dev.git
+
+# Clone and build the MCP server
+git clone https://github.com/ido4-dev/ido4.git
+cd ido4-MCP
+npm install && npm run build
+
+# Launch Claude Code with local plugin
+claude --plugin-dir ../ido4dev
 ```
 
 ## GitHub Token Scopes

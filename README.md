@@ -23,20 +23,36 @@
 
 AI agents can write code. But can they understand the full project? Know what was built before them? Pick the highest-leverage task? Build on decisions from previous sessions? Coordinate with other agents without conflicts?
 
-**ido4** is an [MCP](https://modelcontextprotocol.io/) server that makes AI-hybrid software development actually work. It runs inside Claude Code (and any MCP-compatible AI environment), giving every AI session full project context — what to build, what's already built, who depends on your output — with deterministic governance ensuring quality at every step.
+**ido4** is the platform that makes AI-hybrid software development actually work. It runs inside Claude Code (and any MCP-compatible AI environment), giving every AI session full project context — what to build, what's already built, who depends on your output — with deterministic governance ensuring quality at every step.
 
 The system carries the knowledge, not the agent. Every session starts with accumulated project understanding. Every action is validated through **34 real validation steps** — not LLM instructions that can be hallucinated. Every outcome is recorded so the next session is smarter than the last.
 
 ```
-Developer: "Start task #268"
+> What should I work on?
 
-ido4 BRE: BLOCKED — 3 validation failures:
-  ✗ StatusTransition    — Blocked → In Progress is not a valid path
-  ✗ DependencyValidation — dependency #267 not completed (In Progress)
-  ✗ StartFromReadyForDev — task must be in Ready for Dev status
+get_next_task { agentId: "agent-alpha" }
+  Recommended: #42 Auth token rotation (score: 72)
+  cascade:15 | momentum:25 | capability:20 | freshness:12
+  Unblocks 3 downstream tasks. Epic is 60% complete — finish it.
 
-  Allowed action: unblock (the only valid path forward)
+> Load the full context
+
+get_task_execution_data { issueNumber: 42 }
+  ✓ Task spec + acceptance criteria loaded
+  ✓ Upstream: #38 built JWT refresh endpoint (RSA-256, 30min TTL)
+  ✓ Upstream: #41 created user schema with bcrypt hashing
+  ✓ Siblings: #39, #40 established error handling pattern
+  ✓ Downstream: #45, #47, #51 waiting on this task
+  Risk: critical path — 3 of 5 remaining epic tasks depend on #42
+
+> Start the task
+
+start_task { issueNumber: 42 }
+  ✓ BRE Validation: 6/6 steps passed
+  Task #42 → In Progress. Lock acquired.
 ```
+
+The agent didn't start from scratch. It knew what to work on, why it matters, what was built upstream, and who depends on its output. That's ido4.
 
 ## The Problem
 
@@ -55,7 +71,6 @@ Traditional project management tools (Linear, Jira, Notion) track work after the
 The sandbox creates a real GitHub project from a [demo codebase](https://github.com/ido4-dev/ido4-demo), embeds governance violations, and discovers them live — using the same tools that govern real projects:
 
 ```
-$ claude --plugin-dir ../ido4dev
 > /ido4dev:onboard
 
 Demo project cloned. Creating governed sandbox...
@@ -93,48 +108,21 @@ agent-beta (channel providers — available):
 
 Every score is deterministic — computed from dependency graphs,
 capability completion ratios, agent capabilities, and audit timestamps.
-
-══════════════════════════════════════════════
-  MERGE READINESS GATE (6 checks)
-══════════════════════════════════════════════
-
-check_merge_readiness(Retry Policy):
-  ✓ Workflow Compliance   — full audit trail (start → review)
-  ✗ PR Review             — 0 approvals, 1 required
-  ✓ Dependency Completion — all upstream satisfied
-  ✓ Capability Integrity  — Notification Core in single wave
-  ✓ Security Gates        — no vulnerability alerts
-  ✓ Compliance Threshold  — score 88 (B+)
-  Verdict: NOT READY TO MERGE
-
-══════════════════════════════════════════════
-  BRE ENFORCEMENT
-══════════════════════════════════════════════
-
-validate_all_transitions(Email Provider — Blocked):
-  start   → BLOCKED (dependency Delivery Engine not complete)
-  review  → BLOCKED (wrong status, no PR)
-  approve → BLOCKED (can't jump to Done)
-  unblock → ALLOWED ← the only valid path
 ```
 
-These aren't hypothetical checks. These are the same governance rules that run on every real task, every real transition, every real project. [Try the sandbox demo →](https://hydro-dev.gitbook.io/ido4/getting-started/sandbox)
+The sandbox works identically for all three methodologies — Hydro (waves/epics), Scrum (sprints), and Shape Up (cycles/bets). The governance adapts to your methodology; the engine stays the same. [Try the sandbox demo →](https://hydro-dev.gitbook.io/ido4/getting-started/sandbox)
 
 ## Quick Start
 
-### As a Claude Code Plugin
+### As a Claude Code Plugin (Recommended)
 
 ```bash
-# Clone and build
-git clone https://github.com/ido4-dev/ido4.git
-cd ido4-MCP
-npm install && npm run build
-
 # Set your GitHub token
 export GITHUB_TOKEN=$(gh auth token)
 
-# Launch Claude Code with ido4 governance
-claude --plugin-dir ../ido4dev
+# Install from the marketplace (no clone, no build)
+/plugin marketplace add ido4-dev/ido4-plugins
+/plugin install ido4dev@ido4-plugins
 
 # Try the interactive sandbox demo
 > /ido4dev:onboard
@@ -182,6 +170,26 @@ Every AI session starts with full project understanding — not a blank slate:
 - **`get_standup_data`** — Full project briefing: blocked tasks, compliance score, recent audit events, agent status, analytics — everything a session needs to orient.
 - **Structured context comments** — Agents write what they built; next agent reads accumulated knowledge. Institutional memory that compounds across sessions.
 
+### The Read-Execute-Write Loop
+
+This is how institutional memory grows even though individual agents are stateless:
+
+```
+Agent reads context    →  upstream #38 built /auth/refresh (RSA-256, 30min TTL)
+                          upstream #41 created user schema (bcrypt, 3 tables)
+                          sibling #39 established error handling pattern
+
+Agent executes work    →  builds /auth/rotate with sliding window + circuit breaker
+
+Agent writes context   →  "Created POST /auth/rotate. Used sliding window
+                           (not fixed TTL) for active sessions. Circuit breaker
+                           shared with refresh — single failure domain."
+
+Next agent reads       →  gets ALL accumulated context automatically
+```
+
+Every completed task enriches the system. The 10th agent working on a project has access to everything the first 9 built, decided, and documented — without any of them being "specialized" or persistent.
+
 ### Deterministic Business Rule Engine
 
 Every task transition runs through a composable validation pipeline — 34 built-in steps across 5 categories, configurable per methodology:
@@ -190,17 +198,17 @@ Every task transition runs through a composable validation pipeline — 34 built
 |---|---|
 | **Workflow** | Status transitions, state machine paths, required fields |
 | **Dependencies** | Completion checks, circular detection, cascade analysis |
-| **Governance** | Wave assignment, epic integrity, active wave singularity |
+| **Governance** | Container assignment, integrity rules, singularity constraints |
 | **Quality Gates** | PR reviews, test coverage, security scans, task locks |
 | **Risk** | AI suitability assessment, risk level enforcement |
 
-The BRE is **configurable** — define your own methodology in `.ido4/methodology.json`:
+The BRE is **configurable** — methodology profiles define which steps run for which transitions:
 
 ```json
 {
   "transitions": {
     "start": {
-      "steps": ["StatusTransition", "Dependency", "WaveAssignment", "EpicIntegrity"]
+      "steps": ["StatusTransition", "Dependency", "ContainerAssignment", "ContainerIntegrity"]
     },
     "approve": {
       "steps": ["StatusTransition", "PRReview:minApprovals=2", "SecurityScan", "TestCoverage:threshold=80"]
@@ -223,13 +231,26 @@ Built for teams deploying multiple AI agents on the same codebase:
 Every governance action creates an immutable audit entry:
 
 - **Event-sourced** — Append-only JSONL with in-memory ring buffer for fast queries
-- **Compliance scoring** — Deterministic 0-100 score across 5 weighted categories: BRE pass rate (40%), quality gates (20%), process adherence (20%), epic integrity (10%), flow efficiency (10%)
+- **Compliance scoring** — Deterministic 0-100 score across 5 weighted categories: BRE pass rate (40%), quality gates (20%), process adherence (20%), container integrity (10%), flow efficiency (10%)
 - **Real analytics** — Cycle time, lead time, throughput, blocking time — computed from actual events, not estimates
 - **Queryable** — Filter by time range, actor, transition type, issue number, session
 
+### Decomposition Pipeline
+
+The two-artifact pipeline bridges stakeholder understanding and implementation:
+
+```
+ido4shape (conversation) → strategic spec → ido4 MCP (codebase analysis) → technical spec → GitHub issues
+      The WHAT                                    The HOW
+```
+
+- **ido4shape** captures multi-stakeholder requirements through conversation — produces a strategic spec with capabilities, success conditions, and functional dependencies
+- **ido4 MCP** decomposes the strategic spec against the actual codebase — a code analysis agent explores the repo, then a technical spec writer produces implementation tasks with effort, risk, AI suitability, and code-level dependencies
+- The **ingestion pipeline** creates GitHub issues: capabilities become epics/bets, tasks become sub-issues — every task traceable to a strategic requirement
+
 ### 21 Intelligence Skills
 
-Skills are intelligent workflows that compose multiple tools into project intelligence and governance insights. Core skills work across all methodologies; methodology-specific variants speak your methodology's language:
+Skills are intelligent workflows that compose multiple tools into project intelligence. Core skills work across all methodologies; methodology-specific variants speak your methodology's language:
 
 | Skill | What It Does |
 |---|---|
@@ -253,33 +274,33 @@ A 6-check merge readiness gate that catches what CI alone can't:
 1. **Workflow Compliance** — Did the task follow the full governance workflow?
 2. **PR Review** — Does the PR have the required number of approving reviews?
 3. **Dependency Completion** — Are all upstream dependencies satisfied?
-4. **Epic Integrity** — Is the epic cohesive within its wave?
+4. **Container Integrity** — Is the grouping container cohesive within its execution container?
 5. **Security Gates** — Are there vulnerability alerts?
 6. **Compliance Threshold** — Does the project meet its compliance score minimum?
 
 Emergency overrides are available — but they're audited and impact the compliance score. Governance doesn't prevent action; it ensures accountability.
 
-## The 5 Governance Principles
+## Governance Principles
 
-ido4's governance model is built on 5 principles that cannot be bypassed:
+Each methodology defines its own principles — deterministic rules enforced by the BRE that cannot be bypassed:
 
-| # | Principle | What It Means |
-|---|---|---|
-| 1 | **Epic Integrity** | All tasks in an epic MUST be in the same wave. No partial feature delivery. |
-| 2 | **Active Wave Singularity** | Only one wave can be active at a time. Focus, not scatter. |
-| 3 | **Dependency Coherence** | A task's wave must be >= its dependencies' waves. No forward dependencies. |
-| 4 | **Self-Contained Execution** | Each wave contains everything needed for its own completion. |
-| 5 | **Atomic Completion** | A wave is complete only when ALL its tasks reach Done. |
+| Methodology | Key Principles |
+|---|---|
+| **Hydro** | Epic Integrity (all tasks in an epic must be in the same wave), Active Wave Singularity, Dependency Coherence, Self-Contained Execution, Atomic Completion |
+| **Scrum** | Sprint Singularity, Dependency Coherence, Atomic Sprint Completion. Epics span sprints (no epic-sprint integrity). Type-scoped pipelines enforce different quality gates per work item type. |
+| **Shape Up** | Cycle Singularity, Bet-Cycle Integrity, Circuit Breaker (unfinished at cycle end = killed), Fixed Appetite (time fixed, scope variable) |
+
+Principles aren't suggestions — they're compiled into the BRE pipeline. An agent can't start a task that violates dependency coherence. A wave can't close with incomplete tasks. A bet that exceeds its cycle gets killed. The profile defines it. The engine enforces it.
 
 ## Architecture
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  Claude Code Plugin                                          │
+│  Claude Code Plugin (ido4dev — separate repo)                 │
 │  21 Skills · 4 Agents · 2 Governance Hooks                   │
 ├──────────────────────────────────────────────────────────────┤
 │  MCP Server (@ido4/mcp)                                      │
-│  58 Tools · 9 Resources · 7 Prompts · STDIO Transport        │
+│  58 Tools · 9 Resources · 8 Prompts · STDIO Transport        │
 ├──────────────────────────────────────────────────────────────┤
 │  Core Domain Layer (@ido4/core)                               │
 │                                                               │
@@ -304,9 +325,11 @@ ido4's governance model is built on 5 principles that cannot be bypassed:
 |---|---|---|
 | [`@ido4/core`](packages/core/) | `npm i @ido4/core` | Domain logic — BRE (34 steps), profile-driven services, repositories. Zero CLI dependencies. |
 | [`@ido4/mcp`](packages/mcp/) | `npm i @ido4/mcp` | MCP server — STDIO transport, 58 tools (Hydro), 9 resources, 8 prompts. |
-| [`ido4dev`](https://github.com/ido4-dev/ido4dev) | — | Claude Code plugin — 21 skills, 4 agents, governance hooks. |
+| [`ido4dev`](https://github.com/ido4-dev/ido4dev) | — | Claude Code plugin — 21 skills, 4 agents, governance hooks. Distributed via [marketplace](https://github.com/ido4-dev/ido4-plugins). |
 
-### 51 MCP Tools
+### 58 MCP Tools (Hydro)
+
+Tool counts vary by methodology — Hydro: 58, Scrum: 56, Shape Up: 54 — because container and transition tools are generated dynamically from the methodology profile.
 
 <details>
 <summary><strong>Task Governance (18 tools)</strong></summary>
@@ -389,7 +412,7 @@ npm install
 npm run build
 npm run test          # 1,731 tests
 
-# Run with plugin
+# Run with plugin (local development)
 claude --plugin-dir ../ido4dev
 ```
 

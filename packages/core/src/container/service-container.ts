@@ -155,13 +155,15 @@ export class ServiceContainer {
    * Loads project config, initializes GitHub client, constructs all services.
    * Call once per MCP session, reuse across tool calls.
    *
-   * 6-layer initialization:
+   * 9-layer initialization:
    * 1. Defaults (session ID, logger, event bus)
    * 2. Configuration (project config, workflow config, git workflow config)
-   * 3. Infrastructure (credential manager, GraphQL client)
-   * 4. Repositories (issue, project, repository, epic)
-   * 5. Domain Services (epic, dependency, BRE)
-   * 6. Facade (workflow service, suggestion service, task service, container service)
+   * 3. Infrastructure (credential manager, GraphQL client, repositories)
+   * 4-5. Domain Services (epic, dependency, audit, agents, BRE)
+   * 6. Facade (workflow, suggestion, task, container services)
+   * 7. Analytics + Compliance
+   * 8. Work Distribution
+   * 9. Merge Readiness
    */
   static async create(config: ServiceContainerConfig): Promise<ServiceContainer> {
     // Layer 1: Defaults

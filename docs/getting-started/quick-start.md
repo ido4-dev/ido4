@@ -102,5 +102,5 @@ When an agent finishes, `complete_and_handoff` atomically approves the task, rel
 
 - **[Sandbox Demo](sandbox.md)** — See governance discover 5 embedded violations in a real GitHub project. Available for [Hydro](sandbox.md#hydro-sandbox), [Scrum](sandbox.md#scrum-sandbox), and [Shape Up](sandbox.md#shape-up-sandbox).
 - **[Methodologies](../concepts/methodologies.md)** — Understand the differences between Hydro, Scrum, and Shape Up
-- **[Business Rule Engine](../concepts/business-rule-engine.md)** — The 32 validation steps under the hood
-- **[Skills](../skills/overview.md)** — 18 intelligent governance workflows
+- **[Business Rule Engine](../concepts/business-rule-engine.md)** — The 34 validation steps under the hood
+- **[Skills](../skills/overview.md)** — 21 intelligent governance workflows

@@ -61,7 +61,7 @@ Key terms used across ido4 documentation, organized by concept area.
 | Term | Definition |
 |---|---|
 | **BRE** | Business Rule Engine — the composable validation pipeline that evaluates every state transition against deterministic rules. |
-| **Validation Step** | A single check in the BRE pipeline. 32 built-in steps. Steps are parameterized and composable. |
+| **Validation Step** | A single check in the BRE pipeline. 34 built-in steps. Steps are parameterized and composable. |
 | **Pipeline** | An ordered sequence of validation steps configured for a specific transition type. |
 | **Dry Run** | Running the BRE pipeline without executing the transition. Shows what would pass/fail. |
 | **Skip Validation** | Bypassing BRE checks. Recorded in audit trail. Impacts compliance score. |

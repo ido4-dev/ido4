@@ -138,7 +138,7 @@ Raw Idea -> Shaped -> Bet On -> Building -> QA -> Shipped
 3. **Circuit Breaker** — Unfinished at cycle end = killed. No extensions.
 4. **Fixed Appetite** — Time fixed, scope variable.
 
-### 53 tools
+### 54 tools
 
 ---
 
@@ -208,4 +208,4 @@ Everything else inherits from Scrum. See [Configurable Methodology](../enterpris
 | Work Item Types | 5 | 5 | 1 |
 | Type-Scoped Pipelines | No | Yes | No |
 | Terminal States | 1 | 1 | 2 |
-| MCP Tools | 58 | 56 | 53 |
+| MCP Tools | 58 | 56 | 54 |

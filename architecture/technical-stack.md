@@ -14,7 +14,7 @@
 |---|---|---|
 | `@modelcontextprotocol/sdk` | MCP server implementation (STDIO transport) | `@ido4/mcp` |
 | `zod` | Schema validation for tool inputs, config, and runtime validation | Both packages |
-| `graphql-request` | GitHub GraphQL API client | `@ido4/core` |
+| `@octokit/graphql` | GitHub GraphQL API client | `@ido4/core` |
 
 **Zero CLI framework dependencies.** No oclif, no chalk, no terminal formatting. The domain layer (`@ido4/core`) has no opinion about how its output is displayed.
 
@@ -89,9 +89,9 @@ The engine reads methodology profiles (TypeScript constants or JSON files) and g
 |---|---|
 | Vitest | All tests — unit, integration, and service-level |
 
-**Test counts (v0.4.0):**
-- `@ido4/core`: 1,310 tests
-- `@ido4/mcp`: 457 tests (including server integration)
+**Test counts (v0.5.0):**
+- `@ido4/core`: 1,273 tests
+- `@ido4/mcp`: 458 tests (including server integration)
 - **Total**: 1,731 tests
 
 **Test philosophy**: Tests must test real behavior, not existence. `expect(true).toBe(true)` is forbidden. Cross-profile tests verify methodology-agnosticism — if a test only passes with one profile, there's a hardcoded string hiding.
@@ -109,8 +109,8 @@ Both packages are published at the same version. `./scripts/release.sh <version>
 
 | Channel | Package | Status |
 |---|---|---|
-| npm | `@ido4/core@0.4.0` | Public |
-| npm | `@ido4/mcp@0.4.0` | Public |
+| npm | `@ido4/core@0.5.0` | Public |
+| npm | `@ido4/mcp@0.5.0` | Public |
 | GitHub | `ido4-dev/ido4` | Public |
 | GitBook | `hydro-dev.gitbook.io/ido4` | Auto-syncs from `docs/` |
 | Global install | `npx @ido4/mcp` | Works |
