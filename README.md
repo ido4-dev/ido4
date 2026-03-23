@@ -8,7 +8,7 @@
   <a href="#see-it-in-action">See It In Action</a> &middot;
   <a href="#quick-start">Quick Start</a> &middot;
   <a href="#features">Features</a> &middot;
-  <a href="docs/README.md">Documentation</a> &middot;
+  <a href="https://docs.ido4.dev">Documentation</a> &middot;
   <a href="#architecture">Architecture</a>
 </p>
 

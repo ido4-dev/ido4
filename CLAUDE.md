@@ -124,6 +124,7 @@ Both `@ido4/core` and `@ido4/mcp` are published to npm at the same version. CI a
 CI Workflows (`.github/workflows/`):
 - `ci.yml` — Build + test on every push to `main` and on PRs
 - `publish.yml` — Publishes to npm on `v*` tags
+- `docs.yml` — Builds and deploys docs to Firebase on push to `main` when `docs/` changes
 
 ## Distribution
 
@@ -140,22 +141,22 @@ After any change that affects architecture, services, tools, profiles, validatio
 
 | Code Area | Affected Docs | Affected Diagrams |
 |---|---|---|
-| `packages/core/src/domains/tasks/` (BRE, validation steps) | `architecture/validation-extensibility.md`, `docs/concepts/business-rule-engine.md` | `diagrams/04-bre-pipeline.html` |
-| `packages/core/src/domains/audit/`, `analytics/`, `compliance/` | `architecture/event-sourced-governance.md`, `docs/concepts/audit-compliance.md`, `docs/enterprise/compliance.md` | `diagrams/03-event-sourcing.html` |
-| `packages/core/src/domains/agents/`, `distribution/`, `gate/` | `architecture/multi-agent-coordination.md`, `docs/concepts/multi-agent.md` | `diagrams/07-multi-agent.html` |
+| `packages/core/src/domains/tasks/` (BRE, validation steps) | `architecture/validation-extensibility.md`, `docs/src/content/docs/concepts/business-rule-engine.md` | `diagrams/04-bre-pipeline.html` |
+| `packages/core/src/domains/audit/`, `analytics/`, `compliance/` | `architecture/event-sourced-governance.md`, `docs/src/content/docs/concepts/audit-compliance.md`, `docs/src/content/docs/enterprise/compliance.md` | `diagrams/03-event-sourcing.html` |
+| `packages/core/src/domains/agents/`, `distribution/`, `gate/` | `architecture/multi-agent-coordination.md`, `docs/src/content/docs/concepts/multi-agent.md` | `diagrams/07-multi-agent.html` |
 | `packages/core/src/container/service-container.ts` | `architecture/technical-stack.md` | `diagrams/08-service-container.html` |
-| `packages/core/src/profiles/` | `architecture/methodology-runner.md`, `docs/enterprise/methodology.md` | `diagrams/05-profile-generation.html` |
+| `packages/core/src/profiles/` | `architecture/methodology-runner.md`, `docs/src/content/docs/enterprise/methodology.md` | `diagrams/05-profile-generation.html` |
 | `packages/core/src/domains/ingestion/` | `architecture/decomposition-pipeline.md`, `architecture/two-artifact-pipeline.md`, `architecture/spec-artifact-format.md` | `diagrams/06-decomposition-pipeline.html` |
 | `packages/mcp/src/` (tools, resources, prompts) | `architecture/vision-and-roadmap.md` (tool counts) | `diagrams/01-system-overview.html`, `diagrams/02-request-flow.html` |
-| [ido4dev plugin](https://github.com/ido4-dev/ido4dev) (skills, agents, hooks) | `docs/skills/overview.md`, `docs/skills/pm-agent.md` | `diagrams/09-plugin-layer.html` |
+| [ido4dev plugin](https://github.com/ido4-dev/ido4dev) (skills, agents, hooks) | `docs/src/content/docs/skills/overview.md`, `docs/src/content/docs/skills/pm-agent.md` | `diagrams/09-plugin-layer.html` |
 | Any architectural change | `architecture/vision-and-roadmap.md`, `CLAUDE.md` | `diagrams/00-system-block.html` |
 | Agent workflow changes | `architecture/context-delivery.md`, `architecture/llm-strategy.md` | `diagrams/10-agent-workflow.html` |
 
 ### Sync Rules
 
-1. **New validation step added?** Update step count in: `CLAUDE.md`, `docs/concepts/business-rule-engine.md`, `diagrams/04-bre-pipeline.html`, `diagrams/01-system-overview.html`
+1. **New validation step added?** Update step count in: `CLAUDE.md`, `docs/src/content/docs/concepts/business-rule-engine.md`, `diagrams/04-bre-pipeline.html`, `diagrams/01-system-overview.html`
 2. **New tool registered?** Update tool counts in: `CLAUDE.md`, `architecture/vision-and-roadmap.md`, `README.md`, website `SocialProofSection.tsx`
-3. **New skill/agent/hook added?** Update `docs/skills/overview.md`, `diagrams/09-plugin-layer.html`
+3. **New skill/agent/hook added?** Update `docs/src/content/docs/skills/overview.md`, `diagrams/09-plugin-layer.html`
 4. **New domain service?** Update `diagrams/08-service-container.html`, `architecture/technical-stack.md`
 5. **Profile changed?** Update `diagrams/05-profile-generation.html`, `architecture/methodology-runner.md`
 6. **Website repo** (`/Users/bogdanionutcoman/dev-projects/ido4-website/`) must be updated when public-facing numbers or identity framing changes
