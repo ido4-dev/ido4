@@ -1,8 +1,20 @@
 ---
-title: "ido4"
+title: ido4
+template: splash
+hero:
+  tagline: Your AI agents write code. ido4 gives them shared understanding, institutional memory, and quality enforcement.
+  actions:
+    - text: Get Started
+      link: /getting-started/installation/
+      icon: rocket
+      variant: primary
+    - text: View on GitHub
+      link: https://github.com/ido4-dev/ido4
+      icon: github
+      variant: secondary
 ---
 
-**Your AI agents write code. ido4 gives them shared understanding, institutional memory, and quality enforcement.**
+import { LinkCard, CardGrid } from '@astrojs/starlight/components';
 
 ido4 is the platform that makes AI-hybrid software development work at scale. It sits inside your AI coding environment and gives every session full project context — what to build, what was built before, who depends on your output. Task intelligence recommends the highest-leverage work. Deterministic governance validates every action. Institutional memory compounds knowledge across sessions.
 
@@ -67,13 +79,13 @@ That's it. ido4 creates the GitHub Project, sets up fields and statuses matching
 
 ## Quick links
 
-| I want to... | Go here |
-|---|---|
-| Get running in 5 minutes | [Installation](getting-started/installation.md) |
-| See governance in action | [Sandbox Demo](getting-started/sandbox.md) |
-| Understand the methodology options | [Methodologies](concepts/methodologies.md) |
-| See all available tools | [Tool Reference](reference/tools.md) |
-| Learn how the BRE works | [Business Rule Engine](concepts/business-rule-engine.md) |
-| Set up multiple AI agents | [Multi-Agent Governance](concepts/multi-agent.md) |
-| Configure for enterprise | [Enterprise Features](enterprise/overview.md) |
-| Look up a term | [Glossary](concepts/glossary.md) |
+<CardGrid>
+  <LinkCard title="Installation" description="Get running in 5 minutes" href="/getting-started/installation/" />
+  <LinkCard title="Sandbox Demo" description="See governance in action" href="/getting-started/sandbox/" />
+  <LinkCard title="Methodologies" description="Hydro, Scrum, or Shape Up" href="/concepts/methodologies/" />
+  <LinkCard title="Tool Reference" description="All 58 MCP tools" href="/reference/tools/" />
+  <LinkCard title="Business Rule Engine" description="34 validation steps" href="/concepts/business-rule-engine/" />
+  <LinkCard title="Multi-Agent" description="Coordinate multiple AI agents" href="/concepts/multi-agent/" />
+  <LinkCard title="Enterprise" description="Compliance, audit, quality gates" href="/enterprise/overview/" />
+  <LinkCard title="Glossary" description="Look up any term" href="/concepts/glossary/" />
+</CardGrid>

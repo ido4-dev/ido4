@@ -1,0 +1,13 @@
+:root {
+  --sl-color-accent: hsl(199, 89%, 48%);
+  --sl-color-accent-low: hsl(199, 50%, 15%);
+  --sl-color-accent-high: hsl(199, 89%, 80%);
+  --sl-font: 'Inter', var(--sl-font-system);
+  --sl-font-mono: 'JetBrains Mono', var(--sl-font-system-mono);
+}
+
+[data-theme='light'] :root {
+  --sl-color-accent: hsl(199, 89%, 40%);
+  --sl-color-accent-low: hsl(199, 80%, 90%);
+  --sl-color-accent-high: hsl(199, 89%, 25%);
+}

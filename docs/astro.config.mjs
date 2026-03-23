@@ -7,17 +7,26 @@ export default defineConfig({
     starlight({
       title: 'ido4',
       description: 'AI-hybrid software development at scale. Context intelligence, institutional memory, and deterministic governance.',
+      favicon: '/favicon.svg',
+      logo: {
+        src: './src/assets/logo.svg',
+        alt: 'ido4',
+      },
+      customCss: ['./src/styles/custom.css'],
+      lastUpdated: true,
       social: [
         { icon: 'github', label: 'GitHub', href: 'https://github.com/ido4-dev/ido4' },
       ],
       editLink: {
         baseUrl: 'https://github.com/ido4-dev/ido4/edit/main/docs/src/content/docs/',
       },
+      head: [
+        { tag: 'meta', attrs: { property: 'og:image', content: 'https://docs.ido4.dev/og-image.png' } },
+      ],
       sidebar: [
         {
           label: 'Getting Started',
           items: [
-            { label: 'Introduction', link: '/' },
             { label: 'Installation', slug: 'getting-started/installation' },
             { label: 'Quick Start', slug: 'getting-started/quick-start' },
             { label: 'Sandbox Demo', slug: 'getting-started/sandbox' },
