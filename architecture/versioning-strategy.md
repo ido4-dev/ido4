@@ -48,7 +48,8 @@ After the script: CI builds, tests, and publishes to npm on the version tag.
 ## Post-Release Checklist
 
 - Verify npm publish succeeded
-- Update website if public-facing numbers changed (build + `firebase deploy`)
+- Update docs if tool counts, BRE steps, or features changed (auto-deploys on push to `main` when `docs/` changes)
+- Update website if public-facing numbers changed (auto-deploys on push to `main` in website repo)
 - Update MEMORY.md version references
 - Announce if significant changes
 

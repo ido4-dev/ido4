@@ -105,6 +105,26 @@ The Claude Code plugin lives at [ido4-dev/ido4dev](https://github.com/ido4-dev/i
 - Write clear, descriptive commit messages focusing on the "why".
 - One logical change per commit.
 
+## Documentation
+
+Documentation lives in `docs/` as an [Astro Starlight](https://starlight.astro.build/) project. Content files are in `docs/src/content/docs/`. Published at [docs.ido4.dev](https://docs.ido4.dev).
+
+```bash
+# Install docs dependencies (separate from the monorepo)
+cd docs && npm install
+
+# Local dev server with hot reload
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+```
+
+Docs auto-deploy to Firebase when `docs/` changes are pushed to `main` (via `.github/workflows/docs.yml`).
+
 ## Making Changes
 
 1. **Read before editing.** Understand existing code before modifying it.
