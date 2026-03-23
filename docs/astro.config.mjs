@@ -15,6 +15,7 @@ export default defineConfig({
       customCss: ['./src/styles/custom.css'],
       lastUpdated: true,
       social: [
+        { icon: 'external', label: 'ido4.dev', href: 'https://ido4.dev' },
         { icon: 'github', label: 'GitHub', href: 'https://github.com/ido4-dev/ido4' },
       ],
       editLink: {
