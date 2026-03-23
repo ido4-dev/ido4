@@ -1,6 +1,6 @@
 # Compliance Reporting
 
-ido4's compliance system provides deterministic, data-backed reporting that enterprise clients require. Every metric is computed from the audit trail — the same event log that powers context assembly, analytics, and institutional memory. No manual tracking, no estimation, no self-reported data.
+ido4's governance system creates deterministic, data-backed accountability that enables AI agents to work autonomously at scale. Every metric is computed from the immutable audit trail — the same event log that powers context assembly, analytics, and institutional memory. This provides both real-time governance checks and the compliance reporting that enterprise clients require. No manual tracking, no estimation, no self-reported data.
 
 ## Compliance Score
 

@@ -1,6 +1,6 @@
-# Multi-Agent Governance
+# Multi-Agent Coordination
 
-ido4 is built for teams deploying multiple AI coding agents on the same codebase. Without coordination, multiple agents produce duplicate work, conflicting changes, and cascade failures. ido4 provides the governance layer that makes multi-agent development safe and efficient.
+ido4 is built for teams deploying multiple AI coding agents on the same codebase. Without coordination, multiple agents produce duplicate work, conflicting changes, and cascade failures. ido4 provides the coordination platform — task intelligence that recommends the highest-leverage work, exclusive locking that prevents conflicts, context delivery that shares accumulated understanding, and quality enforcement that ensures every agent's output meets standards.
 
 ## Agent Registration
 

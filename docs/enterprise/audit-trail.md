@@ -1,6 +1,6 @@
 # Audit Trail
 
-Every governance action in ido4 creates an immutable audit entry. The audit trail is the foundation for compliance scoring, real analytics, and enterprise reporting.
+Every governance action in ido4 creates an immutable audit entry. The audit trail is the substrate for institutional memory — it powers compliance scoring, real analytics, context assembly, and enterprise reporting. It's how the system remembers what happened across sessions, agents, and time.
 
 ## Architecture
 

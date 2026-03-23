@@ -30,6 +30,10 @@ npm run test
 
 ### Running with the Plugin
 
+The ido4dev Claude Code plugin lives in a [separate repository](https://github.com/ido4-dev/ido4dev) and is distributed via the [ido4-plugins marketplace](https://github.com/ido4-dev/ido4-plugins).
+
+For local development of the MCP server with the plugin:
+
 ```bash
 export GITHUB_TOKEN=$(gh auth token)
 claude --plugin-dir ../ido4dev
@@ -37,30 +41,32 @@ claude --plugin-dir ../ido4dev
 
 ## Project Structure
 
-This is an npm workspaces monorepo with three packages:
+This is an npm workspaces monorepo with two packages:
 
 ```
 ido4-MCP/
 ├── packages/
 │   ├── core/       # @ido4/core — Domain logic, zero CLI dependencies
-│   ├── mcp/        # @ido4/mcp — MCP server (STDIO transport)
-│   └── plugin/     # Claude Code plugin (skills, agent, hooks)
-├── docs/           # Documentation (GitBook)
+│   └── mcp/        # @ido4/mcp — MCP server (STDIO transport)
+├── architecture/   # Architecture decision docs
+├── diagrams/       # HTML architecture diagrams
+├── docs/           # Documentation (GitBook — auto-syncs)
+├── ideas/          # Ideas backlog
 ├── package.json    # Workspace root
 └── tsconfig.json   # Shared TypeScript config
 ```
 
 ### @ido4/core
 
-The domain layer. Profile-driven methodology engine with 32 BRE validation steps, container management, integrity enforcement, dependency analysis, audit trail, analytics, compliance scoring, multi-agent coordination, work distribution, merge readiness, ingestion pipeline, and strategic spec parser. Three built-in profiles: Hydro, Scrum, Shape Up. **Zero dependencies on CLI frameworks or MCP SDK.**
+The domain layer. Profile-driven methodology engine with 34 BRE validation steps, container management, integrity enforcement, dependency analysis, audit trail, analytics, compliance scoring, multi-agent coordination, work distribution, merge readiness, ingestion pipeline, sandbox with algorithmic ScenarioBuilder, and strategic spec parser. Three built-in profiles: Hydro, Scrum, Shape Up. **Zero dependencies on CLI frameworks or MCP SDK.**
 
 ### @ido4/mcp
 
-The MCP server. Dynamically generates tools, resources, and prompts from the active methodology profile. STDIO transport. Hydro: 58 tools, Scrum: 56, Shape Up: 54.
+The MCP server. Dynamically generates tools, resources, and prompts from the active methodology profile. STDIO transport. Hydro: 58 tools, Scrum: 56, Shape Up: 54. 6 composite aggregators, 9 resources, 8 prompts.
 
-### plugin/
+### ido4dev Plugin (separate repo)
 
-Claude Code plugin bundle. 21 skills (governance, planning, retrospectives, onboarding, guided demo, sandbox exploration, spec validation, decomposition), 4 agents (PM, code-analyzer, technical-spec-writer, spec-reviewer), and governance hooks.
+The Claude Code plugin lives at [ido4-dev/ido4dev](https://github.com/ido4-dev/ido4dev). 21 skills (governance, planning, retrospectives, onboarding, guided demo, sandbox exploration, spec validation, decomposition), 4 agents (PM, code-analyzer, technical-spec-writer, spec-reviewer), and 2 governance hooks. Install via marketplace: `/plugin install ido4dev@ido4-plugins`.
 
 ## Architecture Principles
 
@@ -70,6 +76,7 @@ Claude Code plugin bundle. 21 skills (governance, planning, retrospectives, onbo
 4. **Structured errors** — Every error has a code, context, remediation, and retryable flag
 5. **Deterministic validation** — The BRE pipeline runs real code, not LLM reasoning
 6. **Every write supports `dryRun`** — All mutation tools accept a dryRun parameter
+7. **Profile-driven** — Methodology profiles define states, transitions, containers, integrity rules, pipelines. The engine reads profiles, not methodology-specific code.
 
 ## Coding Standards
 
@@ -84,6 +91,7 @@ Claude Code plugin bundle. 21 skills (governance, planning, retrospectives, onbo
 - Tests must test real behavior, not just existence (`expect(true).toBe(true)` is forbidden).
 - Use Vitest as the test runner.
 - No hardcoded analytics values — use real data or mark explicitly as TODO.
+- Cross-profile tests verify methodology-agnosticism — if a test only passes with one profile, there's a hardcoded string hiding.
 
 ### Tool Design
 

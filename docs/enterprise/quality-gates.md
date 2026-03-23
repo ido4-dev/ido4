@@ -1,6 +1,6 @@
 # Quality Gates
 
-Quality gates are BRE validation steps that check code quality and process compliance before allowing task transitions. They catch what CI alone can't — process violations, missing reviews, and governance gaps.
+Quality gates are the BRE validation steps that make it safe for AI agents to work autonomously at scale. They check code quality, process compliance, and security before allowing task transitions — catching what CI alone can't. When agents know that every transition is validated, they can focus on building rather than second-guessing process compliance.
 
 ## Built-in Quality Gates
 
