@@ -6,7 +6,9 @@ ido4 works with single agents and multi-agent teams alike. The governance, conte
 
 For teams deploying **multiple AI agents on the same codebase**, ido4 adds coordination: task intelligence that recommends the highest-leverage work for each agent, exclusive locking that prevents duplicate effort, and atomic handoff that keeps work flowing when one agent finishes. Without this, multiple agents produce duplicate work, conflicting changes, and cascade failures.
 
-> **Visual reference:** See the [Multi-Agent diagram](https://github.com/ido4-dev/ido4/blob/main/diagrams/07-multi-agent.html) for the coordination architecture, and the [Agent Workflow diagram](https://github.com/ido4-dev/ido4/blob/main/diagrams/10-agent-workflow.html) for the daily agent loop.
+<iframe src="/diagrams/07-multi-agent.html" width="100%" height="820" style="border: 1px solid var(--sl-color-gray-5); border-radius: 8px;" loading="lazy"></iframe>
+
+<iframe src="/diagrams/10-agent-workflow.html" width="100%" height="820" style="border: 1px solid var(--sl-color-gray-5); border-radius: 8px;" loading="lazy"></iframe>
 
 ## Agent Registration
 

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ido4 MCP — BRE Validation Pipeline</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; color: #1c2028; padding: 40px 48px 32px; }
+  h1 { font-size: 26px; font-weight: 700; color: #0d1117; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: #656d76; margin-bottom: 36px; }
+
+  .canvas { width: 1100px; margin: 0 auto; }
+
+  /* Flow stages */
+  .flow { display: flex; align-items: stretch; gap: 12px; margin-bottom: 28px; }
+  .flow-stage {
+    flex: 1; border-radius: 10px; padding: 14px 14px; border: 1.5px solid;
+    display: flex; flex-direction: column;
+  }
+  .flow-num {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
+    margin-bottom: 4px;
+  }
+  .flow-title { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+  .flow-detail { font-size: 10.5px; line-height: 1.5; flex: 1; }
+  .flow-code {
+    font-size: 10px; font-family: 'SF Mono', 'Fira Code', monospace;
+    background: rgba(0,0,0,0.04); padding: 6px 8px; border-radius: 4px;
+    margin-top: 6px; color: #4d5760; line-height: 1.6;
+  }
+
+  .fs-yellow { background: #fff8e1; border-color: #e5c76b; }
+  .fs-yellow .flow-num, .fs-yellow .flow-title { color: #7c5800; }
+  .fs-yellow .flow-detail { color: #9a6700; }
+
+  .fs-blue { background: #ddf4ff; border-color: #80ccff; }
+  .fs-blue .flow-num, .fs-blue .flow-title { color: #0550ae; }
+  .fs-blue .flow-detail { color: #0969da; }
+
+  .fs-green { background: #dafbe1; border-color: #82e596; }
+  .fs-green .flow-num, .fs-green .flow-title { color: #116329; }
+  .fs-green .flow-detail { color: #1a7f37; }
+
+  .fs-purple { background: #f5f0ff; border-color: #d8b9ff; }
+  .fs-purple .flow-num, .fs-purple .flow-title { color: #5e35b1; }
+  .fs-purple .flow-detail { color: #6e40c9; }
+
+  /* Arrow between stages */
+  .flow-arrow {
+    flex: 0 0 20px; display: flex; align-items: center; justify-content: center;
+    font-size: 18px; color: #afb8c1;
+  }
+
+  /* Step categories grid */
+  .categories { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+  .cat {
+    border-radius: 8px; padding: 12px 14px; border: 1px solid;
+  }
+  .cat-title { font-size: 11px; font-weight: 700; margin-bottom: 6px; }
+  .cat-count { font-size: 10px; font-weight: 600; margin-bottom: 6px; }
+  .cat-items { display: flex; flex-wrap: wrap; gap: 4px; }
+  .cat-item {
+    font-size: 9.5px; padding: 2px 7px; border-radius: 4px; font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .cat-guard { background: #f6f8fa; border-color: #d1d9e0; }
+  .cat-guard .cat-title { color: #4d5760; }
+  .cat-guard .cat-count { color: #656d76; }
+  .cat-guard .cat-item { background: #eaeef2; color: #4d5760; }
+
+  .cat-field { background: #ddf4ff; border-color: #80ccff; }
+  .cat-field .cat-title { color: #0550ae; }
+  .cat-field .cat-count { color: #0969da; }
+  .cat-field .cat-item { background: #b6e3ff; color: #0550ae; }
+
+  .cat-quality { background: #fff8e1; border-color: #e5c76b; }
+  .cat-quality .cat-title { color: #7c5800; }
+  .cat-quality .cat-count { color: #9a6700; }
+  .cat-quality .cat-item { background: #ffeeba; color: #7c5800; }
+
+  .cat-service { background: #dafbe1; border-color: #82e596; }
+  .cat-service .cat-title { color: #116329; }
+  .cat-service .cat-count { color: #1a7f37; }
+  .cat-service .cat-item { background: #aceebb; color: #116329; }
+
+  .cat-profile { background: #f5f0ff; border-color: #d8b9ff; }
+  .cat-profile .cat-title { color: #5e35b1; }
+  .cat-profile .cat-count { color: #6e40c9; }
+  .cat-profile .cat-item { background: #eddeff; color: #6e40c9; }
+
+  .cat-agent { background: #fff0eb; border-color: #ffb499; }
+  .cat-agent .cat-title { color: #953800; }
+  .cat-agent .cat-count { color: #bc4c00; }
+  .cat-agent .cat-item { background: #ffe2d6; color: #953800; }
+
+  /* Key design notes */
+  .notes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .note-box {
+    border-radius: 8px; padding: 12px 14px; border: 1.5px solid #e5c76b;
+    background: #fff8e1; font-size: 11px; color: #7c5800; line-height: 1.5;
+  }
+  .note-box strong { color: #5c3d00; }
+</style>
+</head>
+<body>
+
+<h1>BRE Validation Pipeline</h1>
+<p class="subtitle">34-step Business Rule Engine &mdash; profile-driven, type-scoped, fail-safe execution</p>
+
+<div class="canvas">
+
+  <!-- Pipeline flow -->
+  <div class="flow">
+    <div class="flow-stage fs-yellow">
+      <div class="flow-num">Step 1</div>
+      <div class="flow-title">Profile Pipeline Lookup</div>
+      <div class="flow-detail">Profile defines which steps run per action. Type-scoped: tries "start:bug" first, falls back to "start".</div>
+      <div class="flow-code">profile.pipelines["start:bug"]<br>&nbsp;&nbsp;?? profile.pipelines["start"]</div>
+    </div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-stage fs-blue">
+      <div class="flow-num">Step 2</div>
+      <div class="flow-title">Registry Resolution</div>
+      <div class="flow-detail">Each step name resolved via ValidationStepRegistry. Parameterized: "StatusTransition:IN_PROGRESS" splits into factory + param.</div>
+      <div class="flow-code">registry.create(<br>&nbsp;&nbsp;"StatusTransition:IN_PROGRESS",<br>&nbsp;&nbsp;deps)</div>
+    </div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-stage fs-green">
+      <div class="flow-num">Step 3</div>
+      <div class="flow-title">Pipeline Execution</div>
+      <div class="flow-detail">Runs ALL steps regardless of failures. Each step wrapped in try/catch. Single failure doesn't stop others.</div>
+      <div class="flow-code">canProceed = no error-severity<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;failures</div>
+    </div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-stage fs-purple">
+      <div class="flow-num">Result</div>
+      <div class="flow-title">ValidationResult</div>
+      <div class="flow-detail">Aggregated: canProceed, failedSteps[], warnedSteps[], executionTime, suggestions[].</div>
+      <div class="flow-code">{ canProceed: false,<br>&nbsp;&nbsp;failedSteps: 1,<br>&nbsp;&nbsp;details: [...] }</div>
+    </div>
+  </div>
+
+  <!-- 34 step categories (matching source code categorization) -->
+  <div class="categories">
+    <div class="cat cat-guard">
+      <div class="cat-title">Source-Status Guards (3)</div>
+      <div class="cat-items">
+        <span class="cat-item">RefineFromBacklog</span>
+        <span class="cat-item">ReadyFromRefinementOrBacklog</span>
+        <span class="cat-item">StartFromReadyForDev</span>
+      </div>
+    </div>
+
+    <div class="cat cat-guard">
+      <div class="cat-title">Generic Transition + Task-State Guards (7)</div>
+      <div class="cat-items">
+        <span class="cat-item">StatusTransition</span>
+        <span class="cat-item">AlreadyCompleted</span>
+        <span class="cat-item">AlreadyBlocked</span>
+        <span class="cat-item">NotBlocked</span>
+        <span class="cat-item">Blocked</span>
+        <span class="cat-item">AlreadyDone</span>
+        <span class="cat-item">BackwardTransition</span>
+      </div>
+    </div>
+
+    <div class="cat cat-field">
+      <div class="cat-title">Field Requirements (5)</div>
+      <div class="cat-items">
+        <span class="cat-item">BaseTaskFields</span>
+        <span class="cat-item">AcceptanceCriteria</span>
+        <span class="cat-item">EffortEstimation</span>
+        <span class="cat-item">DependencyIdentification</span>
+        <span class="cat-item">WaveAssignment</span>
+      </div>
+    </div>
+
+    <div class="cat cat-quality">
+      <div class="cat-title">Quality Gates (3)</div>
+      <div class="cat-items">
+        <span class="cat-item">PRReview</span>
+        <span class="cat-item">TestCoverage</span>
+        <span class="cat-item">SecurityScan</span>
+      </div>
+    </div>
+
+    <div class="cat cat-service">
+      <div class="cat-title">Service-Injected (4)</div>
+      <div class="cat-items">
+        <span class="cat-item">EpicIntegrity</span>
+        <span class="cat-item">Dependency</span>
+        <span class="cat-item">ImplementationReadiness</span>
+        <span class="cat-item">SubtaskCompletion</span>
+      </div>
+    </div>
+
+    <div class="cat cat-agent">
+      <div class="cat-title">Constraints (4)</div>
+      <div class="cat-items">
+        <span class="cat-item">AISuitability</span>
+        <span class="cat-item">RiskLevel</span>
+        <span class="cat-item">FastTrack</span>
+        <span class="cat-item">ApprovalRequirement</span>
+      </div>
+    </div>
+
+    <div class="cat cat-profile">
+      <div class="cat-title">Profile-Driven Generic (7)</div>
+      <div class="cat-items">
+        <span class="cat-item">SourceStatus</span>
+        <span class="cat-item">ContainerAssignment</span>
+        <span class="cat-item">ContainerIntegrity</span>
+        <span class="cat-item">ContainerSingularity</span>
+        <span class="cat-item">CircuitBreaker</span>
+        <span class="cat-item">SpecCompleteness</span>
+        <span class="cat-item">ContextCompleteness</span>
+      </div>
+    </div>
+
+    <div class="cat cat-agent" style="border-color: #ffb499; background: #fff0eb;">
+      <div class="cat-title" style="color: #953800;">Multi-Agent (1)</div>
+      <div class="cat-items">
+        <span class="cat-item" style="background: #ffe2d6; color: #953800;">TaskLock</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key design notes -->
+  <div class="notes">
+    <div class="note-box">
+      <strong>Fail-safe execution:</strong> Every step runs regardless of prior failures. A dependency check failing doesn't skip the security scan. The full picture is always available &mdash; not just the first error.
+    </div>
+    <div class="note-box">
+      <strong>Plugin-ready architecture:</strong> ValidationStepRegistry is already a plugin system. Register a factory by name, reference it in a profile pipeline. Adding "CodeRabbitReview" to the approve pipeline = zero engine changes.
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

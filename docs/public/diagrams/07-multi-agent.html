@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ido4 MCP — Multi-Agent Coordination</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; color: #1c2028; padding: 40px 48px 32px; }
+  h1 { font-size: 26px; font-weight: 700; color: #0d1117; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: #656d76; margin-bottom: 36px; }
+
+  .canvas { width: 1100px; margin: 0 auto; }
+
+  /* Lifecycle flow */
+  .lifecycle { display: flex; gap: 0; align-items: stretch; margin-bottom: 28px; }
+  .lc-step {
+    flex: 1; border-radius: 10px; padding: 12px 12px; border: 1.5px solid;
+    text-align: center;
+  }
+  .lc-num { font-size: 9px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 3px; }
+  .lc-title { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+  .lc-detail { font-size: 10px; line-height: 1.4; }
+  .lc-arrow { flex: 0 0 20px; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #afb8c1; }
+
+  .lc-gray { background: #f6f8fa; border-color: #d1d9e0; }
+  .lc-gray .lc-num, .lc-gray .lc-title { color: #4d5760; }
+  .lc-gray .lc-detail { color: #656d76; }
+
+  .lc-blue { background: #ddf4ff; border-color: #80ccff; }
+  .lc-blue .lc-num, .lc-blue .lc-title { color: #0550ae; }
+  .lc-blue .lc-detail { color: #0969da; }
+
+  .lc-green { background: #dafbe1; border-color: #82e596; }
+  .lc-green .lc-num, .lc-green .lc-title { color: #116329; }
+  .lc-green .lc-detail { color: #1a7f37; }
+
+  .lc-yellow { background: #fff8e1; border-color: #e5c76b; }
+  .lc-yellow .lc-num, .lc-yellow .lc-title { color: #7c5800; }
+  .lc-yellow .lc-detail { color: #9a6700; }
+
+  .lc-purple { background: #f5f0ff; border-color: #d8b9ff; }
+  .lc-purple .lc-num, .lc-purple .lc-title { color: #5e35b1; }
+  .lc-purple .lc-detail { color: #6e40c9; }
+
+  /* Services grid */
+  .services { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+  .svc {
+    border-radius: 10px; padding: 14px 16px; border: 1.5px solid;
+  }
+  .svc-title { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+  .svc-items { list-style: none; }
+  .svc-items li {
+    font-size: 10.5px; line-height: 1.6; padding-left: 12px; position: relative;
+  }
+  .svc-items li::before {
+    content: ''; position: absolute; left: 0; top: 7px;
+    width: 5px; height: 5px; border-radius: 50%;
+  }
+
+  .svc-agent { background: #f6f8fa; border-color: #d1d9e0; }
+  .svc-agent .svc-title { color: #0d1117; }
+  .svc-agent .svc-items li { color: #4d5760; }
+  .svc-agent .svc-items li::before { background: #8b949e; }
+
+  .svc-dist { background: #ddf4ff; border-color: #80ccff; }
+  .svc-dist .svc-title { color: #0550ae; }
+  .svc-dist .svc-items li { color: #0969da; }
+  .svc-dist .svc-items li::before { background: #0969da; }
+
+  .svc-gate { background: #dafbe1; border-color: #82e596; }
+  .svc-gate .svc-title { color: #116329; }
+  .svc-gate .svc-items li { color: #1a7f37; }
+  .svc-gate .svc-items li::before { background: #1a7f37; }
+
+  /* Scoring dimensions */
+  .scoring { display: flex; gap: 8px; margin-bottom: 20px; }
+  .score-dim {
+    flex: 1; border-radius: 8px; padding: 10px 12px;
+    border: 1px solid #80ccff; background: #f0f9ff; text-align: center;
+  }
+  .sd-pts { font-size: 18px; font-weight: 700; color: #0550ae; }
+  .sd-name { font-size: 11px; font-weight: 600; color: #0550ae; margin-top: 2px; }
+  .sd-desc { font-size: 9.5px; color: #0969da; margin-top: 4px; line-height: 1.4; }
+
+  /* Notes */
+  .notes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .note-box {
+    border-radius: 8px; padding: 12px 14px; border: 1.5px solid #e5c76b;
+    background: #fff8e1; font-size: 10.5px; color: #7c5800; line-height: 1.5;
+  }
+  .note-box strong { color: #5c3d00; }
+</style>
+</head>
+<body>
+
+<h1>Multi-Agent Coordination</h1>
+<p class="subtitle">Agent registration, task locking, intelligent work distribution, and quality gates</p>
+
+<div class="canvas">
+
+  <!-- Agent lifecycle -->
+  <div class="lifecycle">
+    <div class="lc-step lc-gray">
+      <div class="lc-num">Step 1</div>
+      <div class="lc-title">Register</div>
+      <div class="lc-detail">Agent declares ID, role, capabilities. Gets tracked.</div>
+    </div>
+    <div class="lc-arrow">&rarr;</div>
+    <div class="lc-step lc-blue">
+      <div class="lc-num">Step 2</div>
+      <div class="lc-title">Get Work</div>
+      <div class="lc-detail">getNextTask() scores candidates across 4 dimensions.</div>
+    </div>
+    <div class="lc-arrow">&rarr;</div>
+    <div class="lc-step lc-yellow">
+      <div class="lc-num">Step 3</div>
+      <div class="lc-title">Lock Task</div>
+      <div class="lc-detail">Exclusive lock. 30-min TTL. One agent per task.</div>
+    </div>
+    <div class="lc-arrow">&rarr;</div>
+    <div class="lc-step lc-green">
+      <div class="lc-num">Step 4</div>
+      <div class="lc-title">Execute</div>
+      <div class="lc-detail">Agent works. BRE validates transitions. Audit trail records.</div>
+    </div>
+    <div class="lc-arrow">&rarr;</div>
+    <div class="lc-step lc-purple">
+      <div class="lc-num">Step 5</div>
+      <div class="lc-title">Complete + Handoff</div>
+      <div class="lc-detail">Approve via BRE. Release lock. Find unblocked tasks. Recommend next.</div>
+    </div>
+  </div>
+
+  <!-- Scoring dimensions -->
+  <div style="font-size: 11px; font-weight: 700; color: #4d5760; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px;">Work Distribution — 4-Dimension Scoring (max 100)</div>
+  <div class="scoring">
+    <div class="score-dim">
+      <div class="sd-pts">0-40</div>
+      <div class="sd-name">Cascade Value</div>
+      <div class="sd-desc">How many downstream tasks does completing this unblock? BFS over reverse dependency graph.</div>
+    </div>
+    <div class="score-dim">
+      <div class="sd-pts">0-25</div>
+      <div class="sd-name">Epic Momentum</div>
+      <div class="sd-desc">Is this epic in progress? Last task in epic gets max score. Finish what's started.</div>
+    </div>
+    <div class="score-dim">
+      <div class="sd-pts">0-20</div>
+      <div class="sd-name">Capability Match</div>
+      <div class="sd-desc">Does agent's role match the task? Coding+feature, testing+QA. Soft match, no penalties.</div>
+    </div>
+    <div class="score-dim">
+      <div class="sd-pts">0-15</div>
+      <div class="sd-name">Dependency Freshness</div>
+      <div class="sd-desc">Was a dependency just completed? Pick up momentum while context is fresh.</div>
+    </div>
+  </div>
+
+  <!-- Three services -->
+  <div class="services">
+    <div class="svc svc-agent">
+      <div class="svc-title">AgentService</div>
+      <ul class="svc-items">
+        <li>Register agent (ID, role, capabilities)</li>
+        <li>Task locking with 30-min TTL</li>
+        <li>Same agent can extend lock</li>
+        <li>Only lock owner can release</li>
+        <li>Heartbeat (stale after 30 min)</li>
+        <li>File persistence for crash recovery</li>
+        <li>Expired locks auto-cleaned</li>
+      </ul>
+    </div>
+    <div class="svc svc-dist">
+      <div class="svc-title">WorkDistributionService</div>
+      <ul class="svc-items">
+        <li>getNextTask() &mdash; scored recommendation</li>
+        <li>Top pick + 3 alternatives returned</li>
+        <li>Human-readable reasoning per pick</li>
+        <li>Advisory only (agents decide)</li>
+        <li>completeAndHandoff() atomic chain</li>
+        <li>Finds newly unblocked tasks</li>
+        <li>All recommendations are audited</li>
+      </ul>
+    </div>
+    <div class="svc svc-gate">
+      <div class="svc-title">MergeReadinessService</div>
+      <ul class="svc-items">
+        <li>6 checks: workflow, PR reviews, deps, epic integrity, security, compliance</li>
+        <li>Composes existing services</li>
+        <li>Single pass/fail result</li>
+        <li>Override mechanism (audited)</li>
+        <li>Configurable thresholds</li>
+        <li>minReviews=1, minCompliance=70</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Notes -->
+  <div class="notes">
+    <div class="note-box">
+      <strong>Advisory, not prescriptive:</strong> Work recommendations are scored suggestions. Agents (or humans) decide whether to follow them. Task locks are the only hard constraint: one agent per task at a time.
+    </div>
+    <div class="note-box">
+      <strong>Every action is audited:</strong> Recommendations, handoffs, lock acquisitions, and releases all emit events to the EventBus. Per-agent compliance scoring is possible because the audit trail captures actor identity on every operation.
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

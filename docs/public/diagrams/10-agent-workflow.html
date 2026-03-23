@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ido4 MCP — Agent Workflow Loop</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; color: #1c2028; padding: 40px 48px 32px; }
+  h1 { font-size: 26px; font-weight: 700; color: #0d1117; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: #656d76; margin-bottom: 36px; line-height: 1.5; }
+
+  .canvas { width: 1100px; margin: 0 auto; }
+
+  /* ── Workflow steps (circular layout) ── */
+  .workflow {
+    display: flex; flex-wrap: wrap; gap: 0; justify-content: center;
+    margin-bottom: 24px;
+  }
+
+  .wf-row {
+    display: flex; gap: 0; align-items: stretch; width: 100%;
+    margin-bottom: 8px;
+  }
+
+  .wf-step {
+    flex: 1; border-radius: 10px; padding: 14px 14px; border: 2px solid;
+    display: flex; flex-direction: column;
+  }
+  .wf-num {
+    font-size: 22px; font-weight: 700; margin-bottom: 2px;
+  }
+  .wf-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .wf-what { font-size: 11px; font-weight: 600; margin-bottom: 4px; }
+  .wf-desc { font-size: 10.5px; line-height: 1.5; flex: 1; }
+  .wf-tool {
+    margin-top: 6px; font-size: 10px; font-family: 'SF Mono', 'Fira Code', monospace;
+    padding: 4px 8px; border-radius: 4px; background: rgba(0,0,0,0.04);
+  }
+
+  .wf-arrow { flex: 0 0 28px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #afb8c1; }
+
+  /* Step colors — each phase has a distinct feel */
+  .s-orient { background: #f6f8fa; border-color: #d1d9e0; }
+  .s-orient .wf-num, .s-orient .wf-title { color: #4d5760; }
+  .s-orient .wf-what { color: #656d76; }
+  .s-orient .wf-desc { color: #656d76; }
+
+  .s-pick { background: #ddf4ff; border-color: #80ccff; }
+  .s-pick .wf-num, .s-pick .wf-title { color: #0550ae; }
+  .s-pick .wf-what { color: #0969da; }
+  .s-pick .wf-desc { color: #0969da; }
+
+  .s-context { background: #f5f0ff; border-color: #d8b9ff; }
+  .s-context .wf-num, .s-context .wf-title { color: #5e35b1; }
+  .s-context .wf-what { color: #6e40c9; }
+  .s-context .wf-desc { color: #6e40c9; }
+
+  .s-develop { background: #dafbe1; border-color: #82e596; }
+  .s-develop .wf-num, .s-develop .wf-title { color: #116329; }
+  .s-develop .wf-what { color: #1a7f37; }
+  .s-develop .wf-desc { color: #1a7f37; }
+
+  .s-govern { background: #fff8e1; border-color: #e5c76b; }
+  .s-govern .wf-num, .s-govern .wf-title { color: #7c5800; }
+  .s-govern .wf-what { color: #9a6700; }
+  .s-govern .wf-desc { color: #9a6700; }
+
+  .s-write { background: #ddf4ff; border-color: #80ccff; }
+  .s-write .wf-num, .s-write .wf-title { color: #0550ae; }
+  .s-write .wf-what { color: #0969da; }
+  .s-write .wf-desc { color: #0969da; }
+
+  .s-merge { background: #dafbe1; border-color: #56d364; }
+  .s-merge .wf-num, .s-merge .wf-title { color: #116329; }
+  .s-merge .wf-what { color: #1a7f37; }
+  .s-merge .wf-desc { color: #1a7f37; }
+
+  .s-handoff { background: #f5f0ff; border-color: #a371f7; }
+  .s-handoff .wf-num, .s-handoff .wf-title { color: #5e35b1; }
+  .s-handoff .wf-what { color: #6e40c9; }
+  .s-handoff .wf-desc { color: #6e40c9; }
+
+  /* ── Key insight boxes ── */
+  .insights { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 20px; }
+  .insight {
+    border-radius: 10px; padding: 14px 16px; border: 1.5px solid;
+  }
+  .ins-title { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+  .ins-desc { font-size: 10.5px; line-height: 1.5; }
+
+  .ins-context { background: #f5f0ff; border-color: #d8b9ff; }
+  .ins-context .ins-title { color: #5e35b1; }
+  .ins-context .ins-desc { color: #6e40c9; }
+
+  .ins-govern { background: #fff8e1; border-color: #e5c76b; }
+  .ins-govern .ins-title { color: #7c5800; }
+  .ins-govern .ins-desc { color: #9a6700; }
+
+  .ins-memory { background: #ddf4ff; border-color: #80ccff; }
+  .ins-memory .ins-title { color: #0550ae; }
+  .ins-memory .ins-desc { color: #0969da; }
+
+  /* Loop indicator */
+  .loop-back {
+    text-align: center; padding: 8px 0; font-size: 12px; font-weight: 700; color: #6e40c9;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .loop-line { flex: 1; max-width: 200px; height: 0; border-top: 2px dashed #d8b9ff; }
+</style>
+</head>
+<body>
+
+<h1>Agent Workflow — The Daily Loop</h1>
+<p class="subtitle">What an AI agent actually does in a Claude Code session with ido4. Every session starts with full project understanding, every action is governed, every outcome is recorded.</p>
+
+<div class="canvas">
+
+  <!-- Row 1: Orient + Pick + Context + Develop -->
+  <div class="wf-row">
+    <div class="wf-step s-orient">
+      <div class="wf-num">1</div>
+      <div class="wf-title">Orient</div>
+      <div class="wf-what">Understand the project state</div>
+      <div class="wf-desc">Morning standup: what happened since last session, what's blocked, what's the compliance score, where's the leverage?</div>
+      <div class="wf-tool">/ido4dev:standup &rarr; get_standup_data</div>
+    </div>
+    <div class="wf-arrow">&rarr;</div>
+    <div class="wf-step s-pick">
+      <div class="wf-num">2</div>
+      <div class="wf-title">Pick Task</div>
+      <div class="wf-what">Intelligent work selection</div>
+      <div class="wf-desc">4-dimension scoring: cascade value (what unblocks the most), epic momentum, capability match, dependency freshness.</div>
+      <div class="wf-tool">get_next_task &rarr; lock_task</div>
+    </div>
+    <div class="wf-arrow">&rarr;</div>
+    <div class="wf-step s-context">
+      <div class="wf-num">3</div>
+      <div class="wf-title">Load Context</div>
+      <div class="wf-what">Full context package in one call</div>
+      <div class="wf-desc">Task spec, acceptance criteria, upstream decisions, downstream dependents, sibling progress, epic status, structured comments from prior sessions.</div>
+      <div class="wf-tool">get_task_execution_data</div>
+    </div>
+    <div class="wf-arrow">&rarr;</div>
+    <div class="wf-step s-develop">
+      <div class="wf-num">4</div>
+      <div class="wf-title">Develop</div>
+      <div class="wf-what">Specs-driven implementation</div>
+      <div class="wf-desc">8-phase execution: read spec &rarr; understand architecture &rarr; implement &rarr; test against success conditions &rarr; verify acceptance criteria.</div>
+      <div class="wf-tool">start_task &rarr; code &rarr; test</div>
+    </div>
+  </div>
+
+  <!-- Row 2: Transition + Write Context + Merge + Handoff -->
+  <div class="wf-row">
+    <div class="wf-step s-govern">
+      <div class="wf-num">5</div>
+      <div class="wf-title">Transition</div>
+      <div class="wf-what">BRE validates every move</div>
+      <div class="wf-desc">Every state change goes through the 34-step validation pipeline. Dependencies checked. Integrity enforced. Audit trail records actor + result.</div>
+      <div class="wf-tool">review_task &rarr; approve_task</div>
+    </div>
+    <div class="wf-arrow">&rarr;</div>
+    <div class="wf-step s-write">
+      <div class="wf-num">6</div>
+      <div class="wf-title">Write Context</div>
+      <div class="wf-what">Institutional memory</div>
+      <div class="wf-desc">Structured context comment: what was built, what decisions were made, what the next agent needs to know. Knowledge accumulates.</div>
+      <div class="wf-tool">add_context_comment</div>
+    </div>
+    <div class="wf-arrow">&rarr;</div>
+    <div class="wf-step s-merge">
+      <div class="wf-num">7</div>
+      <div class="wf-title">Merge</div>
+      <div class="wf-what">Quality gate before merge</div>
+      <div class="wf-desc">6-check readiness: workflow compliance, PR reviews, dependency completion, integrity, security, compliance threshold.</div>
+      <div class="wf-tool">check_merge_readiness</div>
+    </div>
+    <div class="wf-arrow">&rarr;</div>
+    <div class="wf-step s-handoff">
+      <div class="wf-num">8</div>
+      <div class="wf-title">Handoff</div>
+      <div class="wf-what">Complete + recommend next</div>
+      <div class="wf-desc">Atomically: approve task, release lock, find newly unblocked tasks, suggest which agent should pick each up, recommend next task.</div>
+      <div class="wf-tool">complete_and_handoff</div>
+    </div>
+  </div>
+
+  <!-- Loop back indicator -->
+  <div class="loop-back">
+    <div class="loop-line"></div>
+    Loop: step 8 feeds back to step 2 &mdash; next task, full context, continuous flow
+    <div class="loop-line"></div>
+  </div>
+
+  <!-- Key insights -->
+  <div class="insights">
+    <div class="insight ins-context">
+      <div class="ins-title">Context, Not From Scratch</div>
+      <div class="ins-desc">Every session starts with accumulated project knowledge. A fresh agent with the right 100K tokens of context outperforms a "specialized" agent with wrong context. ido4 assembles the right context.</div>
+    </div>
+    <div class="insight ins-govern">
+      <div class="ins-title">Governance, Not Gatekeeping</div>
+      <div class="ins-desc">The BRE doesn't slow agents down &mdash; it catches mistakes before they cascade. Dependency violations, integrity breaks, and missing criteria are caught deterministically, not by LLM reasoning.</div>
+    </div>
+    <div class="insight ins-memory">
+      <div class="ins-title">Memory Across Sessions</div>
+      <div class="ins-desc">Structured context comments + audit trail = institutional memory. Agent A writes what it built. Agent B reads it next week. The project's knowledge never resets to zero.</div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ido4 MCP — Plugin Layer Architecture</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; color: #1c2028; padding: 40px 48px 32px; }
+  h1 { font-size: 26px; font-weight: 700; color: #0d1117; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: #656d76; margin-bottom: 36px; }
+
+  .canvas { width: 1100px; margin: 0 auto; }
+
+  /* Component grid */
+  .components { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 24px; }
+  .comp {
+    border-radius: 10px; padding: 16px; border: 1.5px solid;
+  }
+  .comp-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .comp-count {
+    font-size: 18px; font-weight: 700; width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .comp-title { font-size: 14px; font-weight: 700; }
+  .comp-desc { font-size: 10.5px; line-height: 1.5; margin-bottom: 10px; }
+
+  .comp-list { list-style: none; }
+  .comp-list li {
+    font-size: 10.5px; line-height: 1.5; padding: 4px 0; border-bottom: 1px solid rgba(0,0,0,0.04);
+  }
+  .comp-list li:last-child { border-bottom: none; }
+  .comp-list .cl-name { font-weight: 600; }
+  .comp-list .cl-desc { color: #656d76; }
+
+  .c-purple { background: #f5f0ff; border-color: #d8b9ff; }
+  .c-purple .comp-count { background: #eddeff; color: #6e40c9; }
+  .c-purple .comp-title { color: #5e35b1; }
+  .c-purple .comp-desc { color: #6e40c9; }
+  .c-purple .cl-name { color: #5e35b1; }
+
+  .c-blue { background: #ddf4ff; border-color: #80ccff; }
+  .c-blue .comp-count { background: #b6e3ff; color: #0550ae; }
+  .c-blue .comp-title { color: #0550ae; }
+  .c-blue .comp-desc { color: #0969da; }
+  .c-blue .cl-name { color: #0550ae; }
+
+  .c-yellow { background: #fff8e1; border-color: #e5c76b; }
+  .c-yellow .comp-count { background: #ffeeba; color: #7c5800; }
+  .c-yellow .comp-title { color: #7c5800; }
+  .c-yellow .comp-desc { color: #9a6700; }
+  .c-yellow .cl-name { color: #7c5800; }
+
+  /* Interaction patterns */
+  .patterns { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+  .pattern {
+    border-radius: 10px; padding: 14px 16px; border: 1.5px solid #d1d9e0;
+    background: #f6f8fa;
+  }
+  .pat-title { font-size: 12px; font-weight: 700; color: #0d1117; margin-bottom: 6px; }
+  .pat-flow {
+    font-size: 10.5px; font-family: 'SF Mono', 'Fira Code', monospace;
+    line-height: 1.8; color: #4d5760;
+  }
+  .pat-flow .pf-skill { color: #6e40c9; font-weight: 600; }
+  .pat-flow .pf-tool { color: #0550ae; font-weight: 600; }
+  .pat-flow .pf-agent { color: #953800; font-weight: 600; }
+  .pat-flow .pf-arrow { color: #afb8c1; }
+
+  /* Data flow diagram */
+  .dataflow {
+    display: flex; align-items: center; gap: 0; margin-bottom: 20px;
+    padding: 16px 20px; border-radius: 10px; background: #fafbfc; border: 1.5px solid #eaeef2;
+  }
+  .df-box {
+    flex: 1; text-align: center; padding: 10px 8px; border-radius: 8px;
+    border: 1.5px solid;
+  }
+  .df-title { font-size: 11px; font-weight: 700; margin-bottom: 2px; }
+  .df-sub { font-size: 9.5px; }
+  .df-arrow { flex: 0 0 32px; text-align: center; font-size: 16px; color: #afb8c1; }
+
+  .df-skill { background: #f5f0ff; border-color: #d8b9ff; }
+  .df-skill .df-title { color: #5e35b1; } .df-skill .df-sub { color: #6e40c9; }
+  .df-agg { background: #ddf4ff; border-color: #80ccff; }
+  .df-agg .df-title { color: #0550ae; } .df-agg .df-sub { color: #0969da; }
+  .df-svc { background: #dafbe1; border-color: #82e596; }
+  .df-svc .df-title { color: #116329; } .df-svc .df-sub { color: #1a7f37; }
+  .df-gh { background: #f6f8fa; border-color: #d1d9e0; }
+  .df-gh .df-title { color: #4d5760; } .df-gh .df-sub { color: #656d76; }
+
+  .note {
+    border-radius: 8px; padding: 12px 16px;
+    background: #fff8e1; border: 1.5px solid #e5c76b;
+    font-size: 11px; color: #7c5800; line-height: 1.5;
+  }
+  .note strong { color: #5c3d00; }
+</style>
+</head>
+<body>
+
+<h1>Plugin Layer — Skills, Agents, and Hooks</h1>
+<p class="subtitle">Layer 3 (Experience) &mdash; how Claude Code interacts with the governance engine</p>
+
+<div class="canvas">
+
+  <!-- Three component types -->
+  <div class="components">
+    <div class="comp c-purple">
+      <div class="comp-header">
+        <div class="comp-count">21</div>
+        <div class="comp-title">Skills</div>
+      </div>
+      <div class="comp-desc">Guide Claude Code through governance workflows. Each skill calls composite aggregators for data, then structures AI reasoning.</div>
+      <ul class="comp-list">
+        <li><span class="cl-name">standup</span> <span class="cl-desc">&mdash; morning briefing from audit trail</span></li>
+        <li><span class="cl-name">board</span> <span class="cl-desc">&mdash; flow intelligence (blockers, risks)</span></li>
+        <li><span class="cl-name">plan-wave/sprint/cycle</span> <span class="cl-desc">&mdash; methodology-specific</span></li>
+        <li><span class="cl-name">retro-wave/sprint/cycle</span> <span class="cl-desc">&mdash; evidence-based retro</span></li>
+        <li><span class="cl-name">compliance</span> <span class="cl-desc">&mdash; 5-category score analysis</span></li>
+        <li><span class="cl-name">decompose</span> <span class="cl-desc">&mdash; strategic &rarr; technical spec</span></li>
+        <li><span class="cl-name">onboard</span> <span class="cl-desc">&mdash; zero-friction first touch with auto-clone</span></li>
+        <li><span class="cl-name">guided-demo</span> <span class="cl-desc">&mdash; four-act governance walkthrough</span></li>
+        <li><span class="cl-name">sandbox-explore</span> <span class="cl-desc">&mdash; interactive exploration paths</span></li>
+        <li><span class="cl-name">sandbox</span> <span class="cl-desc">&mdash; lifecycle (create, reset, destroy)</span></li>
+      </ul>
+    </div>
+
+    <div class="comp c-blue">
+      <div class="comp-header">
+        <div class="comp-count">4</div>
+        <div class="comp-title">Agents</div>
+      </div>
+      <div class="comp-desc">Specialized AI roles invoked by skills. Each agent has focused instructions and specific tool access.</div>
+      <ul class="comp-list">
+        <li><span class="cl-name">PM Agent</span> <span class="cl-desc">&mdash; governance personified. Uses all MCP tools. Reads memory.</span></li>
+        <li><span class="cl-name">code-analyzer</span> <span class="cl-desc">&mdash; maps capabilities to code. Uses Read/Glob/Grep. Opus model.</span></li>
+        <li><span class="cl-name">technical-spec-writer</span> <span class="cl-desc">&mdash; decomposes into tasks. Judges effort/risk/AI. Opus model.</span></li>
+        <li><span class="cl-name">spec-reviewer</span> <span class="cl-desc">&mdash; independent two-stage review. Format + quality. Sonnet model.</span></li>
+      </ul>
+    </div>
+
+    <div class="comp c-yellow">
+      <div class="comp-header">
+        <div class="comp-count">2</div>
+        <div class="comp-title">Hooks</div>
+      </div>
+      <div class="comp-desc">Automated governance checks triggered by tool events. Block or allow based on governance signals.</div>
+      <ul class="comp-list">
+        <li><span class="cl-name">Post-transition</span> <span class="cl-desc">&mdash; fires on state changes. Checks: did this unblock downstream? Create new blocker? Reach milestone?</span></li>
+        <li><span class="cl-name">Post-wave-assignment</span> <span class="cl-desc">&mdash; fires on assign_task_to_wave. Checks epic integrity + dependency violations.</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Data flow: Skill → Aggregator → Services → GitHub -->
+  <div style="font-size: 11px; font-weight: 700; color: #4d5760; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px;">Data Flow: Skill to Domain Services</div>
+  <div class="dataflow">
+    <div class="df-box df-skill">
+      <div class="df-title">Skill</div>
+      <div class="df-sub">e.g. /ido4dev:standup</div>
+    </div>
+    <div class="df-arrow">&rarr;</div>
+    <div class="df-box df-agg">
+      <div class="df-title">Composite Aggregator</div>
+      <div class="df-sub">get_standup_data (1 call)</div>
+    </div>
+    <div class="df-arrow">&rarr;</div>
+    <div class="df-box df-svc">
+      <div class="df-title">Domain Services</div>
+      <div class="df-sub">10-12 parallel queries</div>
+    </div>
+    <div class="df-arrow">&rarr;</div>
+    <div class="df-box df-gh">
+      <div class="df-title">GitHub + Audit</div>
+      <div class="df-sub">GraphQL + JSONL</div>
+    </div>
+    <div class="df-arrow">&larr;</div>
+    <div class="df-box df-svc">
+      <div class="df-title">Aggregated Data</div>
+      <div class="df-sub">tasks, analytics, compliance</div>
+    </div>
+    <div class="df-arrow">&larr;</div>
+    <div class="df-box df-skill">
+      <div class="df-title">AI Reasoning</div>
+      <div class="df-sub">structured output</div>
+    </div>
+  </div>
+
+  <!-- Interaction patterns -->
+  <div class="patterns">
+    <div class="pattern">
+      <div class="pat-title">Pattern: Single Composite Call</div>
+      <div class="pat-flow">
+        <span class="pf-skill">/ido4dev:standup</span> <span class="pf-arrow">&rarr;</span> <span class="pf-tool">get_standup_data</span> <span class="pf-arrow">&rarr;</span> returns: container status, tasks, PR reviews, blocker analyses, audit trail (24h), analytics, agents, compliance <span class="pf-arrow">&rarr;</span> <span class="pf-skill">AI structures morning briefing</span>
+      </div>
+    </div>
+    <div class="pattern">
+      <div class="pat-title">Pattern: Multi-Step Governance</div>
+      <div class="pat-flow">
+        <span class="pf-skill">/ido4dev:plan-wave</span> <span class="pf-arrow">&rarr;</span> <span class="pf-tool">get_project_status</span> <span class="pf-arrow">&rarr;</span> <span class="pf-tool">list_tasks</span> <span class="pf-arrow">&rarr;</span> <span class="pf-tool">search_epics</span> <span class="pf-arrow">&rarr;</span> <span class="pf-tool">analyze_dependencies</span> <span class="pf-arrow">&rarr;</span> <span class="pf-skill">AI composes wave plan</span>
+      </div>
+    </div>
+    <div class="pattern">
+      <div class="pat-title">Pattern: Agent Pipeline</div>
+      <div class="pat-flow">
+        <span class="pf-skill">/ido4dev:decompose</span> <span class="pf-arrow">&rarr;</span> <span class="pf-tool">parse_strategic_spec</span> <span class="pf-arrow">&rarr;</span> <span class="pf-agent">code-analyzer</span> (Read/Glob/Grep) <span class="pf-arrow">&rarr;</span> canvas <span class="pf-arrow">&rarr;</span> <span class="pf-agent">technical-spec-writer</span> <span class="pf-arrow">&rarr;</span> <span class="pf-tool">ingest_spec</span>
+      </div>
+    </div>
+    <div class="pattern">
+      <div class="pat-title">Pattern: Hook Governance</div>
+      <div class="pat-flow">
+        <span class="pf-tool">start_task</span> fires <span class="pf-arrow">&rarr;</span> <span class="pf-skill">post-transition hook</span> checks: unblocked downstream? new blocker? milestone? <span class="pf-arrow">&rarr;</span> "block" (surface to user) or "allow" (proceed)
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>Composite aggregators are the performance layer:</strong> Skills don't make 12 individual tool calls. One aggregator call runs parallel batches internally, ensures data consistency, and reduces round-trips. The skill gets everything it needs in one response, then focuses purely on AI reasoning.
+  </div>
+
+</div>
+
+</body>
+</html>

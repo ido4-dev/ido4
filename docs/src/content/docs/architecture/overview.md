@@ -4,7 +4,17 @@ title: "Architecture Overview"
 
 ido4 is a layered system where each layer has a clear responsibility and strict dependency direction: upper layers depend on lower layers, never the reverse. This design ensures governance rules are enforced consistently across all operations — validation before mutation, audit trail capture, no bypasses.
 
-> **Visual references:** [System Block diagram](https://github.com/ido4-dev/ido4/blob/main/diagrams/00-system-block.html) for how ido4 fits in the ecosystem. [Service Container diagram](https://github.com/ido4-dev/ido4/blob/main/diagrams/08-service-container.html) for the 9-layer dependency graph. [Plugin Layer diagram](https://github.com/ido4-dev/ido4/blob/main/diagrams/09-plugin-layer.html) for skills, agents, and hooks.
+### System Block
+
+<iframe src="/diagrams/00-system-block.html" width="100%" height="820" style="border: 1px solid var(--sl-color-gray-5); border-radius: 8px;" loading="lazy"></iframe>
+
+### Service Container
+
+<iframe src="/diagrams/08-service-container.html" width="100%" height="820" style="border: 1px solid var(--sl-color-gray-5); border-radius: 8px;" loading="lazy"></iframe>
+
+### Plugin Layer
+
+<iframe src="/diagrams/09-plugin-layer.html" width="100%" height="820" style="border: 1px solid var(--sl-color-gray-5); border-radius: 8px;" loading="lazy"></iframe>
 
 ## System Layers
 

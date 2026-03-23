@@ -6,7 +6,9 @@ The BRE is the automated quality checkpoint that runs on every task state transi
 
 **Why this matters:** Deterministic validation is faster than human review for standard checks (are dependencies complete? is the container assigned?), consistent every time (no tired reviewer, no skipped steps), and fully auditable (every pass and fail is recorded). It lets AI agents work autonomously while guaranteeing that quality standards are met.
 
-> **Visual reference:** See the [BRE Pipeline diagram](https://github.com/ido4-dev/ido4/blob/main/diagrams/04-bre-pipeline.html) for a visual walkthrough of the 34-step validation flow, and the [Request Flow diagram](https://github.com/ido4-dev/ido4/blob/main/diagrams/02-request-flow.html) for how BRE fits into the tool call lifecycle.
+<iframe src="/diagrams/04-bre-pipeline.html" width="100%" height="880" style="border: 1px solid var(--sl-color-gray-5); border-radius: 8px;" loading="lazy"></iframe>
+
+<iframe src="/diagrams/02-request-flow.html" width="100%" height="880" style="border: 1px solid var(--sl-color-gray-5); border-radius: 8px;" loading="lazy"></iframe>
 
 ## Key Design Principles
 
