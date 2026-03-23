@@ -6,11 +6,11 @@
 <title>ido4 — System Block Diagram</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; color: #1c2028; padding: 40px 48px 32px; }
+  body { overflow: hidden; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; color: #1c2028; padding: 40px 48px 32px; }
   h1 { font-size: 28px; font-weight: 700; color: #0d1117; margin-bottom: 4px; letter-spacing: -0.4px; }
   .subtitle { font-size: 14px; color: #656d76; margin-bottom: 40px; line-height: 1.5; }
 
-  .canvas { position: relative; width: 1200px; height: 700px; margin: 0 auto; }
+  .canvas { transform-origin: top left; transform: scale(var(--diagram-scale, 1)); position: relative; width: 1200px; height: 700px; margin: 0 auto; }
 
   /* ── Blocks ── */
   .block {
@@ -202,5 +202,5 @@
 
 </div>
 
-</body>
+<script>function fit(){var c=document.querySelector(".canvas");if(c){var s=Math.min(1,(window.innerWidth-20)/c.offsetWidth);c.style.setProperty("--diagram-scale",s);document.body.style.height=(c.offsetHeight*s+100)+"px"}}fit();window.addEventListener("resize",fit)</script></body>
 </html>
