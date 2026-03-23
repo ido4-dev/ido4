@@ -51,7 +51,7 @@ ido4 is a layered system where each layer has a clear responsibility and strict 
 |  |  IngestionService                                       |  |
 |  +--------------------------------------------------------+  |
 |  | BRE Pipeline                                            |  |
-|  |  TaskTransitionValidator . 32 ValidationSteps           |  |
+|  |  TaskTransitionValidator . 34 ValidationSteps           |  |
 |  |  ValidationStepRegistry . MethodologyConfig             |  |
 |  +--------------------------------------------------------+  |
 |  | Profile Engine                                          |  |
@@ -157,15 +157,15 @@ Depends on `@ido4/core` and `@modelcontextprotocol/sdk`. Contains:
 
 **Can be used with any MCP client**, not just Claude Code.
 
-### plugin/
+### ido4dev Plugin ([separate repo](https://github.com/ido4-dev/ido4dev))
 
-Depends on `@ido4/mcp` (via `.mcp.json`). Contains:
-- 18 skill definitions (governance workflows)
+Distributed via the [ido4-plugins marketplace](https://github.com/ido4-dev/ido4-plugins). The MCP server is auto-installed from npm via a SessionStart hook. Contains:
+- 21 skill definitions (context intelligence, planning, retrospectives, onboarding, sandbox, decomposition)
 - 4 agents (PM, spec-reviewer, code-analyzer, technical-spec-writer)
-- 2 governance hooks
+- 2 hooks (SessionStart: MCP server install, PostToolUse: governance signals)
 - Plugin manifest
 
-**Specific to Claude Code** — uses Claude Code's plugin system.
+**Specific to Claude Code** — uses Claude Code's plugin system. Install: `/plugin install ido4dev@ido4-plugins`.
 
 ## Data Flow Example
 

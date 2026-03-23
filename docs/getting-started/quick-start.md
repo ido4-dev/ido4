@@ -30,9 +30,23 @@ ido4 creates a GitHub Project V2 with methodology-appropriate fields and statuse
 
 The task becomes a GitHub issue on your project board with all governance fields populated. It lives in GitHub — ido4 doesn't have its own database.
 
-## 3. Start working
+## 3. Load context and start working
 
-Here's where ido4 earns its keep. When an agent tries to start a task:
+Here's where ido4 earns its keep. Before an agent writes a single line of code, it loads full project context:
+
+```
+> Load context for task #42
+
+get_task_execution_data:
+  ✓ Task spec + acceptance criteria loaded
+  ✓ Upstream: #38 built JWT refresh endpoint (RSA-256, 30min TTL)
+  ✓ Upstream: #41 created user schema with bcrypt hashing
+  ✓ Siblings: #39, #40 established error handling pattern
+  ✓ Downstream: #45, #47 waiting on this task
+  Risk: critical path — 3 of 5 remaining epic tasks depend on #42
+```
+
+The agent now knows what was built before, what patterns to follow, and who depends on its output. Then it starts, and the BRE validates:
 
 ```
 > Start task #42
@@ -53,14 +67,30 @@ If something's wrong, the transition is **blocked** — not warned, blocked:
 > Start task #43
 
 BLOCKED:
-  x Dependency #42 is In Progress, not Done
+  ✗ Dependency #42 is In Progress, not Done
 
   You cannot start #43 until #42 is complete.
 ```
 
-The BRE doesn't negotiate. Dependencies must be satisfied. Containers must be assigned. Integrity rules must hold. This is the point — governance you can't accidentally bypass.
+The BRE doesn't negotiate. Dependencies must be satisfied. Containers must be assigned. Integrity rules must hold.
 
-## 4. The workflow
+## 4. Build and capture context
+
+As the agent works, it writes structured context so the next agent inherits understanding:
+
+```
+> Review task #42 with context: "Built OAuth2 token rotation at
+  /auth/rotate. Used sliding window TTL (not fixed) for active
+  sessions. Circuit breaker shared with refresh endpoint."
+
+BRE Validation: ✓ 3/3 steps passed
+Context comment saved on GitHub issue #42.
+Task #42 → In Review. PR #89 linked.
+```
+
+This is the read-execute-write loop: agents read accumulated context → build → write what they built → the next agent inherits everything. Knowledge compounds even though each agent is stateless.
+
+## 5. The workflow
 
 Work flows through your methodology's state machine. At every arrow, the BRE validates. At every transition, an audit event is recorded.
 
@@ -72,7 +102,7 @@ Ready for Dev --> In Progress --> In Review --> Done
 
 The exact states and transitions depend on your methodology — [Scrum has 6 states](../concepts/methodologies.md#scrum), [Shape Up has 8](../concepts/methodologies.md#shape-up). The governance pattern is the same.
 
-## 5. See what's happening
+## 6. See what's happening
 
 ```
 > /ido4dev:standup
@@ -86,7 +116,7 @@ A governance-aware morning briefing: what's blocked, what's in review too long, 
 
 Five-second verdict: **GREEN** (everything flowing), **YELLOW** (concerns), or **RED** (action needed).
 
-## 6. Multi-agent setup
+## 7. Multi-agent setup
 
 Running multiple AI agents? Register them:
 
@@ -100,7 +130,7 @@ When an agent finishes, `complete_and_handoff` atomically approves the task, rel
 
 ## What to try next
 
-- **[Sandbox Demo](sandbox.md)** — See governance discover 5 embedded violations in a real GitHub project. Available for [Hydro](sandbox.md#hydro-sandbox), [Scrum](sandbox.md#scrum-sandbox), and [Shape Up](sandbox.md#shape-up-sandbox).
+- **[Sandbox Demo](sandbox.md)** — See governance discover embedded violations in a real GitHub project, with methodology-specific scenarios for Hydro, Scrum, and Shape Up.
 - **[Methodologies](../concepts/methodologies.md)** — Understand the differences between Hydro, Scrum, and Shape Up
 - **[Business Rule Engine](../concepts/business-rule-engine.md)** — The 34 validation steps under the hood
-- **[Skills](../skills/overview.md)** — 21 intelligent governance workflows
+- **[Skills](../skills/overview.md)** — 21 intelligent skills for governance, planning, and project intelligence
