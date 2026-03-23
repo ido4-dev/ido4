@@ -24,8 +24,5 @@
     "url": "https://github.com/ido4-dev/ido4/issues"
   },
   "author": "Bogdan Ionut Coman",
-  "license": "MIT",
-  "dependencies": {
-    "@ido4/mcp": "^0.1.1"
-  }
+  "license": "MIT"
 }

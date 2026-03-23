@@ -13,7 +13,7 @@
 * [Containers](concepts/containers.md)
 * [Governance Principles](concepts/governance-principles.md)
 * [Business Rule Engine](concepts/business-rule-engine.md)
-* [Multi-Agent Governance](concepts/multi-agent.md)
+* [Multi-Agent Coordination](concepts/multi-agent.md)
 * [Audit Trail & Compliance](concepts/audit-compliance.md)
 * [Glossary](concepts/glossary.md)
 
@@ -34,7 +34,7 @@
 * [/compliance](skills/compliance.md)
 * [/retro, /retro-sprint, /retro-cycle](skills/retro.md)
 * [/health](skills/health.md)
-* [/sandbox, /sandbox-hydro, /sandbox-scrum, /sandbox-shape-up](skills/sandbox.md)
+* [/sandbox](skills/sandbox.md)
 * [/decompose](skills/decompose.md)
 * [/spec-validate](skills/spec-validate.md)
 * [/pilot-test](skills/pilot-test.md)
