@@ -2,7 +2,9 @@
 
 ido4 doesn't force a methodology on you. It ships three — pick the one that fits how your team works, or extend one to make it yours.
 
-The engine is methodology-agnostic. Methodologies are **profiles** — data structures that define states, transitions, containers, validation pipelines, and principles. The engine reads the profile and generates everything dynamically: tools, prompts, BRE pipelines, compliance scoring. Zero methodology-specific code in the engine.
+Methodologies are **profiles** — data structures that define states, transitions, containers, validation pipelines, and principles. The engine reads the profile and generates everything: tools, prompts, BRE pipelines, compliance scoring. Tool counts vary because each methodology has different containers and state machines.
+
+> **Visual reference:** See the [Profile Generation diagram](../../diagrams/05-profile-generation.html) for how a single profile drives the entire tool and pipeline generation.
 
 ## Hydro
 
@@ -142,7 +144,15 @@ Raw Idea -> Shaped -> Bet On -> Building -> QA -> Shipped
 
 ---
 
-## Choosing
+## Choosing your methodology
+
+**Your team ships complete features at once** (consulting delivery, enterprise milestones) → **Hydro**. Epic Integrity ensures features don't ship partially.
+
+**Your team works on diverse work types** (stories, bugs, spikes, tech debt) with different quality requirements → **Scrum**. Type-scoped pipelines enforce the right quality gates per work type.
+
+**Your team bets on outcomes with fixed time budgets** (product-driven orgs, startups) → **Shape Up**. The circuit breaker kills unfinished bets — scope gets hammered, not timelines.
+
+### Detailed comparison
 
 | Question | Hydro | Scrum | Shape Up |
 |---|---|---|---|

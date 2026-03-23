@@ -10,6 +10,10 @@ ido4 provides MCP tools organized into categories. The exact count varies by met
 
 Every write tool supports `dryRun`, goes through BRE validation, and creates an audit entry.
 
+**`dryRun: true`** — Validates the operation fully (runs the entire BRE pipeline) and returns what would happen, but doesn't mutate GitHub or create audit events. Use this to preview impact before committing to a transition.
+
+**Tools are governed operations, not API wrappers.** Every write goes through: input validation → BRE pipeline (34 steps) → GitHub mutation → audit event → structured response with suggestions. This is why an agent can't accidentally violate a governance principle.
+
 ## Task Governance
 
 ### Workflow Transitions (dynamic)

@@ -1,6 +1,8 @@
 # /ido4dev:decompose
 
-The decompose skill orchestrates the strategic-to-technical spec pipeline — transforming a strategic spec (from ido4shape) into a technical spec with implementation tasks grounded in the actual codebase.
+The decompose skill orchestrates the strategic-to-technical spec pipeline — transforming a strategic spec (from ido4shape) into a technical spec with implementation tasks grounded in the actual codebase. It doesn't just break down a spec — it explores your codebase to find the right task boundaries and judges effort/risk based on actual code complexity, not guesses.
+
+> **Visual reference:** See the [Decomposition Pipeline diagram](../../diagrams/06-decomposition-pipeline.html) for the full pipeline architecture.
 
 ## What It Does
 

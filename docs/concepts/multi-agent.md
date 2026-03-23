@@ -1,6 +1,10 @@
 # Multi-Agent Coordination
 
-ido4 is built for teams deploying multiple AI coding agents on the same codebase. Without coordination, multiple agents produce duplicate work, conflicting changes, and cascade failures. ido4 provides the coordination platform — task intelligence that recommends the highest-leverage work, exclusive locking that prevents conflicts, context delivery that shares accumulated understanding, and quality enforcement that ensures every agent's output meets standards.
+ido4 works with single agents and multi-agent teams alike. The governance, context, and intelligence capabilities work the same whether you have one agent or ten.
+
+For teams deploying **multiple AI agents on the same codebase**, ido4 adds coordination: task intelligence that recommends the highest-leverage work for each agent, exclusive locking that prevents duplicate effort, and atomic handoff that keeps work flowing when one agent finishes. Without this, multiple agents produce duplicate work, conflicting changes, and cascade failures.
+
+> **Visual reference:** See the [Multi-Agent diagram](../../diagrams/07-multi-agent.html) for the coordination architecture, and the [Agent Workflow diagram](../../diagrams/10-agent-workflow.html) for the daily agent loop.
 
 ## Agent Registration
 

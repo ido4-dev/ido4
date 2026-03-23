@@ -1,6 +1,10 @@
 # Audit Trail & Compliance
 
-Every action in ido4 creates an immutable audit entry — the foundation for institutional memory. Analytics, compliance scoring, and project intelligence all derive from the audit trail. No separate databases, no estimated data. The audit log IS the source of truth.
+Every action in ido4 creates an immutable audit entry — an append-only record that cannot be modified or deleted. This audit trail is the foundation for institutional memory: analytics, compliance scoring, and project intelligence all derive from it. No separate databases, no estimated data. The audit log IS the source of truth.
+
+**Why this matters:** For enterprises, the audit trail provides the compliance evidence that regulated industries demand — who did what, when, and whether the rules were followed. For any team, it means real analytics (cycle time, blocking time, throughput) computed from actual events, not estimates. For the platform, it's how knowledge compounds: every action enriches the system's understanding of how your project is progressing.
+
+> **Visual reference:** See the [Event Sourcing diagram](../../diagrams/03-event-sourcing.html) for how events flow from domain services through the audit trail to analytics and compliance scoring.
 
 ## Audit Trail
 

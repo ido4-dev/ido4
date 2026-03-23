@@ -9,7 +9,7 @@
 
 ## Option 1: Claude Code Plugin (Recommended)
 
-The plugin bundles the MCP server with 21 governance skills, 4 agents, and governance hooks. Install from the marketplace — no clone, no build:
+The plugin gives you the full ido4 experience: 21 intelligent skills for project intelligence and governance, 4 specialized agents, and automation hooks that fire after key transitions. The MCP server is auto-installed. No clone, no build:
 
 ```bash
 # Set your GitHub token
@@ -110,6 +110,15 @@ After setup, verify everything works:
 > What's the status of our project?
 # Claude will call get_project_status automatically
 ```
+
+## Which option should I choose?
+
+| I want to... | Use |
+|---|---|
+| Get the full experience with skills, agents, and hooks | **Option 1** — Claude Code Plugin |
+| Use ido4 with Cursor, Windsurf, or another MCP client | **Option 2** — Standalone MCP Server |
+| Build custom tooling on top of ido4's domain layer | **Option 3** — Core Library |
+| Contribute to the ido4dev plugin | **Option 4** — Local Development |
 
 ## Next Steps
 

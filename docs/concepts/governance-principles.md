@@ -1,6 +1,10 @@
 # Governance Principles
 
-Each methodology defines its own governance principles — rules enforced deterministically by the Business Rule Engine. These principles exist because AI agents operating at scale need hard boundaries. Without them, an agent optimizing for speed will violate dependency order. An agent optimizing for throughput will split features across containers. An agent optimizing for its own task will ignore coordination constraints.
+Each methodology defines its own governance principles — rules enforced deterministically by the Business Rule Engine that cannot be bypassed through conversation or reasoning. These principles exist because AI agents optimize for speed and throughput by default. Without hard boundaries, an agent will violate dependency order to finish faster, split features across containers to parallelize, or ignore coordination constraints to avoid waiting.
+
+The result without principles: cascade failures (code depends on interfaces that don't exist yet), testing gaps (features ship partially — how do you test auth without authorization?), and deployment inconsistency. Principles prevent these by making boundaries unambiguous and enforceable.
+
+**Error-severity** violations block the transition — the agent must fix the issue and retry. **Warning-severity** violations allow the transition but record it in the audit trail and impact the compliance score. Severity is configurable per methodology profile.
 
 ## Principles by Methodology
 

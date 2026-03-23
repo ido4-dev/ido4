@@ -42,7 +42,7 @@ compute_compliance_score(waveName: "wave-002-core")
     "brePassRate": { "score": 95, "weight": 40, "contribution": 38.0 },
     "qualityGates": { "score": 88, "weight": 20, "contribution": 17.6 },
     "processAdherence": { "score": 90, "weight": 20, "contribution": 18.0 },
-    "epicIntegrity": { "score": 100, "weight": 10, "contribution": 10.0 },
+    "containerIntegrity": { "score": 100, "weight": 10, "contribution": 10.0 },
     "flowEfficiency": { "score": 84, "weight": 10, "contribution": 8.4 }
   },
   "recommendations": [

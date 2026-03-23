@@ -2,6 +2,16 @@
 
 Quality gates are the BRE validation steps that make it safe for AI agents to work autonomously at scale. They check code quality, process compliance, and security before allowing task transitions — catching what CI alone can't. When agents know that every transition is validated, they can focus on building rather than second-guessing process compliance.
 
+## Recommended baselines
+
+| Team stage | Recommended gates |
+|---|---|
+| **Getting started** | DependencyValidation, PRReview (1 approval) |
+| **Growing team** | + TestCoverage (80%), SecurityScan |
+| **Enterprise / regulated** | + TaskLock, all gates with stricter thresholds (PRReview:2, TestCoverage:90) |
+
+Start minimal and add gates as your process matures. Every gate adds safety but also friction — find the right balance for your team.
+
 ## Built-in Quality Gates
 
 ### PR Review Validation

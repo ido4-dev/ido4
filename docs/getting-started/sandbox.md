@@ -2,23 +2,20 @@
 
 The sandbox is the fastest way to experience ido4 governance. It creates a real GitHub Project V2 with tasks, containers, and **deliberately embedded governance violations** — then discovers them live using the same tools that govern real projects.
 
+The sandbox is fully isolated — violations are intentional and safe to explore. You can break rules, fix them, and learn what each violation means without affecting any real project.
+
 ## Quick Start
 
-The fastest path: `/ido4dev:onboard` handles everything — clones the demo codebase, creates the sandbox, and walks you through governance discovery.
+| Path | When to use |
+|---|---|
+| `/ido4dev:onboard` | **First time.** Handles everything — clones demo codebase, creates sandbox, walks you through governance discovery (~10 min). |
+| `/ido4dev:sandbox` | **Manual control.** Creates the sandbox without the guided walkthrough. Good for repeat use or custom exploration. |
+| `/ido4dev:guided-demo` | **After sandbox exists.** Four-act structured governance walkthrough (~15 min). |
+| `/ido4dev:sandbox-explore` | **After sandbox exists.** Pick what to investigate from 13 structured paths. |
 
 ```bash
-# Launch Claude Code with ido4
-# Install via marketplace:
-# /plugin marketplace add ido4-dev/ido4-plugins
-# /plugin install ido4dev@ido4-plugins
-# Or for local development:
-claude --plugin-dir ../ido4dev
-
-# Zero-friction onboarding (recommended for first-time users)
+# Recommended for first-time users
 > /ido4dev:onboard
-
-# Or manual sandbox creation
-> /ido4dev:sandbox
 ```
 
 ## Available Skills

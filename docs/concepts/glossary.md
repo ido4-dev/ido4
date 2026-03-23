@@ -81,9 +81,14 @@ Key terms used across ido4 documentation, organized by concept area.
 | Term | Definition |
 |---|---|
 | **Agent** | A registered AI coding agent with an ID, role, and capability profile. |
-| **Task Lock** | An exclusive 30-minute lock preventing multiple agents from working on the same task. |
+| **Task Lock** | An exclusive 30-minute lock preventing multiple agents from working on the same task. Auto-expires to prevent deadlocks from crashed agents. |
 | **Work Distribution** | 4-dimension scoring that recommends optimal task assignments for agents. |
-| **Cascade Value** | A scoring dimension: how many downstream tasks does completing this task unblock? |
+| **Cascade Value** | A scoring dimension: how many downstream tasks does completing this task unblock? Higher cascade = higher leverage. |
+| **Epic Momentum** | A scoring dimension: how close is the task's epic/bet to completion? Finishing what's started prevents fragmentation. |
+| **Capability Match** | A scoring dimension: does the agent's declared role match the task? Soft matching with bonuses, no penalties. |
+| **Dependency Freshness** | A scoring dimension: were this task's dependencies recently completed? Fresh context = better momentum. |
+| **Handoff** | The atomic operation where an agent completes a task, releases its lock, and the system identifies newly unblocked work for other agents. |
+| **Container Fragmentation** | When a grouping container (epic/bet) has its tasks split across multiple execution containers (waves/cycles). An integrity violation. |
 
 ## Pipeline Concepts
 
@@ -95,3 +100,12 @@ Key terms used across ido4 documentation, organized by concept area.
 | **Technical Canvas** | An intermediate artifact from the code analysis agent — codebase knowledge per capability. |
 | **Ingestion** | The process of creating GitHub issues from a technical spec. |
 | **Goldilocks Principle** | Task sizing constraint: not too small (specs fatigue), not too big (can't review), just right. |
+
+## Profile Concepts
+
+| Term | Definition |
+|---|---|
+| **Methodology Profile** | A TypeScript constant or JSON file that defines everything about a methodology: states, transitions, containers, integrity rules, validation pipelines, compliance weights. The engine reads profiles — it has no methodology-specific code. |
+| **Custom Profile** | A profile that extends a built-in (Hydro, Scrum, or Shape Up) and overrides specific sections. Only overridden sections change — everything else inherits from the base. |
+| **Profile Inheritance** | The mechanism for customizing governance: `{ "id": "my-process", "extends": "scrum", ... }`. Your custom profile inherits all of Scrum's defaults, then you override what you need. |
+| **Type-Scoped Pipeline** | A pipeline variant for specific work item types. `"plan:story"` has different rules than `"plan:bug"`. The BRE checks for the type-specific pipeline first, falls back to the default. Scrum uses this extensively. |

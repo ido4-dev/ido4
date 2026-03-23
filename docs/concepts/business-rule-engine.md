@@ -1,6 +1,10 @@
 # Business Rule Engine (BRE)
 
-The BRE is the quality foundation that makes AI-hybrid development trustworthy. It's a composable validation pipeline that evaluates every task state transition against deterministic rules — catching dependency violations, integrity breaks, and missing criteria before they cascade. The BRE runs real TypeScript code — not LLM instructions, not YAML configuration interpreted by an AI. Real code with real results.
+The BRE is the automated quality checkpoint that runs on every task state transition. It catches dependency violations, integrity breaks, and missing criteria *before* they cascade — using deterministic TypeScript code, not LLM instructions that can be hallucinated or skipped.
+
+**Why this matters:** Deterministic validation is faster than human review for standard checks (are dependencies complete? is the container assigned?), consistent every time (no tired reviewer, no skipped steps), and fully auditable (every pass and fail is recorded). It lets AI agents work autonomously while guaranteeing that quality standards are met.
+
+> **Visual reference:** See the [BRE Pipeline diagram](../../diagrams/04-bre-pipeline.html) for a visual walkthrough of the 34-step validation flow, and the [Request Flow diagram](../../diagrams/02-request-flow.html) for how BRE fits into the tool call lifecycle.
 
 ## Key Design Principles
 
