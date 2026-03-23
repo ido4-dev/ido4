@@ -27,6 +27,7 @@ export default defineConfig({
         {
           label: 'Getting Started',
           items: [
+            { label: 'Introduction', link: '/' },
             { label: 'Installation', slug: 'getting-started/installation' },
             { label: 'Quick Start', slug: 'getting-started/quick-start' },
             { label: 'Sandbox Demo', slug: 'getting-started/sandbox' },
