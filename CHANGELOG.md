@@ -2,7 +2,19 @@
 
 All notable changes to ido4 are documented here.
 
-Both `@ido4/core` and `@ido4/mcp` are released together at the same version.
+All packages (`@ido4/spec-format`, `@ido4/core`, `@ido4/mcp`) are released together at the same version.
+
+## [0.6.0] — 2026-03-27
+
+New package: `@ido4/spec-format`. The strategic spec parser — the format contract between ido4shape (producer) and ido4 MCP (consumer) — extracted into its own zero-dependency package with a CLI entry point.
+
+- **`@ido4/spec-format` package**: Strategic spec parser, types, and shared utilities extracted from `@ido4/core`. Zero npm dependencies. 13 kB published size. Enables ido4shape to run deterministic structural validation in Cowork without the full MCP server.
+- **CLI entry point** (`ido4-spec-format <file.md>`): Outputs rich JSON — full parsed structure, computed metrics, dependency graph, separated errors/warnings. Designed for intelligent agent consumption.
+- **`@ido4/core` backward compatible**: Re-exports everything from `@ido4/spec-format`. Existing consumers (including `@ido4/mcp`) require no changes.
+- **Sequential build order**: Root build script now builds spec-format → core → mcp to handle workspace dependency resolution correctly.
+- **CI/CD updated**: `publish.yml` publishes `@ido4/spec-format` before `@ido4/core`. Release script manages all three packages.
+
+1,731 tests across 3 packages (41 + 1,232 + 458). Build clean.
 
 ## [0.5.0] — 2026-03-22
 
