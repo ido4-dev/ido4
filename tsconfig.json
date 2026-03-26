@@ -24,6 +24,7 @@
     "composite": true
   },
   "references": [
+    { "path": "packages/spec-format" },
     { "path": "packages/core" },
     { "path": "packages/mcp" }
   ],

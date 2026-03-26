@@ -1,0 +1,43 @@
+{
+  "name": "@ido4/spec-format",
+  "version": "0.5.0",
+  "description": "Strategic spec format parser — deterministic structural validation for ido4shape artifacts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "ido4-spec-format": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.5.0",
+    "vitest": "^2.1.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "spec-format",
+    "strategic-spec",
+    "ido4",
+    "ido4shape",
+    "parser",
+    "markdown",
+    "validation"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ido4-dev/ido4.git",
+    "directory": "packages/spec-format"
+  },
+  "homepage": "https://github.com/ido4-dev/ido4/tree/main/packages/spec-format",
+  "bugs": {
+    "url": "https://github.com/ido4-dev/ido4/issues"
+  },
+  "author": "Bogdan Ionut Coman",
+  "license": "MIT"
+}

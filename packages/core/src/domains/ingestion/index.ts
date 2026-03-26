@@ -1,5 +1,5 @@
 export { parseSpec } from './spec-parser.js';
-export { parseStrategicSpec } from './strategic-spec-parser.js';
+export { parseStrategicSpec } from '@ido4/spec-format';
 export { mapSpec, findGroupingContainer, topologicalSort } from './spec-mapper.js';
 export { IngestionService } from './ingestion-service.js';
 export type {
@@ -25,5 +25,5 @@ export type {
   Stakeholder,
   StrategicPriority,
   StrategicRisk,
-} from './strategic-spec-types.js';
-export { STRATEGIC_PRIORITIES, STRATEGIC_RISKS } from './strategic-spec-types.js';
+} from '@ido4/spec-format';
+export { STRATEGIC_PRIORITIES, STRATEGIC_RISKS } from '@ido4/spec-format';

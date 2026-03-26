@@ -13,14 +13,18 @@ This is an npm workspaces monorepo with three packages:
 ```
 ido4-MCP/
 ├── packages/
-│   ├── core/       # @ido4/core — Domain logic, zero CLI dependencies
-│   └── mcp/        # @ido4/mcp — MCP server (STDIO transport)
-├── package.json    # Workspace root
-└── tsconfig.json   # Shared TypeScript config
+│   ├── spec-format/ # @ido4/spec-format — Strategic spec parser, zero deps, CLI
+│   ├── core/        # @ido4/core — Domain logic, depends on @ido4/spec-format
+│   └── mcp/         # @ido4/mcp — MCP server (STDIO transport)
+├── package.json     # Workspace root
+└── tsconfig.json    # Shared TypeScript config
 ```
 
+### @ido4/spec-format
+The strategic spec format contract. Contains the parser that validates and parses strategic spec artifacts produced by ido4shape. Published as a standalone package with a CLI entry point (`ido4-spec-format`) so ido4shape can run deterministic structural validation in Cowork. **Zero npm dependencies.**
+
 ### @ido4/core
-The domain layer. Context assembly, task intelligence, work distribution, institutional memory (audit trail, analytics, compliance scoring), BRE (Business Rule Engine) validation pipeline (34 steps), container management, integrity enforcement, dependency analysis, merge readiness, ingestion pipeline, strategic spec parser. Profile-driven state machine. **Zero dependencies on CLI frameworks, terminal formatting, or MCP SDK.**
+The domain layer. Context assembly, task intelligence, work distribution, institutional memory (audit trail, analytics, compliance scoring), BRE (Business Rule Engine) validation pipeline (34 steps), container management, integrity enforcement, dependency analysis, merge readiness, ingestion pipeline. Profile-driven state machine. **Depends on @ido4/spec-format for strategic spec parsing. Zero dependencies on CLI frameworks, terminal formatting, or MCP SDK.**
 
 ### @ido4/mcp
 The MCP server. Wraps @ido4/core domain services as MCP tools, resources, and prompts — dynamically generated from the active methodology profile. Composite aggregators assemble full project context in single calls. Uses STDIO transport for Claude Code integration. Hydro: 58 tools, Scrum: 56 tools, Shape Up: 54 tools.
@@ -41,7 +45,7 @@ ido4shape (conversation) → strategic spec → ido4 MCP decomposition → techn
 - The **ingestion pipeline** (spec-parser.ts → spec-mapper.ts → GitHub issues) creates capability issues (mapped to epic/bet) with tasks as sub-issues
 
 **Decomposition pipeline (built):**
-- Strategic spec parser: `packages/core/src/domains/ingestion/strategic-spec-parser.ts`
+- Strategic spec parser: `packages/spec-format/src/strategic-spec-parser.ts` (extracted to `@ido4/spec-format`)
 - `parse_strategic_spec` MCP tool
 - Code analysis agent: [ido4dev repo](https://github.com/ido4-dev/ido4dev) `agents/code-analyzer.md`
 - Technical spec writer: [ido4dev repo](https://github.com/ido4-dev/ido4dev) `agents/technical-spec-writer.md`
@@ -115,10 +119,10 @@ Skills are namespaced: `/ido4dev:standup`, `/ido4dev:board`, `/ido4dev:decompose
 
 ## Releasing
 
-Both `@ido4/core` and `@ido4/mcp` are published to npm at the same version. CI auto-publishes on version tags.
+All three packages (`@ido4/spec-format`, `@ido4/core`, `@ido4/mcp`) are published to npm at the same version. CI auto-publishes on version tags.
 
 ```bash
-./scripts/release.sh 0.5.0    # Bumps both packages, commits, tags, pushes
+./scripts/release.sh 0.5.0    # Bumps all three packages, commits, tags, pushes
 ```
 
 CI Workflows (`.github/workflows/`):
@@ -128,7 +132,7 @@ CI Workflows (`.github/workflows/`):
 
 ## Distribution
 
-- **npm**: `@ido4/core`, `@ido4/mcp` (v0.5.0) — https://www.npmjs.com/org/ido4
+- **npm**: `@ido4/spec-format`, `@ido4/core`, `@ido4/mcp` (v0.5.0) — https://www.npmjs.com/org/ido4
 - **GitHub**: https://github.com/ido4-dev/ido4
 - **Docs (Starlight)**: https://docs.ido4.dev — built with Astro Starlight, hosted on Firebase
 - **Website**: ido4.dev (separate repo)
@@ -146,7 +150,8 @@ After any change that affects architecture, services, tools, profiles, validatio
 | `packages/core/src/domains/agents/`, `distribution/`, `gate/` | `architecture/multi-agent-coordination.md`, `docs/src/content/docs/concepts/multi-agent.md` | `diagrams/07-multi-agent.html` |
 | `packages/core/src/container/service-container.ts` | `architecture/technical-stack.md` | `diagrams/08-service-container.html` |
 | `packages/core/src/profiles/` | `architecture/methodology-runner.md`, `docs/src/content/docs/enterprise/methodology.md` | `diagrams/05-profile-generation.html` |
-| `packages/core/src/domains/ingestion/` | `architecture/decomposition-pipeline.md`, `architecture/two-artifact-pipeline.md`, `architecture/spec-artifact-format.md` | `diagrams/06-decomposition-pipeline.html` |
+| `packages/spec-format/src/` (strategic spec parser, format contract) | `architecture/decomposition-pipeline.md`, `architecture/two-artifact-pipeline.md`, `architecture/spec-artifact-format.md` | `diagrams/06-decomposition-pipeline.html` |
+| `packages/core/src/domains/ingestion/` (technical spec parser, ingestion) | `architecture/decomposition-pipeline.md`, `architecture/two-artifact-pipeline.md` | `diagrams/06-decomposition-pipeline.html` |
 | `packages/mcp/src/` (tools, resources, prompts) | `architecture/vision-and-roadmap.md` (tool counts) | `diagrams/01-system-overview.html`, `diagrams/02-request-flow.html` |
 | [ido4dev plugin](https://github.com/ido4-dev/ido4dev) (skills, agents, hooks) | `docs/src/content/docs/skills/overview.md`, `docs/src/content/docs/skills/pm-agent.md` | `diagrams/09-plugin-layer.html` |
 | Any architectural change | `architecture/vision-and-roadmap.md`, `CLAUDE.md` | `diagrams/00-system-block.html` |

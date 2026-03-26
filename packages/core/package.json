@@ -11,6 +11,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@ido4/spec-format": "*",
     "@octokit/graphql": "^7.1.0",
     "zod": "^3.23.0"
   },

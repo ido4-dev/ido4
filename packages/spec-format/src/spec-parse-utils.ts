@@ -1,6 +1,6 @@
 /**
  * Shared utilities for spec parsing — used by both the technical spec parser
- * and the strategic spec parser.
+ * (in @ido4/core) and the strategic spec parser (in this package).
  */
 
 /**

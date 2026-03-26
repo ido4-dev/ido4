@@ -22,6 +22,12 @@ jobs:
       - run: npm run build
       - run: npm run test
 
+      - name: Publish @ido4/spec-format
+        run: npm publish --access public
+        working-directory: packages/spec-format
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Publish @ido4/core
         run: npm publish --access public
         working-directory: packages/core

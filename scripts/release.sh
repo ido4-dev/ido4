@@ -99,15 +99,15 @@ fi
 
 # 6. Documentation freshness — check if docs were updated since last code change
 echo "▸ Documentation freshness..."
-LAST_CODE_CHANGE=$(git log -1 --format=%H -- packages/core/src packages/mcp/src packages/plugin 2>/dev/null || echo "")
+LAST_CODE_CHANGE=$(git log -1 --format=%H -- packages/spec-format/src packages/core/src packages/mcp/src packages/plugin 2>/dev/null || echo "")
 LAST_DOC_CHANGE=$(git log -1 --format=%H -- architecture/ docs/ diagrams/ CLAUDE.md README.md 2>/dev/null || echo "")
 if [ -n "$LAST_CODE_CHANGE" ] && [ -n "$LAST_DOC_CHANGE" ]; then
   # Check if code was changed after docs
-  CODE_DATE=$(git log -1 --format=%ct -- packages/core/src packages/mcp/src packages/plugin 2>/dev/null || echo "0")
+  CODE_DATE=$(git log -1 --format=%ct -- packages/spec-format/src packages/core/src packages/mcp/src packages/plugin 2>/dev/null || echo "0")
   DOC_DATE=$(git log -1 --format=%ct -- architecture/ docs/ diagrams/ CLAUDE.md README.md 2>/dev/null || echo "0")
   if [ "$CODE_DATE" -gt "$DOC_DATE" ]; then
     echo "  ⚠ Code changed AFTER docs — verify docs are up to date"
-    echo "    Last code change: $(git log -1 --format='%s (%cr)' -- packages/core/src packages/mcp/src packages/plugin)"
+    echo "    Last code change: $(git log -1 --format='%s (%cr)' -- packages/spec-format/src packages/core/src packages/mcp/src packages/plugin)"
     echo "    Last doc change:  $(git log -1 --format='%s (%cr)' -- architecture/ docs/ diagrams/ CLAUDE.md README.md)"
     WARNINGS=$((WARNINGS + 1))
   else
@@ -160,22 +160,25 @@ fi
 # RELEASE
 # ═══════════════════════════════════════════════════════════════
 
+SPEC_FORMAT_PKG="packages/spec-format/package.json"
 CORE_PKG="packages/core/package.json"
 MCP_PKG="packages/mcp/package.json"
 
+CURRENT_SPEC_FORMAT=$(node -p "require('./$SPEC_FORMAT_PKG').version")
 CURRENT_CORE=$(node -p "require('./$CORE_PKG').version")
 CURRENT_MCP=$(node -p "require('./$MCP_PKG').version")
 
 echo ""
 echo "Releasing v$VERSION"
-echo "  @ido4/core: $CURRENT_CORE → $VERSION"
-echo "  @ido4/mcp:  $CURRENT_MCP → $VERSION"
+echo "  @ido4/spec-format: $CURRENT_SPEC_FORMAT → $VERSION"
+echo "  @ido4/core:        $CURRENT_CORE → $VERSION"
+echo "  @ido4/mcp:         $CURRENT_MCP → $VERSION"
 echo ""
 
 # Bump versions using node to preserve JSON formatting
 node -e "
 const fs = require('fs');
-for (const pkg of ['$CORE_PKG', '$MCP_PKG']) {
+for (const pkg of ['$SPEC_FORMAT_PKG', '$CORE_PKG', '$MCP_PKG']) {
   const json = JSON.parse(fs.readFileSync(pkg, 'utf8'));
   json.version = '$VERSION';
   fs.writeFileSync(pkg, JSON.stringify(json, null, 2) + '\n');
@@ -183,7 +186,7 @@ for (const pkg of ['$CORE_PKG', '$MCP_PKG']) {
 "
 
 # Commit, tag, push
-git add "$CORE_PKG" "$MCP_PKG"
+git add "$SPEC_FORMAT_PKG" "$CORE_PKG" "$MCP_PKG"
 git commit -m "release v$VERSION"
 git tag "v$VERSION"
 git push origin main --tags
@@ -197,7 +200,9 @@ echo "CI will build, test, and publish to npm."
 echo "Watch: gh run list --repo ido4-dev/ido4 --limit 2"
 echo ""
 echo "Post-release checklist:"
-echo "  □ Verify npm publish: https://www.npmjs.com/org/ido4"
+echo "  □ Verify npm publish: https://www.npmjs.com/org/ido4 (spec-format, core, mcp)"
+echo "  □ Update ido4shape package.json @ido4/spec-format version"
+echo "  □ Update ido4dev package.json @ido4/mcp version"
 echo "  □ Update website if numbers changed (build + firebase deploy)"
 echo "  □ Update MEMORY.md version references"
 echo "  □ Announce if significant changes"

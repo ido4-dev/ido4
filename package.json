@@ -7,10 +7,10 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspaces",
+    "build": "npm run build -w @ido4/spec-format && npm run build -w @ido4/core && npm run build -w @ido4/mcp",
     "test": "npm run test --workspaces",
     "lint": "tsc --noEmit --project tsconfig.json",
-    "clean": "rm -rf packages/*/dist"
+    "clean": "rm -rf packages/*/dist packages/*/tsconfig.tsbuildinfo"
   },
   "engines": {
     "node": ">=18.0.0"

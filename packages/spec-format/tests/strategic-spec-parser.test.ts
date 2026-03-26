@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseStrategicSpec } from '../../../src/domains/ingestion/strategic-spec-parser.js';
+import { parseStrategicSpec } from '../src/strategic-spec-parser.js';
 
 const MINIMAL_SPEC = `# Test Project
 > format: strategic-spec | version: 1.0

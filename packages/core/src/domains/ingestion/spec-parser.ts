@@ -12,7 +12,7 @@ import type {
   ParsedTask,
   ParseError,
 } from './types.js';
-import { parseMetadataLine, derivePrefix } from './spec-parse-utils.js';
+import { parseMetadataLine, derivePrefix } from '@ido4/spec-format';
 
 type ParserState = 'INIT' | 'PROJECT' | 'GROUP' | 'TASK';
 
