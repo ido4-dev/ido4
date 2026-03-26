@@ -1,6 +1,6 @@
 {
   "name": "@ido4/mcp",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "ido4 MCP server — context intelligence, task distribution, and governance for AI-hybrid software development in Claude Code",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
