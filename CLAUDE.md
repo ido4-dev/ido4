@@ -126,9 +126,19 @@ All three packages (`@ido4/spec-format`, `@ido4/core`, `@ido4/mcp`) are publishe
 ```
 
 CI Workflows (`.github/workflows/`):
-- `ci.yml` — Build + test on every push to `main` and on PRs
-- `publish.yml` — Publishes to npm on `v*` tags
+- `ci.yml` — Build + test on every push to `main` and on PRs. Also builds and smoke-tests the spec-format bundle.
+- `publish.yml` — Publishes to npm on `v*` tags. After publishing, dispatches `spec-format-published` event to ido4shape so its CI can auto-update the bundled validator.
 - `docs.yml` — Builds and deploys docs to Firebase on push to `main` when `docs/` changes
+
+## Downstream: ido4shape Validator Bundle
+
+ido4shape ships a bundled copy of the `@ido4/spec-format` CLI for deterministic spec validation without npm install. The bundle is built by `npm run build:bundle -w @ido4/spec-format`, producing `packages/spec-format/dist/spec-validator.bundle.js` — a single-file esbuild bundle (~8KB, zero npm deps).
+
+**After releasing:** The publish workflow dispatches a `spec-format-published` event to ido4shape. ido4shape's `update-validator.yml` workflow automatically creates a PR with the new bundle. Patch/minor updates auto-merge after CI passes. Major version updates require review (output format may have changed).
+
+**No manual downstream steps needed after tagging a release.**
+
+Full architecture: `architecture/bundled-validator-architecture.md`
 
 ## Distribution
 

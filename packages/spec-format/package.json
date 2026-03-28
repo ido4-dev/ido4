@@ -9,11 +9,13 @@
   },
   "scripts": {
     "build": "tsc",
+    "build:bundle": "node esbuild.bundle.mjs",
     "test": "vitest run",
     "clean": "rm -rf dist"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
+    "esbuild": "^0.21.5",
     "typescript": "^5.5.0",
     "vitest": "^2.1.0"
   },

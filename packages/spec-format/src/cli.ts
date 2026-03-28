@@ -19,8 +19,23 @@ import { resolve, join } from 'node:path';
 import { parseStrategicSpec } from './strategic-spec-parser.js';
 import type { StrategicCapability } from './strategic-spec-types.js';
 
-const pkgJson = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf-8')) as { version: string };
-const version = pkgJson.version;
+// When bundled by esbuild, __SPEC_FORMAT_VERSION__ is replaced with the literal version string.
+// In unbundled (tsc) builds, it's undefined — fall back to reading package.json.
+declare const __SPEC_FORMAT_VERSION__: string | undefined;
+
+function getVersion(): string {
+  if (typeof __SPEC_FORMAT_VERSION__ === 'string') {
+    return __SPEC_FORMAT_VERSION__;
+  }
+  try {
+    const pkgJson = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf-8')) as { version: string };
+    return pkgJson.version;
+  } catch {
+    return 'unknown';
+  }
+}
+
+const version = getVersion();
 
 function main(): void {
   const filePath = process.argv[2];

@@ -19,3 +19,12 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm run test
+
+      - name: Build spec-format bundle
+        run: npm run build:bundle -w @ido4/spec-format
+
+      - name: Smoke test spec-format bundle
+        run: |
+          node packages/spec-format/dist/spec-validator.bundle.js \
+            tests/fixtures/strategic-spec-context-pipeline.md \
+            | jq -e '.valid == true and .meta.parserVersion != "unknown"'
