@@ -22,3 +22,4 @@ The 8th methodology prompt that teaches agents HOW to work with ido4. Fully desi
 
 **Effort:** M — prompt content is designed, needs implementation + tests.
 **Depends on:** Nothing — can be built now.
+**Connects to:** context-comment-schema

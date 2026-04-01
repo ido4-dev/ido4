@@ -20,3 +20,5 @@ ido4 is the governance substrate, not an e2e development system. It does not bui
 - Architecture: governance is deterministic (BRE). Execution is probabilistic (LLMs). Mixing dilutes the deterministic guarantee.
 
 This is a foundational positioning decision, not just a technical one.
+
+**Connects to:** pluggable-quality-gates, external-auditors

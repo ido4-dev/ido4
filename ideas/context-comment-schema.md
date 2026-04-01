@@ -35,3 +35,4 @@ Define a structured template for what agents write when they complete work. Curr
 
 **Effort:** M — schema design + BRE step + aggregator update + prompt update.
 **Depends on:** execution-prompt (ideally ships together, but can be independent).
+**Connects to:** execution-prompt
