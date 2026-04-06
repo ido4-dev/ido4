@@ -4,6 +4,15 @@ All notable changes to ido4 are documented here.
 
 All packages (`@ido4/spec-format`, `@ido4/core`, `@ido4/mcp`) are released together at the same version.
 
+## [0.7.0] — 2026-04-06
+
+Parser trust boundary fix. The strategic spec parser now correctly captures all content that ido4shape produces — closing a gap where every strategic spec since project inception had empty `project.description` in parser output.
+
+- **Plain-text description support**: Parser now accumulates plain-text paragraphs as project description (alongside blockquotes). Fixes the mismatch where ido4shape's docs teach plain-text format but the parser only captured blockquote lines.
+- **All markdown list markers**: `BULLET_ITEM` expanded from dash-only (`-`) to all standard markers (`-`, `*`, `+`, `1.`). Prevents silent data loss when the synthesizer produces numbered lists for stakeholders, constraints, non-goals, open questions, or success conditions.
+- **28 new parser tests**: Plain-text description (10), description edge cases (8), numbered/alternative list markers (10). 69 total parser tests, 1,759 total across all packages.
+- **CI fix**: `publish.yml` now runs `build:bundle` before npm publish, so the bundled validator is included in the npm package — enabling the automated ido4shape update pipeline.
+
 ## [0.6.0] — 2026-03-27
 
 New package: `@ido4/spec-format`. The strategic spec parser — the format contract between ido4shape (producer) and ido4 MCP (consumer) — extracted into its own zero-dependency package with a CLI entry point.
