@@ -22,6 +22,9 @@ jobs:
       - run: npm run build
       - run: npm run test
 
+      - name: Build spec-format bundle
+        run: npm run build:bundle -w @ido4/spec-format
+
       - name: Read spec-format version
         id: spec-format-version
         run: echo "version=$(jq -r '.version' packages/spec-format/package.json)" >> $GITHUB_OUTPUT
