@@ -19,7 +19,7 @@ A previous agent session introduced `@ido4/spec-format` as an npm dependency ins
 - Violates ido4shape's "zero external dependencies, ships as-is" principle
 - Adds a fragile runtime dependency to what should be a self-contained plugin
 
-The parser itself (`@ido4/spec-format`) is sound — zero npm dependencies, pure TypeScript, 510 lines, 41 tests. The problem is the delivery mechanism.
+The parser itself (`@ido4/spec-format`) is sound — zero npm dependencies, pure TypeScript, ~520 lines, 69 tests. The problem is the delivery mechanism.
 
 ## 2. Solution: Bundled Validator
 
@@ -510,7 +510,7 @@ jobs:
 
   push/PR ──→ ci.yml
               ├── npm run build          (includes spec-format bundle)
-              ├── npm run test           (1,731 tests)
+              ├── npm run test           (1,759 tests)
               └── smoke test bundle      (run against fixture)
 
   tag v* ───→ publish.yml

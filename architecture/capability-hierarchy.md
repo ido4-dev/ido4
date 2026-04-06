@@ -24,7 +24,7 @@ The decomposition pipeline is functionally complete:
 
 | Stage | Component | Status |
 |-------|-----------|--------|
-| Parse | Strategic spec parser (`@ido4/core`) | Built, 41 tests |
+| Parse | Strategic spec parser (`@ido4/spec-format`) | Built, 69 tests |
 | Parse | `parse_strategic_spec` MCP tool | Built |
 | Analyze | Code analysis agent (`code-analyzer.md`) | Built, untested end-to-end |
 | Write | Technical spec writer (`technical-spec-writer.md`) | Built, untested end-to-end |

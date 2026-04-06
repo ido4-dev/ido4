@@ -1,7 +1,7 @@
 # ido4 — Vision, Architecture, and Roadmap
 
 **Status**: Living Document (updated March 2026)
-**Current Version**: v0.5.0
+**Current Version**: v0.7.0
 
 ---
 
@@ -126,7 +126,7 @@ Work distribution service (4-dimension scoring), coordination service, merge rea
 
 ### Decomposition Pipeline (v0.3.0-v0.4.0)
 
-Strategic spec parser (41 tests), `parse_strategic_spec` MCP tool, code analysis agent, technical spec writer agent, `/ido4dev:decompose` orchestration skill. Capability-based hierarchy: capabilities become epic/bet, tasks become sub-issues.
+Strategic spec parser (69 tests), `parse_strategic_spec` MCP tool, code analysis agent, technical spec writer agent, `/ido4dev:decompose` orchestration skill. Capability-based hierarchy: capabilities become epic/bet, tasks become sub-issues.
 
 ---
 
@@ -184,7 +184,7 @@ GitHub Projects V2 provides: native issue tracking, sub-issues, labels, custom f
 
 | Metric | Target | Actual |
 |---|---|---|
-| Test coverage | >90% | 1,731 tests |
+| Test coverage | >90% | 1,759 tests |
 | Zero `any` types in core | 100% | Achieved |
 | Zero `@ts-ignore` | 100% | Achieved |
 | BRE validation time | <500ms | Achieved |
