@@ -31,7 +31,7 @@ const CROSS_CUTTING_HEADING = /^## Cross-Cutting Concerns\s*$/i;
 const CROSS_CUTTING_SUBSECTION = /^### (.+)$/;
 const CAPABILITY_HEADING = /^### ([A-Z]{2,5}-\d{2,3}):\s*(.+)$/;
 const BLOCKQUOTE = /^>\s?(.*)$/;
-const BULLET_ITEM = /^- (.+)$/;
+const BULLET_ITEM = /^(?:[-*+]|\d+\.)\s+(.+)$/;
 const SECTION_HEADER = /^\*\*(.+?):\*\*\s*$/;
 const SEPARATOR = /^---\s*$/;
 
@@ -283,10 +283,20 @@ export function parseStrategicSpec(markdown: string): ParsedStrategicSpec {
       expectingMetadata = false;
     }
 
-    // After first non-blockquote, non-empty line in PROJECT state, description is done
+    // In PROJECT state, non-blockquote non-empty lines are either description
+    // terminators (section headers like **Stakeholders:**) or plain-text description.
+    // This accepts both blockquote and plain-text descriptions — matching ido4shape's
+    // documented format where description is plain narrative paragraphs.
     if (state === 'PROJECT' && metadataTarget === 'project' && !bqMatch && line.trim()) {
-      projectDescriptionDone = true;
-      expectingMetadata = false;
+      if (SECTION_HEADER.test(line)) {
+        // Structural element — terminates description, falls through to section processing
+        projectDescriptionDone = true;
+        expectingMetadata = false;
+      } else if (!projectDescriptionDone) {
+        // Plain-text description paragraph — accumulate
+        if (project.description) project.description += ' ';
+        project.description += line.trim();
+      }
     }
 
     // --- Section headers ---

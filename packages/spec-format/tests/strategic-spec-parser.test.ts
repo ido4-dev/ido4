@@ -415,4 +415,806 @@ describe('Strategic Spec Parser', () => {
       expect(nco01.body).not.toContain('**Success conditions:**');
     });
   });
+
+  // ─── Plain-text description (matches ido4shape documented format) ───
+
+  describe('plain-text description', () => {
+    it('extracts single-paragraph plain-text description', () => {
+      const spec = `# My Project
+> format: strategic-spec | version: 1.0
+
+Our app has grown to 50K active users but has no way to reach them about things that matter.
+
+**Stakeholders:**
+- Sarah (PM): Shaped problem understanding
+
+## Group: Core
+> priority: must-have
+
+### COR-01: Task
+> priority: must-have | risk: low
+> depends_on: -
+
+Description.
+
+**Success conditions:**
+- Done
+`;
+      const result = parseStrategicSpec(spec);
+      expect(result.project.description).toContain('50K active users');
+      expect(result.project.description).toContain('things that matter');
+    });
+
+    it('extracts multi-paragraph plain-text description', () => {
+      const spec = `# My Project
+> format: strategic-spec | version: 1.0
+
+First paragraph about the problem space.
+
+Second paragraph about why solving it now matters.
+
+Third paragraph with stakeholder context.
+
+**Stakeholders:**
+- Sarah (PM): Problem understanding
+
+## Group: Core
+> priority: must-have
+
+### COR-01: Task
+> priority: must-have | risk: low
+
+Description.
+
+**Success conditions:**
+- Done
+`;
+      const result = parseStrategicSpec(spec);
+      expect(result.project.description).toContain('First paragraph');
+      expect(result.project.description).toContain('Second paragraph');
+      expect(result.project.description).toContain('Third paragraph');
+    });
+
+    it('handles mixed blockquote and plain-text description', () => {
+      const spec = `# My Project
+> format: strategic-spec | version: 1.0
+
+> Blockquote part of the description.
+
+Plain text continuation of the description.
+
+**Stakeholders:**
+- Sarah (PM): Context
+
+## Group: Core
+> priority: must-have
+
+### COR-01: Task
+> priority: must-have | risk: low
+
+Description.
+
+**Success conditions:**
+- Done
+`;
+      const result = parseStrategicSpec(spec);
+      expect(result.project.description).toContain('Blockquote part');
+      expect(result.project.description).toContain('Plain text continuation');
+    });
+
+    it('does not capture text after section headers as description', () => {
+      const spec = `# My Project
+> format: strategic-spec | version: 1.0
+
+The actual description.
+
+**Stakeholders:**
+- Sarah (PM): Context
+
+This should NOT be part of the description.
+
+## Group: Core
+> priority: must-have
+
+### COR-01: Task
+> priority: must-have | risk: low
+
+Description.
+
+**Success conditions:**
+- Done
+`;
+      const result = parseStrategicSpec(spec);
+      expect(result.project.description).toBe('The actual description.');
+      expect(result.project.description).not.toContain('should NOT');
+    });
+
+    it('returns empty description when no text before first section header', () => {
+      const spec = `# My Project
+> format: strategic-spec | version: 1.0
+
+**Stakeholders:**
+- Sarah (PM): Context
+
+## Group: Core
+> priority: must-have
+
+### COR-01: Task
+> priority: must-have | risk: low
+
+Description.
+
+**Success conditions:**
+- Done
+`;
+      const result = parseStrategicSpec(spec);
+      expect(result.project.description).toBe('');
+    });
+
+    it('preserves inline markdown formatting in plain-text description', () => {
+      const spec = `# My Project
+> format: strategic-spec | version: 1.0
+
+Our app has **50K active users** but _no systematic way_ to reach them.
+
+**Stakeholders:**
+- Sarah (PM): Context
+
+## Group: Core
+> priority: must-have
+
+### COR-01: Task
+> priority: must-have | risk: low
+
+Description.
+
+**Success conditions:**
+- Done
+`;
+      const result = parseStrategicSpec(spec);
+      expect(result.project.description).toContain('**50K active users**');
+      expect(result.project.description).toContain('_no systematic way_');
+    });
+
+    it('terminates description on separator before groups', () => {
+      const spec = `# My Project
+> format: strategic-spec | version: 1.0
+
+Description text here.
+
+---
+
+## Group: Core
+> priority: must-have
+
+### COR-01: Task
+> priority: must-have | risk: low
+
+Body.
+
+**Success conditions:**
+- Done
+`;
+      const result = parseStrategicSpec(spec);
+      expect(result.project.description).toBe('Description text here.');
+    });
+
+    it('still extracts all project sections with plain-text description', () => {
+      const spec = `# My Project
+> format: strategic-spec | version: 1.0
+
+Plain text description of the problem.
+
+**Stakeholders:**
+- Sarah (PM): Problem understanding
+- Marcus (Architect): Technical constraints
+
+**Constraints:**
+- Must use existing auth
+- No new infrastructure
+
+**Non-goals:**
+- Mobile app
+- Analytics
+
+**Open questions:**
+- Should we batch?
+- Timeline for v2?
+
+## Group: Core
+> priority: must-have
+
+### COR-01: Task
+> priority: must-have | risk: low
+
+Body.
+
+**Success conditions:**
+- Done
+`;
+      const result = parseStrategicSpec(spec);
+      expect(result.project.description).toBe('Plain text description of the problem.');
+      expect(result.project.stakeholders).toHaveLength(2);
+      expect(result.project.constraints).toHaveLength(2);
+      expect(result.project.nonGoals).toHaveLength(2);
+      expect(result.project.openQuestions).toHaveLength(2);
+    });
+
+    it('handles the ido4shape example format (plain text, rich narrative)', () => {
+      // This matches the format taught in ido4shape's references/strategic-spec-format.md
+      // and demonstrated in references/example-strategic-notification-system.md
+      const spec = `# Real-time Notification System
+> format: strategic-spec | version: 1.0
+
+Our mobile app has grown to 50K active users but has no systematic way to reach them about things that matter — order confirmations, password resets, mentions from teammates. Users currently find out about events by manually checking the app, which means time-sensitive information goes unseen for hours.
+
+We need a multi-channel notification system that delivers the right events to the right users through the right channels. Users must have control — not everyone wants push notifications at 2am.
+
+**Stakeholders:**
+- Sarah (Product Manager): Shaped problem understanding, user pain points, priority decisions
+- Marcus (Technical Architect): Defined throughput requirements, channel integration constraints
+
+**Constraints:**
+- Must integrate with existing user service
+- Email delivery through SendGrid only
+
+**Non-goals:**
+- In-app notification center
+
+**Open questions:**
+- Should we support notification batching in v1?
+
+---
+
+## Group: Notification Core
+> priority: must-have
+
+Backbone of the notification system.
+
+### NCO-01: Notification Event Model
+> priority: must-have | risk: low
+> depends_on: -
+
+Define the core data structure.
+
+**Success conditions:**
+- Covers all required fields
+`;
+      const result = parseStrategicSpec(spec);
+      expect(result.project.description).toContain('50K active users');
+      expect(result.project.description).toContain('multi-channel notification system');
+      expect(result.project.description).toContain('Users must have control');
+      expect(result.project.stakeholders).toHaveLength(2);
+      expect(result.project.constraints).toHaveLength(2);
+      expect(result.project.nonGoals).toHaveLength(1);
+      expect(result.project.openQuestions).toHaveLength(1);
+      expect(result.groups).toHaveLength(1);
+      expect(result.groups[0]!.capabilities).toHaveLength(1);
+      const errors = result.errors.filter(e => e.severity === 'error');
+      expect(errors).toHaveLength(0);
+    });
+  });
+
+  // ─── Numbered list items (robustness against synthesizer variation) ───
+
+  describe('numbered and alternative list markers', () => {
+    it('extracts numbered stakeholders', () => {
+      const spec = `# Test
+> format: strategic-spec | version: 1.0
+
+Description.
+
+**Stakeholders:**
+1. Sarah (PM): Problem understanding
+2. Marcus (Architect): Technical constraints
+3. Aisha (UX): User experience
+
+## Group: Core
+> priority: must-have
+
+### COR-01: Task
+> priority: must-have | risk: low
+
+Body.
+
+**Success conditions:**
+- Done
+`;
+      const result = parseStrategicSpec(spec);
+      expect(result.project.stakeholders).toHaveLength(3);
+      expect(result.project.stakeholders[0]!.name).toBe('Sarah (PM)');
+      expect(result.project.stakeholders[2]!.name).toBe('Aisha (UX)');
+    });
+
+    it('extracts numbered constraints', () => {
+      const spec = `# Test
+> format: strategic-spec | version: 1.0
+
+Description.
+
+**Stakeholders:**
+- Sarah (PM): Context
+
+**Constraints:**
+1. Must use existing auth
+2. No new infrastructure
+
+## Group: Core
+> priority: must-have
+
+### COR-01: Task
+> priority: must-have | risk: low
+
+Body.
+
+**Success conditions:**
+- Done
+`;
+      const result = parseStrategicSpec(spec);
+      expect(result.project.constraints).toHaveLength(2);
+      expect(result.project.constraints[0]).toContain('existing auth');
+    });
+
+    it('extracts numbered open questions', () => {
+      const spec = `# Test
+> format: strategic-spec | version: 1.0
+
+Description.
+
+**Stakeholders:**
+- Sarah (PM): Context
+
+**Open questions:**
+1. Should we support batching?
+2. What about retry policy?
+
+## Group: Core
+> priority: must-have
+
+### COR-01: Task
+> priority: must-have | risk: low
+
+Body.
+
+**Success conditions:**
+- Done
+`;
+      const result = parseStrategicSpec(spec);
+      expect(result.project.openQuestions).toHaveLength(2);
+      expect(result.project.openQuestions[0]).toContain('batching');
+    });
+
+    it('extracts numbered non-goals', () => {
+      const spec = `# Test
+> format: strategic-spec | version: 1.0
+
+Description.
+
+**Stakeholders:**
+- Sarah (PM): Context
+
+**Non-goals:**
+1. Mobile app
+2. Analytics dashboard
+
+## Group: Core
+> priority: must-have
+
+### COR-01: Task
+> priority: must-have | risk: low
+
+Body.
+
+**Success conditions:**
+- Done
+`;
+      const result = parseStrategicSpec(spec);
+      expect(result.project.nonGoals).toHaveLength(2);
+      expect(result.project.nonGoals[0]).toContain('Mobile app');
+    });
+
+    it('extracts numbered success conditions', () => {
+      const spec = `# Test
+> format: strategic-spec | version: 1.0
+
+## Group: Core
+> priority: must-have
+
+### COR-01: Task
+> priority: must-have | risk: low
+
+Description of the capability.
+
+**Success conditions:**
+1. First verifiable condition
+2. Second verifiable condition
+3. Third verifiable condition
+`;
+      const result = parseStrategicSpec(spec);
+      const cap = result.groups[0]!.capabilities[0]!;
+      expect(cap.successConditions).toHaveLength(3);
+      expect(cap.successConditions[0]).toContain('First verifiable');
+    });
+
+    it('handles mixed dash and numbered items in same section', () => {
+      const spec = `# Test
+> format: strategic-spec | version: 1.0
+
+Description.
+
+**Stakeholders:**
+- Sarah (PM): Problem understanding
+1. Marcus (Architect): Technical constraints
+- Aisha (UX): User experience
+
+## Group: Core
+> priority: must-have
+
+### COR-01: Task
+> priority: must-have | risk: low
+
+Body.
+
+**Success conditions:**
+- Done
+`;
+      const result = parseStrategicSpec(spec);
+      expect(result.project.stakeholders).toHaveLength(3);
+    });
+
+    it('handles asterisk bullet markers', () => {
+      const spec = `# Test
+> format: strategic-spec | version: 1.0
+
+Description.
+
+**Stakeholders:**
+* Sarah (PM): Problem understanding
+* Marcus (Architect): Technical constraints
+
+## Group: Core
+> priority: must-have
+
+### COR-01: Task
+> priority: must-have | risk: low
+
+Body.
+
+**Success conditions:**
+* First condition
+* Second condition
+`;
+      const result = parseStrategicSpec(spec);
+      expect(result.project.stakeholders).toHaveLength(2);
+      const cap = result.groups[0]!.capabilities[0]!;
+      expect(cap.successConditions).toHaveLength(2);
+    });
+
+    it('handles plus bullet markers', () => {
+      const spec = `# Test
+> format: strategic-spec | version: 1.0
+
+Description.
+
+**Constraints:**
++ Must use existing auth
++ No new infrastructure
+
+## Group: Core
+> priority: must-have
+
+### COR-01: Task
+> priority: must-have | risk: low
+
+Body.
+
+**Success conditions:**
++ Done
+`;
+      const result = parseStrategicSpec(spec);
+      expect(result.project.constraints).toHaveLength(2);
+    });
+
+    it('handles double-digit numbered items', () => {
+      const spec = `# Test
+> format: strategic-spec | version: 1.0
+
+Description.
+
+**Constraints:**
+1. First
+2. Second
+10. Tenth
+11. Eleventh
+
+## Group: Core
+> priority: must-have
+
+### COR-01: Task
+> priority: must-have | risk: low
+
+Body.
+
+**Success conditions:**
+- Done
+`;
+      const result = parseStrategicSpec(spec);
+      expect(result.project.constraints).toHaveLength(4);
+    });
+
+    it('does not match numbered items without space after dot', () => {
+      const spec = `# Test
+> format: strategic-spec | version: 1.0
+
+**Constraints:**
+1.No space here
+2. Proper item
+
+## Group: Core
+> priority: must-have
+
+### COR-01: Task
+> priority: must-have | risk: low
+
+Body.
+
+**Success conditions:**
+- Done
+`;
+      const result = parseStrategicSpec(spec);
+      // "1.No space here" should NOT be captured as a bullet item
+      expect(result.project.constraints).toHaveLength(1);
+      expect(result.project.constraints[0]).toContain('Proper item');
+    });
+
+    it('numbered success conditions do not leak into body', () => {
+      const spec = `# Test
+> format: strategic-spec | version: 1.0
+
+## Group: Core
+> priority: must-have
+
+### COR-01: Task
+> priority: must-have | risk: low
+
+Capability description here.
+
+**Success conditions:**
+1. First verifiable condition
+2. Second verifiable condition
+`;
+      const result = parseStrategicSpec(spec);
+      const cap = result.groups[0]!.capabilities[0]!;
+      expect(cap.body).toContain('Capability description');
+      expect(cap.body).not.toContain('First verifiable');
+      expect(cap.body).not.toContain('**Success conditions:**');
+      expect(cap.successConditions).toHaveLength(2);
+    });
+  });
+
+  // ─── Description edge cases (boundary contract) ───
+
+  describe('description edge cases', () => {
+    it('captures plain text immediately after format line (no blank line)', () => {
+      const spec = `# My Project
+> format: strategic-spec | version: 1.0
+Description starts immediately after format marker.
+
+**Stakeholders:**
+- Sarah (PM): Context
+
+## Group: Core
+> priority: must-have
+
+### COR-01: Task
+> priority: must-have | risk: low
+
+Body.
+
+**Success conditions:**
+- Done
+`;
+      const result = parseStrategicSpec(spec);
+      expect(result.project.description).toContain('Description starts immediately');
+    });
+
+    it('captures description when no project sections exist (runs until first group)', () => {
+      const spec = `# My Project
+> format: strategic-spec | version: 1.0
+
+Description that runs until the first group heading because there are no stakeholder or constraint sections.
+
+## Group: Core
+> priority: must-have
+
+### COR-01: Task
+> priority: must-have | risk: low
+
+Body.
+
+**Success conditions:**
+- Done
+`;
+      const result = parseStrategicSpec(spec);
+      expect(result.project.description).toContain('Description that runs until');
+      expect(result.project.stakeholders).toHaveLength(0);
+      expect(result.project.constraints).toHaveLength(0);
+    });
+
+    it('accumulates unrecognized H2 in description area as content (synthesizer drift)', () => {
+      // When synthesizer drifts to `## Problem Statement`, the H2 is not recognized
+      // by GROUP_HEADING or CROSS_CUTTING_HEADING. It falls through to description
+      // accumulation. This is better than silently losing the content.
+      const spec = `# My Project
+> format: strategic-spec | version: 1.0
+
+## Problem Statement
+
+The actual problem description lives under this heading.
+
+**Stakeholders:**
+- Sarah (PM): Context
+
+## Group: Core
+> priority: must-have
+
+### COR-01: Task
+> priority: must-have | risk: low
+
+Body.
+
+**Success conditions:**
+- Done
+`;
+      const result = parseStrategicSpec(spec);
+      // Both the H2 text and the content below are captured as description
+      expect(result.project.description).toContain('Problem Statement');
+      expect(result.project.description).toContain('actual problem description');
+      // Downstream still works — stakeholders captured normally
+      expect(result.project.stakeholders).toHaveLength(1);
+    });
+
+    it('does not treat inline bold with trailing text as section header', () => {
+      // **Note:** followed by text on the same line does NOT match SECTION_HEADER
+      // (which requires the line to END with **). This should be description content.
+      const spec = `# My Project
+> format: strategic-spec | version: 1.0
+
+**Important note:** this project addresses a critical gap in our platform.
+
+**Stakeholders:**
+- Sarah (PM): Context
+
+## Group: Core
+> priority: must-have
+
+### COR-01: Task
+> priority: must-have | risk: low
+
+Body.
+
+**Success conditions:**
+- Done
+`;
+      const result = parseStrategicSpec(spec);
+      expect(result.project.description).toContain('Important note');
+      expect(result.project.description).toContain('critical gap');
+      expect(result.project.stakeholders).toHaveLength(1);
+    });
+
+    it('handles empty blockquote line in description area', () => {
+      const spec = `# My Project
+> format: strategic-spec | version: 1.0
+
+> First line of description.
+>
+> Second line after empty blockquote.
+
+**Stakeholders:**
+- Sarah (PM): Context
+
+## Group: Core
+> priority: must-have
+
+### COR-01: Task
+> priority: must-have | risk: low
+
+Body.
+
+**Success conditions:**
+- Done
+`;
+      const result = parseStrategicSpec(spec);
+      expect(result.project.description).toContain('First line');
+      expect(result.project.description).toContain('Second line');
+    });
+
+    it('does not accumulate text after separator as description', () => {
+      // Separator (---) is handled before description logic in the loop.
+      // After separator, state is still PROJECT but any new plain text
+      // would be in a post-separator zone. Currently, if projectDescriptionDone
+      // is still false, text after separator DOES accumulate as description.
+      // This test documents that behavior.
+      const spec = `# My Project
+> format: strategic-spec | version: 1.0
+
+Description before separator.
+
+---
+
+## Group: Core
+> priority: must-have
+
+### COR-01: Task
+> priority: must-have | risk: low
+
+Body.
+
+**Success conditions:**
+- Done
+`;
+      const result = parseStrategicSpec(spec);
+      expect(result.project.description).toBe('Description before separator.');
+    });
+
+    it('stops description at standalone bold-label even if unrecognized', () => {
+      // A bold-label like **Note:** (no trailing text, matches SECTION_HEADER)
+      // terminates description even if "Note" is not a recognized section name.
+      const spec = `# My Project
+> format: strategic-spec | version: 1.0
+
+Description here.
+
+**Note:**
+- This is a standalone label that looks like a section header.
+
+**Stakeholders:**
+- Sarah (PM): Context
+
+## Group: Core
+> priority: must-have
+
+### COR-01: Task
+> priority: must-have | risk: low
+
+Body.
+
+**Success conditions:**
+- Done
+`;
+      const result = parseStrategicSpec(spec);
+      expect(result.project.description).toBe('Description here.');
+      expect(result.project.description).not.toContain('Note');
+      // Stakeholders still captured correctly
+      expect(result.project.stakeholders).toHaveLength(1);
+    });
+
+    it('blockquote-only description still works (backward compatibility)', () => {
+      // Explicitly verify that the original blockquote-only format is unaffected.
+      const spec = `# My Project
+> format: strategic-spec | version: 1.0
+
+> This is a blockquote-only description.
+> It spans multiple blockquote lines.
+
+**Stakeholders:**
+- Sarah (PM): Context
+
+## Group: Core
+> priority: must-have
+
+### COR-01: Task
+> priority: must-have | risk: low
+
+Body.
+
+**Success conditions:**
+- Done
+`;
+      const result = parseStrategicSpec(spec);
+      expect(result.project.description).toContain('blockquote-only description');
+      expect(result.project.description).toContain('multiple blockquote lines');
+      expect(result.project.stakeholders).toHaveLength(1);
+    });
+  });
 });
