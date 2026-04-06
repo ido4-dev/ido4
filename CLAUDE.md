@@ -140,32 +140,9 @@ ido4shape ships a bundled copy of the `@ido4/spec-format` CLI for deterministic 
 
 Full architecture: `architecture/bundled-validator-architecture.md`
 
-## Distribution
-
-- **npm**: `@ido4/spec-format`, `@ido4/core`, `@ido4/mcp` — https://www.npmjs.com/org/ido4
-- **GitHub**: https://github.com/ido4-dev/ido4
-- **Docs (Starlight)**: https://docs.ido4.dev — built with Astro Starlight, hosted on Firebase
-- **Website**: ido4.dev (separate repo)
-
 ## Documentation Sync
 
 After any change that affects architecture, services, tools, profiles, validation steps, or the plugin — verify and update all affected documentation. Code and docs must stay synchronized.
-
-### Documentation Map
-
-| Code Area | Affected Docs | Affected Diagrams |
-|---|---|---|
-| `packages/core/src/domains/tasks/` (BRE, validation steps) | `architecture/validation-extensibility.md`, `docs/src/content/docs/concepts/business-rule-engine.md` | `diagrams/04-bre-pipeline.html` |
-| `packages/core/src/domains/audit/`, `analytics/`, `compliance/` | `architecture/event-sourced-governance.md`, `docs/src/content/docs/concepts/audit-compliance.md`, `docs/src/content/docs/enterprise/compliance.md` | `diagrams/03-event-sourcing.html` |
-| `packages/core/src/domains/agents/`, `distribution/`, `gate/` | `architecture/multi-agent-coordination.md`, `docs/src/content/docs/concepts/multi-agent.md` | `diagrams/07-multi-agent.html` |
-| `packages/core/src/container/service-container.ts` | `architecture/technical-stack.md` | `diagrams/08-service-container.html` |
-| `packages/core/src/profiles/` | `architecture/methodology-runner.md`, `docs/src/content/docs/enterprise/methodology.md` | `diagrams/05-profile-generation.html` |
-| `packages/spec-format/src/` (strategic spec parser, format contract) | `architecture/decomposition-pipeline.md`, `architecture/two-artifact-pipeline.md`, `architecture/spec-artifact-format.md` | `diagrams/06-decomposition-pipeline.html` |
-| `packages/core/src/domains/ingestion/` (technical spec parser, ingestion) | `architecture/decomposition-pipeline.md`, `architecture/two-artifact-pipeline.md` | `diagrams/06-decomposition-pipeline.html` |
-| `packages/mcp/src/` (tools, resources, prompts) | `architecture/vision-and-roadmap.md` (tool counts) | `diagrams/01-system-overview.html`, `diagrams/02-request-flow.html` |
-| [ido4dev plugin](https://github.com/ido4-dev/ido4dev) (skills, agents, hooks) | `docs/src/content/docs/skills/overview.md`, `docs/src/content/docs/skills/pm-agent.md` | `diagrams/09-plugin-layer.html` |
-| Any architectural change | `architecture/vision-and-roadmap.md`, `CLAUDE.md` | `diagrams/00-system-block.html` |
-| Agent workflow changes | `architecture/context-delivery.md`, `architecture/llm-strategy.md` | `diagrams/10-agent-workflow.html` |
 
 ### Sync Rules
 
@@ -178,20 +155,11 @@ After any change that affects architecture, services, tools, profiles, validatio
 
 ### After completing work, ask:
 - "Did I change any architecture, services, tools, or validation steps?"
-- If yes: check the documentation map above and update affected docs
-- If adding a new feature: update `architecture/vision-and-roadmap.md` current state table
+- If yes: check `.claude/rules/documentation-map.md` and update affected docs
 
 ## Ideas Backlog
 
-The `ideas/` directory is a parking lot for future ideas, explorations, and strategic directions. Each idea is a separate markdown file with frontmatter (date, status, category). Statuses: `idea` (raw), `exploring` (being discussed), `ready` (understood, waiting for prioritization), `parked` (good idea, wrong time), `rejected` (decided against).
-
-**When to capture ideas:**
-- The user explicitly says "park that", "capture this", "good idea for later"
-- During brainstorming, offer to capture at the end by reviewing what surfaced
-- **During implementation work:** if you discover a capability gap, a natural extension point, or a "this would be better if..." moment — ask the user: "I noticed [X] could be improved by [Y]. Worth parking as an idea?" Don't auto-save, but do proactively surface it.
-- When the user mentions future plans, integrations, or "someday we should..." — offer to capture
-
-**When NOT to capture:** bugs (those are issues), tasks for the current session, things already documented elsewhere.
+The `ideas/` directory captures future ideas as separate markdown files with frontmatter (date, status, category). Statuses: `idea`, `exploring`, `ready`, `parked`, `rejected`. Proactively surface opportunities during implementation — ask before saving.
 
 ## Workflow
 
