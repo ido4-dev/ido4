@@ -24,13 +24,13 @@ ido4-MCP/
 The strategic spec format contract. Contains the parser that validates and parses strategic spec artifacts produced by ido4shape. Published as a standalone package with a CLI entry point (`ido4-spec-format`) so ido4shape can run deterministic structural validation in Cowork. **Zero npm dependencies.**
 
 ### @ido4/core
-The domain layer. Context assembly, task intelligence, work distribution, institutional memory (audit trail, analytics, compliance scoring), BRE (Business Rule Engine) validation pipeline (34 steps), container management, integrity enforcement, dependency analysis, merge readiness, ingestion pipeline. Profile-driven state machine. **Depends on @ido4/spec-format for strategic spec parsing. Zero dependencies on CLI frameworks, terminal formatting, or MCP SDK.**
+The domain layer. Context assembly, task intelligence, work distribution, institutional memory (audit trail, analytics, compliance scoring), BRE (Business Rule Engine) validation pipeline, container management, integrity enforcement, dependency analysis, merge readiness, ingestion pipeline. Profile-driven state machine. **Depends on @ido4/spec-format for strategic spec parsing. Zero dependencies on CLI frameworks, terminal formatting, or MCP SDK.**
 
 ### @ido4/mcp
-The MCP server. Wraps @ido4/core domain services as MCP tools, resources, and prompts — dynamically generated from the active methodology profile. Composite aggregators assemble full project context in single calls. Uses STDIO transport for Claude Code integration. Hydro: 58 tools, Scrum: 56 tools, Shape Up: 54 tools.
+The MCP server. Wraps @ido4/core domain services as MCP tools, resources, and prompts — dynamically generated from the active methodology profile. Composite aggregators assemble full project context in single calls. Uses STDIO transport for Claude Code integration. Tool count varies by methodology (driven by profile transitions and containers).
 
 ### ido4dev Plugin (separate repo)
-The Claude Code plugin lives at [ido4-dev/ido4dev](https://github.com/ido4-dev/ido4dev). 21 skills, 4 agents, 2 hook types. Distributed via the [ido4-plugins marketplace](https://github.com/ido4-dev/ido4-plugins). Install: `/plugin install ido4dev@ido4-plugins`.
+The Claude Code plugin lives at [ido4-dev/ido4dev](https://github.com/ido4-dev/ido4dev). Distributed via the [ido4-plugins marketplace](https://github.com/ido4-dev/ido4-plugins). Install: `/plugin install ido4dev@ido4-plugins`.
 
 ## Two-Artifact Architecture (Strategic Spec → Technical Spec) — IMPLEMENTED (v0.3.0+)
 
@@ -69,7 +69,7 @@ Strategic capabilities become the methodology's grouping container (epic in Hydr
 
 - **Container**: A methodology-specific grouping unit. Hydro: Wave (execution) + Epic (grouping). Scrum: Sprint (execution) + Epic (grouping). Shape Up: Cycle (execution) + Bet (grouping) + Scope (optional).
 - **Capability**: A functional requirement from the strategic spec that becomes an epic/bet — the parent issue for implementation tasks.
-- **BRE**: Business Rule Engine — composable validation pipeline with 34 steps, configurable per methodology profile.
+- **BRE**: Business Rule Engine — composable validation pipeline, configurable per methodology profile.
 - **Transition**: A workflow state change (start, review, approve, block, unblock, return, and methodology-specific actions like refine, ready, shape, bet, ship, kill).
 
 ## Governance Principles
@@ -92,7 +92,7 @@ These are enforced by the BRE. Which principles apply depends on the methodology
 ```bash
 npm install          # Install all workspace dependencies
 npm run build        # Build all packages
-npm run test         # Run all tests (1,731 tests)
+npm run test         # Run all tests
 npm run clean        # Remove all dist/ directories
 ```
 
@@ -136,13 +136,13 @@ ido4shape ships a bundled copy of the `@ido4/spec-format` CLI for deterministic 
 
 **After releasing:** The publish workflow dispatches a `spec-format-published` event to ido4shape. ido4shape's `update-validator.yml` workflow automatically creates a PR with the new bundle. Patch/minor updates auto-merge after CI passes. Major version updates require review (output format may have changed).
 
-**No manual downstream steps needed after tagging a release.**
+**No manual downstream steps needed after tagging a release.** Requires `IDO4SHAPE_DISPATCH_TOKEN` secret (PAT with `repo` scope) in this repo for cross-repo dispatch. ido4shape requires a `PAT` secret for PR creation that triggers CI.
 
 Full architecture: `architecture/bundled-validator-architecture.md`
 
 ## Distribution
 
-- **npm**: `@ido4/spec-format`, `@ido4/core`, `@ido4/mcp` (v0.5.0) — https://www.npmjs.com/org/ido4
+- **npm**: `@ido4/spec-format`, `@ido4/core`, `@ido4/mcp` — https://www.npmjs.com/org/ido4
 - **GitHub**: https://github.com/ido4-dev/ido4
 - **Docs (Starlight)**: https://docs.ido4.dev — built with Astro Starlight, hosted on Firebase
 - **Website**: ido4.dev (separate repo)
@@ -169,8 +169,8 @@ After any change that affects architecture, services, tools, profiles, validatio
 
 ### Sync Rules
 
-1. **New validation step added?** Update step count in: `CLAUDE.md`, `docs/src/content/docs/concepts/business-rule-engine.md`, `diagrams/04-bre-pipeline.html`, `diagrams/01-system-overview.html`
-2. **New tool registered?** Update tool counts in: `CLAUDE.md`, `architecture/vision-and-roadmap.md`, `README.md`, website `SocialProofSection.tsx`
+1. **New validation step added?** Update `docs/src/content/docs/concepts/business-rule-engine.md`, `diagrams/04-bre-pipeline.html`, `diagrams/01-system-overview.html`
+2. **New tool registered?** Update `architecture/vision-and-roadmap.md`, `README.md`, website `SocialProofSection.tsx`
 3. **New skill/agent/hook added?** Update `docs/src/content/docs/skills/overview.md`, `diagrams/09-plugin-layer.html`
 4. **New domain service?** Update `diagrams/08-service-container.html`, `architecture/technical-stack.md`
 5. **Profile changed?** Update `diagrams/05-profile-generation.html`, `architecture/methodology-runner.md`
