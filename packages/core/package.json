@@ -1,6 +1,6 @@
 {
   "name": "@ido4/core",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "ido4 core — context intelligence, task distribution, and deterministic governance for AI-hybrid software development",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
