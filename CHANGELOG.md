@@ -4,6 +4,16 @@ All notable changes to ido4 are documented here.
 
 All packages (`@ido4/spec-format`, `@ido4/core`, `@ido4/mcp`) are released together at the same version.
 
+## [0.7.1] — 2026-04-10
+
+Task ref parser accepts optional letter suffix for sub-task traceability. Fixes a silent-drop bug in the ido4dev decomposition pipeline where technical specs with suffixed refs (e.g., `NCO-01A`, `NCO-01B`) produced empty ingestion dry-runs.
+
+- **Parser regex extended**: The `TASK_HEADING` regex in `@ido4/core` spec-parser and the `CAPABILITY_HEADING` regex in `@ido4/spec-format` strategic-spec-parser now accept an optional `[A-Z]` suffix after the digit portion. Preserves traceability when the technical-spec-writer decomposes a strategic capability into multiple sub-tasks sharing its ref prefix.
+- **Sandbox template resolver updated**: `resolveTaskRefs()` in sandbox-service.ts matches the new format, keeping sandbox comment templates in sync with the parser.
+- **Fully backward-compatible**: All existing specs without suffixes continue to match unchanged. No breaking changes.
+- **Root cause**: `agents/technical-spec-writer.md` in the ido4dev plugin instructs the writer to decompose strategic `NCO-01` into tasks `NCO-01A`, `NCO-01B`. The parser's old regex `[A-Z]{2,5}-\d{2,3}` rejected the suffix, so the `### NCO-01A:` heading wasn't recognized as a task — it was silently absorbed as body text, producing a technically-parseable spec with zero tasks. Dry-run ingestion showed "0 issues would be created" with no error, making the bug invisible without a structural spec-reviewer catching it upstream.
+- **3 new tests**: spec-parser.test.ts (+2, suffixed-only and mixed specs), strategic-spec-parser.test.ts (+1, suffixed capability ref). 1,762 total across all packages.
+
 ## [0.7.0] — 2026-04-06
 
 Parser trust boundary fix. The strategic spec parser now correctly captures all content that ido4shape produces — closing a gap where every strategic spec since project inception had empty `project.description` in parser output.

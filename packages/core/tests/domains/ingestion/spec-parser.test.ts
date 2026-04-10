@@ -208,6 +208,71 @@ describe('parseSpec', () => {
       const task = result.groups[0]!.tasks[0]!;
       expect(task.groupName).toBe('Notification Core');
     });
+
+    it('accepts optional letter suffix on task refs (sub-task traceability)', () => {
+      const spec = `# Test Project
+
+> Description.
+
+## Capability: Core
+> size: M | risk: low
+
+### COR-01A: First sub-task
+> effort: S | risk: low | type: feature | ai: full
+> depends_on: -
+
+First sub-task body.
+
+**Success conditions:**
+- Done
+
+### COR-01B: Second sub-task
+> effort: S | risk: low | type: feature | ai: full
+> depends_on: COR-01A
+
+Second sub-task body.
+
+**Success conditions:**
+- Done
+`;
+      const result = parseSpec(spec);
+      expect(result.errors).toHaveLength(0);
+      expect(result.groups[0]!.tasks).toHaveLength(2);
+      expect(result.groups[0]!.tasks[0]!.ref).toBe('COR-01A');
+      expect(result.groups[0]!.tasks[1]!.ref).toBe('COR-01B');
+      expect(result.groups[0]!.tasks[1]!.dependsOn).toEqual(['COR-01A']);
+    });
+
+    it('accepts mixed suffixed and unsuffixed refs in the same spec', () => {
+      const spec = `# Test Project
+
+> Description.
+
+## Capability: Core
+> size: M | risk: low
+
+### COR-01: Unsuffixed task
+> effort: M | risk: low | type: feature | ai: full
+> depends_on: -
+
+Body.
+
+**Success conditions:**
+- Done
+
+### COR-02A: Suffixed task
+> effort: S | risk: low | type: feature | ai: full
+> depends_on: COR-01
+
+Body.
+
+**Success conditions:**
+- Done
+`;
+      const result = parseSpec(spec);
+      expect(result.errors).toHaveLength(0);
+      expect(result.groups[0]!.tasks.map(t => t.ref)).toEqual(['COR-01', 'COR-02A']);
+    });
   });
 
   describe('orphan tasks', () => {

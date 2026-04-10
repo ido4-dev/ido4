@@ -18,7 +18,7 @@ type ParserState = 'INIT' | 'PROJECT' | 'GROUP' | 'TASK';
 
 const PROJECT_HEADING = /^# (.+)$/;
 const GROUP_HEADING = /^## Capability:\s*(.+)$/;
-const TASK_HEADING = /^### ([A-Z]{2,5}-\d{2,3}):\s*(.+)$/;
+const TASK_HEADING = /^### ([A-Z]{2,5}-\d{2,3}[A-Z]?):\s*(.+)$/;
 const BLOCKQUOTE = /^>\s?(.*)$/;
 const BULLET_ITEM = /^- (.+)$/;
 const SECTION_HEADER = /^\*\*(.+?):\*\*\s*$/;

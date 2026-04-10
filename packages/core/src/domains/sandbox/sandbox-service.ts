@@ -506,7 +506,7 @@ export class SandboxService implements ISandboxService {
     template: string,
     taskRefToIssue: Map<string, { id: string; number: number }>,
   ): string {
-    return template.replace(/#([A-Z]{2,5}-\d{2,3})/g, (_match, ref: string) => {
+    return template.replace(/#([A-Z]{2,5}-\d{2,3}[A-Z]?)/g, (_match, ref: string) => {
       const issue = taskRefToIssue.get(ref);
       return issue ? `#${issue.number}` : `#${ref}`;
     });

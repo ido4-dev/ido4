@@ -288,6 +288,32 @@ describe('Strategic Spec Parser', () => {
       expect(eml01.dependsOn).toEqual(['NCO-02']);
     });
 
+    it('accepts optional letter suffix on capability refs', () => {
+      const spec = `# Test Project
+> format: strategic-spec | version: 1.0
+
+> Description.
+
+## Group: Core
+> priority: must-have
+
+Core functionality.
+
+### COR-01A: First sub-capability
+> priority: must-have | risk: low
+> depends_on: -
+
+First sub-capability description with enough meaningful content.
+
+**Success conditions:**
+- Done
+`;
+      const result = parseStrategicSpec(spec);
+      expect(result.errors).toHaveLength(0);
+      expect(result.groups[0]!.capabilities).toHaveLength(1);
+      expect(result.groups[0]!.capabilities[0]!.ref).toBe('COR-01A');
+    });
+
     it('extracts capability body prose', () => {
       const result = parseStrategicSpec(FULL_SPEC);
       const nco01 = result.groups[0]!.capabilities[0]!;
