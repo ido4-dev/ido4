@@ -81,7 +81,7 @@ ido4-demo/                              NEW REPO
 ├── tsconfig.json
 └── README.md
 
-ido4-MCP/packages/core/                 ENHANCED
+ido4/packages/core/                 ENHANCED
 ├── src/domains/sandbox/
 │   ├── sandbox-service.ts              Enhanced: repo awareness, richer creation
 │   ├── types.ts                        Enhanced: narrative types, repo reference
@@ -255,7 +255,7 @@ git clean -fd
 
 The `sandbox-start` tag marks the initial state of the codebase. After agents work on it (writing code, creating branches, PRs), reset restores everything.
 
-**For the ido4-MCP side**, `reset_sandbox` already handles the GitHub project cleanup. Combined with the repo reset, you get full environment restoration.
+**For the ido4 side**, `reset_sandbox` already handles the GitHub project cleanup. Combined with the repo reset, you get full environment restoration.
 
 ---
 

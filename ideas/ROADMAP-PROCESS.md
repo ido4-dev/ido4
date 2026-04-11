@@ -5,7 +5,7 @@ How internal ideas flow to the public roadmap on ido4.dev/roadmap.
 ## Architecture
 
 ```
-ideas/ (ido4-MCP repo)           →  roadmap-themes.json (ido4-website repo)  →  /roadmap page
+ideas/ (ido4 repo)           →  roadmap-themes.json (ido4-website repo)  →  /roadmap page
   11 idea files                       5 curated themes                            Public-facing
   Internal language                   Customer-facing language                    React component
   All statuses                        Only: shipped / in-progress / exploring     Status badges
@@ -57,7 +57,7 @@ Never show `idea` or `parked` publicly. Everything on the roadmap should feel in
 
 When update frequency justifies it, automate with a GitHub Action:
 
-1. CI in ido4-MCP detects idea status change (frontmatter diff in `ideas/`)
+1. CI in ido4 detects idea status change (frontmatter diff in `ideas/`)
 2. Action triggers an LLM to:
    - Read the updated idea file
    - Read current `roadmap-themes.json`
@@ -71,7 +71,7 @@ This preserves editorial control (PR review) while automating the translation fr
 
 | File | Repo | Purpose |
 |---|---|---|
-| `ideas/*.md` | ido4-MCP | Internal idea backlog (source of truth for direction) |
-| `ideas/ROADMAP-PROCESS.md` | ido4-MCP | This document (process definition) |
+| `ideas/*.md` | ido4 | Internal idea backlog (source of truth for direction) |
+| `ideas/ROADMAP-PROCESS.md` | ido4 | This document (process definition) |
 | `src/data/roadmap-themes.json` | ido4-website | Public theme data (source of truth for website) |
 | `src/pages/Roadmap.tsx` | ido4-website | Page component (reads from JSON) |

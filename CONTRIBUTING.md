@@ -16,7 +16,7 @@ Thank you for your interest in contributing to ido4. This guide covers everythin
 ```bash
 # Clone the repository
 git clone https://github.com/ido4-dev/ido4.git
-cd ido4-MCP
+cd ido4
 
 # Install all workspace dependencies
 npm install
@@ -44,7 +44,7 @@ claude --plugin-dir ../ido4dev
 This is an npm workspaces monorepo with two packages:
 
 ```
-ido4-MCP/
+ido4/
 ├── packages/
 │   ├── core/       # @ido4/core — Domain logic, zero CLI dependencies
 │   └── mcp/        # @ido4/mcp — MCP server (STDIO transport)

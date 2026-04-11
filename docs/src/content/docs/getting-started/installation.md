@@ -83,7 +83,7 @@ git clone https://github.com/ido4-dev/ido4dev.git
 
 # Clone and build the MCP server
 git clone https://github.com/ido4-dev/ido4.git
-cd ido4-MCP
+cd ido4
 npm install && npm run build
 
 # Launch Claude Code with local plugin

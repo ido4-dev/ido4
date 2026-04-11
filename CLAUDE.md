@@ -11,7 +11,7 @@ It runs as an MCP server inside Claude Code (and any MCP-compatible AI environme
 This is an npm workspaces monorepo with three packages:
 
 ```
-ido4-MCP/
+ido4/
 ├── packages/
 │   ├── spec-format/ # @ido4/spec-format — Strategic spec parser, zero deps, CLI
 │   ├── core/        # @ido4/core — Domain logic, depends on @ido4/spec-format

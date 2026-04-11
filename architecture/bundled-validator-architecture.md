@@ -4,7 +4,7 @@
 
 **Status:** Spec — ready for implementation review
 **Date:** 2026-03-28
-**Repos affected:** ido4-MCP, ido4shape, ido4-plugins
+**Repos affected:** ido4, ido4shape, ido4-plugins
 
 ---
 
@@ -27,12 +27,12 @@ Bundle the parser CLI into a single self-contained `.js` file (~15KB) and ship i
 
 ### Core Principle
 
-**Build-time complexity, runtime simplicity.** The bundle is produced once (in ido4-MCP's CI), propagated automatically (via cross-repo CI), and used instantly (via file copy at session start).
+**Build-time complexity, runtime simplicity.** The bundle is produced once (in ido4's CI), propagated automatically (via cross-repo CI), and used instantly (via file copy at session start).
 
 ## 3. Architecture Overview
 
 ```
-ido4-MCP                    ido4shape                     ido4-plugins
+ido4                    ido4shape                     ido4-plugins
 ─────────                   ─────────                     ────────────
 packages/spec-format/       dist/spec-validator.js        plugins/ido4shape/
   src/cli.ts                  (bundled, committed)          (full directory mirror)
@@ -50,7 +50,7 @@ packages/spec-format/       dist/spec-validator.js        plugins/ido4shape/
 
 ## 4. Component Details
 
-### 4.1 ido4-MCP: Bundle Build
+### 4.1 ido4: Bundle Build
 
 **New files:**
 - `packages/spec-format/esbuild.bundle.mjs` — build config
@@ -177,11 +177,11 @@ BUNDLE_FILE="$DIST_DIR/spec-validator.js"
 VERSION_FILE="$DIST_DIR/.spec-format-version"
 
 usage() {
-  echo "Usage: $0 <version|path-to-ido4-MCP>"
+  echo "Usage: $0 <version|path-to-ido4>"
   echo ""
   echo "Examples:"
   echo "  $0 0.7.0              # Fetch from npm, build bundle"
-  echo "  $0 ~/dev/ido4-MCP     # Copy from local build"
+  echo "  $0 ~/dev/ido4     # Copy from local build"
   exit 1
 }
 
@@ -505,7 +505,7 @@ jobs:
 ## 5. CI/CD Flow Diagram
 
 ```
-                    ido4-MCP
+                    ido4
                     ════════
 
   push/PR ──→ ci.yml
@@ -591,8 +591,8 @@ Validation Report
 
 | # | Failure | Detection | Impact | Recovery |
 |---|---------|-----------|--------|----------|
-| 1 | esbuild fails to bundle | ido4-MCP CI fails | No broken artifact ships | Fix build, re-run CI |
-| 2 | Bundle produces wrong output | ido4-MCP CI smoke test fails | No broken artifact ships | Fix parser, re-run CI |
+| 1 | esbuild fails to bundle | ido4 CI fails | No broken artifact ships | Fix build, re-run CI |
+| 2 | Bundle produces wrong output | ido4 CI smoke test fails | No broken artifact ships | Fix parser, re-run CI |
 | 3 | Dispatch to ido4shape fails | Weekly schedule catches it | Delayed update (max 7 days) | Manual workflow_dispatch or wait for schedule |
 | 4 | npm fetch fails in update workflow | Workflow fails, no PR created | Same as #3 | Retry or use local build |
 | 5 | Bundle missing in ido4shape | CI fails (validate-plugin.sh) | Cannot merge/release | Run update-validator.sh |
@@ -607,9 +607,9 @@ Validation Report
 
 | Secret | Repo | Used by | Purpose | Exists? |
 |--------|------|---------|---------|---------|
-| `NPM_TOKEN` | ido4-MCP | publish.yml | Publish to npm | Yes |
-| `FIREBASE_SERVICE_ACCOUNT_IDO4_2F468` | ido4-MCP | docs.yml | Deploy docs | Yes |
-| `IDO4SHAPE_DISPATCH_TOKEN` | ido4-MCP | publish.yml | repository_dispatch to ido4shape | **NEW** — needs `repo` scope on ido4-dev/ido4shape |
+| `NPM_TOKEN` | ido4 | publish.yml | Publish to npm | Yes |
+| `FIREBASE_SERVICE_ACCOUNT_IDO4_2F468` | ido4 | docs.yml | Deploy docs | Yes |
+| `IDO4SHAPE_DISPATCH_TOKEN` | ido4 | publish.yml | repository_dispatch to ido4shape | **NEW** — needs `repo` scope on ido4-dev/ido4shape |
 | `MARKETPLACE_TOKEN` | ido4shape | sync-marketplace.yml | Push to ido4-plugins | Yes |
 | `GITHUB_TOKEN` | ido4shape | update-validator.yml | Create PR, enable auto-merge | Built-in (needs auto-merge permission) |
 
@@ -619,7 +619,7 @@ Validation Report
 
 ## 9. CLAUDE.md Updates
 
-### 9.1 ido4-MCP CLAUDE.md Addition
+### 9.1 ido4 CLAUDE.md Addition
 
 ```markdown
 ## Downstream: ido4shape Validator Bundle
@@ -651,14 +651,14 @@ This is a single self-contained JS file (~15KB) with zero npm dependencies.
 - If the bundle is unavailable, validation falls back to LLM-only (graceful degradation)
 
 **How it's updated:**
-- ido4-MCP publishes @ido4/spec-format → CI dispatches to ido4shape
+- ido4 publishes @ido4/spec-format → CI dispatches to ido4shape
 - update-validator.yml creates a PR with the new bundle
 - Patch/minor updates auto-merge after CI passes
 - Major version updates require review (output format may have changed)
 
 **Manual update (if needed):**
   scripts/update-validator.sh 0.7.0         # from npm
-  scripts/update-validator.sh ~/dev/ido4-MCP # from local build
+  scripts/update-validator.sh ~/dev/ido4 # from local build
 
 **Release checks:**
 - `release.sh` hard-fails if bundle is missing
@@ -670,7 +670,7 @@ This is a single self-contained JS file (~15KB) with zero npm dependencies.
 
 Work must happen in dependency order. Each step must be verified before the next.
 
-### Phase 1: Build the bundle (ido4-MCP)
+### Phase 1: Build the bundle (ido4)
 
 | # | Task | Files |
 |---|------|-------|
@@ -688,7 +688,7 @@ Work must happen in dependency order. Each step must be verified before the next
 
 | # | Task | Files |
 |---|------|-------|
-| 2.1 | Run update-validator.sh from local ido4-MCP build to get initial bundle | `dist/spec-validator.js`, `dist/.spec-format-version` |
+| 2.1 | Run update-validator.sh from local ido4 build to get initial bundle | `dist/spec-validator.js`, `dist/.spec-format-version` |
 | 2.2 | Remove package.json | Delete `package.json` |
 | 2.3 | Update hooks.json: replace npm install with cp | `hooks/hooks.json` |
 | 2.4 | Update validate-spec skill: new CLI path | `skills/validate-spec/SKILL.md` |
@@ -714,7 +714,7 @@ Work must happen in dependency order. Each step must be verified before the next
 | # | Task | Where |
 |---|------|-------|
 | 4.1 | Create `IDO4SHAPE_DISPATCH_TOKEN` PAT | GitHub → Settings → Personal Access Tokens |
-| 4.2 | Add token as secret in ido4-MCP repo | ido4-MCP → Settings → Secrets |
+| 4.2 | Add token as secret in ido4 repo | ido4 → Settings → Secrets |
 | 4.3 | Enable auto-merge on ido4shape repo | ido4shape → Settings → General |
 | 4.4 | Configure branch protection with required checks | ido4shape → Settings → Branches |
 
@@ -737,7 +737,7 @@ Work must happen in dependency order. Each step must be verified before the next
 
 1. ido4shape has zero npm runtime dependencies
 2. `validate-spec` produces deterministic structural validation results
-3. Bundle updates propagate automatically from ido4-MCP to ido4shape to ido4-plugins
+3. Bundle updates propagate automatically from ido4 to ido4shape to ido4-plugins
 4. Patch/minor updates require zero human intervention
 5. Major version updates are flagged for review
 6. Every failure mode either self-heals or produces a clear, actionable error
