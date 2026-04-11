@@ -2,9 +2,13 @@
 
 > Deterministic spec validation in ido4shape without runtime dependencies.
 
-**Status:** Spec — ready for implementation review
-**Date:** 2026-03-28
+**Status:** Implemented (2026-04). Preserved for design rationale and historical context. The current implementation has evolved from this spec — see live files for ground truth, this doc for the *why*.
+**Original spec date:** 2026-03-28
 **Repos affected:** ido4, ido4shape, ido4-plugins
+
+> **Cross-reference:** This document describes the *specific instance* of cross-repo release coordination between `ido4` and `ido4shape`. For the *canonical release pattern* that every active ido4 repo follows (the abstract 4-layer pipeline + 4 invariants), see `~/dev-projects/ido4-suite/release-architecture.md` in the meta-repo. This file is one of the concrete examples of that pattern.
+
+> **Known staleness as of 2026-04-12:** §4.3 below shows the `sync-marketplace.yml` design as originally written (push-triggered with paths filter). The current live version uses `workflow_run` gating on CI success (introduced in `ido4shape` commit `11b10e9`). The current pattern is documented in the meta-repo's `release-architecture.md` (Layer 4) and `cross-repo-connections.md`.
 
 ---
 
