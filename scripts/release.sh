@@ -39,6 +39,54 @@ if git rev-parse "v$VERSION" >/dev/null 2>&1; then
   exit 1
 fi
 
+# Check local is in sync with remote
+echo "Checking local vs origin/main..."
+git fetch --quiet origin main 2>/dev/null || {
+  echo "Warning: could not fetch origin/main (offline?). Skipping sync check."
+}
+
+if git rev-parse --verify origin/main >/dev/null 2>&1; then
+  LOCAL_SHA=$(git rev-parse @)
+  REMOTE_SHA=$(git rev-parse origin/main)
+  BASE_SHA=$(git merge-base @ origin/main 2>/dev/null || echo "")
+
+  if [ "$LOCAL_SHA" = "$REMOTE_SHA" ]; then
+    echo "  ✓ Local in sync with remote"
+  elif [ "$LOCAL_SHA" = "$BASE_SHA" ]; then
+    BEHIND_COUNT=$(git rev-list --count @..origin/main)
+    echo ""
+    echo "Error: local main is behind origin/main by ${BEHIND_COUNT} commit(s)."
+    echo ""
+    echo "This usually means a cross-repo sync pipeline auto-merged a PR"
+    echo "since you last pulled."
+    echo ""
+    echo "Commits on remote that you don't have locally:"
+    git log --oneline @..origin/main | sed 's/^/  /'
+    echo ""
+    echo "To resolve:"
+    echo "  git pull --ff-only origin main"
+    echo "  ./scripts/release.sh $VERSION"
+    exit 1
+  elif [ -n "$BASE_SHA" ] && [ "$REMOTE_SHA" = "$BASE_SHA" ]; then
+    AHEAD_COUNT=$(git rev-list --count origin/main..@)
+    echo "  ℹ Local has ${AHEAD_COUNT} unpushed commit(s) ahead of remote — continuing"
+  elif [ -n "$BASE_SHA" ]; then
+    LOCAL_ONLY=$(git rev-list --count origin/main..@)
+    REMOTE_ONLY=$(git rev-list --count @..origin/main)
+    echo ""
+    echo "Error: local and remote main have diverged."
+    echo "  Local-only: ${LOCAL_ONLY} commit(s)"
+    echo "  Remote-only: ${REMOTE_ONLY} commit(s)"
+    echo ""
+    echo "To resolve:"
+    echo "  git pull --rebase origin main"
+    echo "  ./scripts/release.sh $VERSION"
+    exit 1
+  fi
+fi
+
+echo ""
+
 # ═══════════════════════════════════════════════════════════════
 # PRE-RELEASE VERIFICATION
 # Ensures documentation, tests, and build are in sync with code.
@@ -117,7 +165,8 @@ fi
 
 # 7. Website sync check
 echo "▸ Website sync..."
-WEBSITE_DIR="/Users/bogdanionutcoman/dev-projects/ido4-website"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WEBSITE_DIR="${IDO4_WEBSITE_DIR:-$(dirname "$(dirname "$SCRIPT_DIR")")/ido4-website}"
 if [ -d "$WEBSITE_DIR" ]; then
   WEBSITE_TESTS=$(grep -oE '[0-9,]+' "$WEBSITE_DIR/src/components/ProofSection.tsx" | head -1 || echo "?")
   echo "  ℹ Website shows: $WEBSITE_TESTS tests — verify matches actual count ($TEST_COUNT)"
