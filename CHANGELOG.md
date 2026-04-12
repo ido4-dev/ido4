@@ -4,6 +4,16 @@ All notable changes to ido4 are documented here.
 
 All packages (`@ido4/spec-format`, `@ido4/core`, `@ido4/mcp`) are released together at the same version.
 
+## [0.7.2] — 2026-04-12
+
+Infrastructure hardening release. No functional code changes to the parser or MCP server.
+
+- **release.sh: `--yes` flag** for non-interactive agent/CI use. Warnings are auto-confirmed; errors still abort.
+- **release.sh: local-vs-remote sync check** — detects when local main is behind origin (e.g., auto-update PR merged remotely) and aborts with clear remediation before pushing.
+- **release.sh: portable website sync path** — replaced hardcoded absolute path with derived sibling path + `IDO4_WEBSITE_DIR` env var override.
+- **actions/checkout@v4 → @v5** across all workflows (ci.yml, publish.yml, docs.yml) ahead of the Node.js 20 deprecation (2026-06-02).
+- **Cross-repo architecture documentation** updated to reference the new `ido4-suite` meta-repo.
+
 ## [0.7.1] — 2026-04-10
 
 Task ref parser accepts optional letter suffix for sub-task traceability. Fixes a silent-drop bug in the ido4dev decomposition pipeline where technical specs with suffixed refs (e.g., `NCO-01A`, `NCO-01B`) produced empty ingestion dry-runs.
