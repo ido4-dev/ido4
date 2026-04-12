@@ -145,7 +145,7 @@ Full architecture: `architecture/bundled-validator-architecture.md`
 
 This repo is part of the ido4 suite. Cross-repo release patterns, audit tooling, and coordination docs live in `~/dev-projects/ido4-suite/`:
 
-- `release-architecture.md` — the canonical 4-layer release pattern all active ido4 repos follow
+- `docs/release-architecture.md` — the canonical 4-layer release pattern all active ido4 repos follow
 - `scripts/audit-suite.sh` — verifies all repos against the pattern. Run after any release/CI changes: `bash ~/dev-projects/ido4-suite/scripts/audit-suite.sh`
 - `PLAN.md` — master plan tracking in-progress cross-repo work
 - `suite.yml` — machine-readable suite manifest (this repo, ido4shape, ido4dev, ido4-plugins)
