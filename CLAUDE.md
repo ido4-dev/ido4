@@ -152,6 +152,8 @@ This repo is part of the ido4 suite. Cross-repo release patterns, audit tooling,
 
 Before changing release scripts, CI workflows, or cross-repo dispatch: read `release-architecture.md` first. After changes: run the audit script.
 
+Before writing or auditing skills, agents, or prompts: read `docs/prompt-strategy.md` first. It defines degrees of freedom, rules vs principles, language guidance for Opus 4.5/4.6, skill architecture patterns, and the two-layer validation pattern.
+
 ## Documentation Sync
 
 After any change that affects architecture, services, tools, profiles, validation steps, or the plugin — verify and update all affected documentation. Code and docs must stay synchronized.
