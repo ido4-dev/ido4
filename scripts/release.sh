@@ -1,16 +1,28 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Usage: ./scripts/release.sh 0.3.0
+# Usage: ./scripts/release.sh [--yes] <version>
 #
 # Pre-release verification → version bump → commit → tag → push.
 # CI handles npm publish. Documentation sync is verified before release.
+#
+# Flags:
+#   --yes   Auto-confirm warnings (for agent/CI use). Errors still abort.
+
+YES_FLAG=false
+while [[ "${1:-}" == --* ]]; do
+  case "$1" in
+    --yes) YES_FLAG=true; shift ;;
+    *) echo "Unknown flag: $1"; exit 1 ;;
+  esac
+done
 
 VERSION="${1:-}"
 
 if [ -z "$VERSION" ]; then
-  echo "Usage: ./scripts/release.sh <version>"
+  echo "Usage: ./scripts/release.sh [--yes] <version>"
   echo "Example: ./scripts/release.sh 0.5.0"
+  echo "         ./scripts/release.sh --yes 0.5.0  # non-interactive (agent/CI)"
   exit 1
 fi
 
@@ -194,11 +206,15 @@ elif [ $WARNINGS -gt 0 ]; then
   echo "  ⚠ $WARNINGS warning(s) — review before releasing"
   echo "═══════════════════════════════════════════════"
   echo ""
-  read -p "Continue with release despite warnings? [y/N] " -n 1 -r
-  echo ""
-  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    echo "Release cancelled."
-    exit 1
+  if [ "$YES_FLAG" = "true" ]; then
+    echo "  --yes flag: proceeding despite $WARNINGS warning(s)"
+  else
+    read -p "Continue with release despite warnings? [y/N] " -n 1 -r
+    echo ""
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+      echo "Release cancelled."
+      exit 1
+    fi
   fi
 else
   echo "  ✓ ALL CHECKS PASSED"
