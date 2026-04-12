@@ -122,7 +122,8 @@ Skills are namespaced: `/ido4dev:standup`, `/ido4dev:board`, `/ido4dev:decompose
 All three packages (`@ido4/spec-format`, `@ido4/core`, `@ido4/mcp`) are published to npm at the same version. CI auto-publishes on version tags.
 
 ```bash
-./scripts/release.sh 0.5.0    # Bumps all three packages, commits, tags, pushes
+./scripts/release.sh 0.5.0         # Bumps all three packages, commits, tags, pushes
+./scripts/release.sh --yes 0.5.0   # Non-interactive (agent/CI use — auto-confirms warnings)
 ```
 
 CI Workflows (`.github/workflows/`):
@@ -139,6 +140,17 @@ ido4shape ships a bundled copy of the `@ido4/spec-format` CLI for deterministic 
 **No manual downstream steps needed after tagging a release.** Requires `IDO4SHAPE_DISPATCH_TOKEN` secret (PAT with `repo` scope) in this repo for cross-repo dispatch. ido4shape requires a `PAT` secret for PR creation that triggers CI.
 
 Full architecture: `architecture/bundled-validator-architecture.md`
+
+## ido4 Suite Coordination
+
+This repo is part of the ido4 suite. Cross-repo release patterns, audit tooling, and coordination docs live in `~/dev-projects/ido4-suite/`:
+
+- `release-architecture.md` — the canonical 4-layer release pattern all active ido4 repos follow
+- `scripts/audit-suite.sh` — verifies all repos against the pattern. Run after any release/CI changes: `bash ~/dev-projects/ido4-suite/scripts/audit-suite.sh`
+- `PLAN.md` — master plan tracking in-progress cross-repo work
+- `suite.yml` — machine-readable suite manifest (this repo, ido4shape, ido4dev, ido4-plugins)
+
+Before changing release scripts, CI workflows, or cross-repo dispatch: read `release-architecture.md` first. After changes: run the audit script.
 
 ## Documentation Sync
 
