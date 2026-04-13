@@ -8,23 +8,27 @@ It runs as an MCP server inside Claude Code (and any MCP-compatible AI environme
 
 ## Project Structure
 
-This is an npm workspaces monorepo with three packages:
+This is an npm workspaces monorepo with four packages:
 
 ```
 ido4/
 ├── packages/
-│   ├── spec-format/ # @ido4/spec-format — Strategic spec parser, zero deps, CLI
-│   ├── core/        # @ido4/core — Domain logic, depends on @ido4/spec-format
-│   └── mcp/         # @ido4/mcp — MCP server (STDIO transport)
-├── package.json     # Workspace root
-└── tsconfig.json    # Shared TypeScript config
+│   ├── spec-format/      # @ido4/spec-format — Strategic spec parser, zero deps, CLI
+│   ├── tech-spec-format/ # @ido4/tech-spec-format — Technical spec parser, zero runtime deps, CLI
+│   ├── core/             # @ido4/core — Domain logic, depends on both format packages
+│   └── mcp/              # @ido4/mcp — MCP server (STDIO transport)
+├── package.json          # Workspace root
+└── tsconfig.json         # Shared TypeScript config
 ```
 
 ### @ido4/spec-format
 The strategic spec format contract. Contains the parser that validates and parses strategic spec artifacts produced by ido4shape. Published as a standalone package with a CLI entry point (`ido4-spec-format`) so ido4shape can run deterministic structural validation in Cowork. **Zero npm dependencies.**
 
+### @ido4/tech-spec-format
+The technical spec format contract. Contains the parser that validates and parses technical spec artifacts produced by `ido4specs` (and historically by `ido4dev`'s decompose pipeline). Published as a standalone package with a CLI entry point (`ido4-tech-spec-format`) so `ido4specs` can run deterministic structural validation without installing `@ido4/mcp`. Depends on `@ido4/spec-format` for shared metadata-parsing helpers. Exports `SUPPORTED_FORMAT_VERSIONS` as the version contract constant. **Extracted from `@ido4/core/domains/ingestion/spec-parser.ts` in v0.8.0; see `ido4specs/docs/extraction-plan.md`.**
+
 ### @ido4/core
-The domain layer. Context assembly, task intelligence, work distribution, institutional memory (audit trail, analytics, compliance scoring), BRE (Business Rule Engine) validation pipeline, container management, integrity enforcement, dependency analysis, merge readiness, ingestion pipeline. Profile-driven state machine. **Depends on @ido4/spec-format for strategic spec parsing. Zero dependencies on CLI frameworks, terminal formatting, or MCP SDK.**
+The domain layer. Context assembly, task intelligence, work distribution, institutional memory (audit trail, analytics, compliance scoring), BRE (Business Rule Engine) validation pipeline, container management, integrity enforcement, dependency analysis, merge readiness, ingestion pipeline (mapper + service, parser now lives in `@ido4/tech-spec-format`). Profile-driven state machine. **Depends on @ido4/spec-format for strategic spec parsing and @ido4/tech-spec-format for technical spec parsing. Zero dependencies on CLI frameworks, terminal formatting, or MCP SDK.**
 
 ### @ido4/mcp
 The MCP server. Wraps @ido4/core domain services as MCP tools, resources, and prompts — dynamically generated from the active methodology profile. Composite aggregators assemble full project context in single calls. Uses STDIO transport for Claude Code integration. Tool count varies by methodology (driven by profile transitions and containers).
@@ -46,10 +50,11 @@ ido4shape (conversation) → strategic spec → ido4 MCP decomposition → techn
 
 **Decomposition pipeline (built):**
 - Strategic spec parser: `packages/spec-format/src/strategic-spec-parser.ts` (extracted to `@ido4/spec-format`)
+- Technical spec parser: `packages/tech-spec-format/src/spec-parser.ts` (extracted to `@ido4/tech-spec-format` in v0.8.0)
 - `parse_strategic_spec` MCP tool
-- Code analysis agent: [ido4dev repo](https://github.com/ido4-dev/ido4dev) `agents/code-analyzer.md`
-- Technical spec writer: [ido4dev repo](https://github.com/ido4-dev/ido4dev) `agents/technical-spec-writer.md`
-- Orchestration skill: `/ido4dev:decompose`
+- Code analysis agent: [ido4dev repo](https://github.com/ido4-dev/ido4dev) `agents/code-analyzer.md` (moving to ido4specs in Phase 2 of the extraction)
+- Technical spec writer: [ido4dev repo](https://github.com/ido4-dev/ido4dev) `agents/technical-spec-writer.md` (moving to ido4specs in Phase 2 of the extraction)
+- Orchestration skill: `/ido4dev:decompose` (moving to `/ido4specs:create-spec` in Phase 2)
 - Architecture: `architecture/decomposition-pipeline.md`
 
 **Capability-based hierarchy (v0.4.0):**
@@ -119,16 +124,16 @@ Skills are namespaced: `/ido4dev:standup`, `/ido4dev:board`, `/ido4dev:decompose
 
 ## Releasing
 
-All three packages (`@ido4/spec-format`, `@ido4/core`, `@ido4/mcp`) are published to npm at the same version. CI auto-publishes on version tags.
+All four packages (`@ido4/spec-format`, `@ido4/tech-spec-format`, `@ido4/core`, `@ido4/mcp`) are published to npm at the same version. CI auto-publishes on version tags.
 
 ```bash
-./scripts/release.sh 0.5.0         # Bumps all three packages, commits, tags, pushes
+./scripts/release.sh 0.5.0         # Bumps all four packages, commits, tags, pushes
 ./scripts/release.sh --yes 0.5.0   # Non-interactive (agent/CI use — auto-confirms warnings)
 ```
 
 CI Workflows (`.github/workflows/`):
-- `ci.yml` — Build + test on every push to `main` and on PRs. Also builds and smoke-tests the spec-format bundle.
-- `publish.yml` — Publishes to npm on `v*` tags. After publishing, dispatches `spec-format-published` event to ido4shape so its CI can auto-update the bundled validator.
+- `ci.yml` — Build + test on every push to `main` and on PRs. Also builds and smoke-tests both the spec-format and tech-spec-format bundles.
+- `publish.yml` — Publishes all four packages to npm on `v*` tags (in order: `spec-format → tech-spec-format → core → mcp`, because `core` depends on both format packages). After publishing, dispatches `spec-format-published` event to ido4shape so its CI can auto-update the bundled validator. (A parallel dispatch to `ido4specs` will be added in Phase 5 of the extraction, once that plugin exists.)
 - `docs.yml` — Builds and deploys docs to Firebase on push to `main` when `docs/` changes
 
 ## Downstream: ido4shape Validator Bundle
@@ -136,6 +141,12 @@ CI Workflows (`.github/workflows/`):
 ido4shape ships a bundled copy of the `@ido4/spec-format` CLI for deterministic spec validation without npm install. The bundle is built by `npm run build:bundle -w @ido4/spec-format`, producing `packages/spec-format/dist/spec-validator.bundle.js` — a single-file esbuild bundle (~8KB, zero npm deps).
 
 **After releasing:** The publish workflow dispatches a `spec-format-published` event to ido4shape. ido4shape's `update-validator.yml` workflow automatically creates a PR with the new bundle. Patch/minor updates auto-merge after CI passes. Major version updates require review (output format may have changed).
+
+## Downstream: ido4specs Validator Bundle (Phase 5+)
+
+`ido4specs` (the technical-spec authoring plugin, extracted from `ido4dev`) will ship a bundled copy of the `@ido4/tech-spec-format` CLI for deterministic technical-spec validation. The bundle is built by `npm run build:bundle -w @ido4/tech-spec-format`, producing `packages/tech-spec-format/dist/tech-spec-validator.bundle.js` — a single-file esbuild bundle (~14KB including the CLI, depending transitively on `@ido4/spec-format`).
+
+**Status:** the package and bundle exist in v0.8.0 but the `ido4specs` plugin and its `update-tech-spec-validator.yml` workflow do not exist yet. Until Phase 5 of the extraction lands, bundle updates to `ido4specs` are manual.
 
 **No manual downstream steps needed after tagging a release.** Requires `IDO4SHAPE_DISPATCH_TOKEN` secret (PAT with `repo` scope) in this repo for cross-repo dispatch. ido4shape requires a `PAT` secret for PR creation that triggers CI.
 

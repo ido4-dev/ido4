@@ -1,4 +1,4 @@
-export { parseSpec } from './spec-parser.js';
+export { parseSpec } from '@ido4/tech-spec-format';
 export { parseStrategicSpec } from '@ido4/spec-format';
 export { mapSpec, findGroupingContainer, topologicalSort } from './spec-mapper.js';
 export { IngestionService } from './ingestion-service.js';
@@ -8,6 +8,8 @@ export type {
   ParsedGroup,
   ParsedTask,
   ParseError,
+} from '@ido4/tech-spec-format';
+export type {
   MappedSpec,
   MappedGroupIssue,
   MappedTask,

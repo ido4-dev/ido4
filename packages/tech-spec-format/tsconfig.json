@@ -8,7 +8,6 @@
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist", "tests"],
   "references": [
-    { "path": "../spec-format" },
-    { "path": "../tech-spec-format" }
+    { "path": "../spec-format" }
   ]
 }

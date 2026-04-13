@@ -9,7 +9,7 @@ import type { ILogger } from '../../shared/logger.js';
 import type { ITaskService, IIssueRepository, IProjectRepository } from '../../container/interfaces.js';
 import type { MethodologyProfile } from '../../profiles/types.js';
 import type { IngestSpecResult, IngestSpecOptions, MappedTask } from './types.js';
-import { parseSpec } from './spec-parser.js';
+import { parseSpec } from '@ido4/tech-spec-format';
 import { mapSpec, findGroupingContainer } from './spec-mapper.js';
 import { SYSTEM_ACTOR } from '../../shared/actor.js';
 

@@ -12,6 +12,7 @@ import type {
   ParsedTask,
   ParseError,
 } from './types.js';
+import { SUPPORTED_FORMAT_VERSIONS } from './types.js';
 import { parseMetadataLine, derivePrefix } from '@ido4/spec-format';
 
 type ParserState = 'INIT' | 'PROJECT' | 'GROUP' | 'TASK';
@@ -23,6 +24,12 @@ const BLOCKQUOTE = /^>\s?(.*)$/;
 const BULLET_ITEM = /^- (.+)$/;
 const SECTION_HEADER = /^\*\*(.+?):\*\*\s*$/;
 const SEPARATOR = /^---\s*$/;
+const FORMAT_MARKER = /^>\s*format:\s*(.+?)\s*\|\s*version:\s*(.+?)\s*$/;
+
+// Pre-compute supported major versions for fast lookup.
+const SUPPORTED_MAJORS = new Set(
+  SUPPORTED_FORMAT_VERSIONS.map(v => parseInt(v.split('.')[0]!, 10)),
+);
 
 const KNOWN_TASK_METADATA_KEYS = new Set([
   'effort', 'risk', 'type', 'ai', 'depends_on',
@@ -32,7 +39,11 @@ const KNOWN_GROUP_METADATA_KEYS = new Set([
 ]);
 
 export function parseSpec(markdown: string): ParsedSpec {
-  const lines = markdown.split('\n');
+  // Normalize line endings so CRLF (Windows) and CR-only (classic Mac) inputs
+  // parse identically to LF (Unix). Without this, regex anchors like `$` trip
+  // over trailing `\r` and fields like the format marker fail to detect.
+  const normalized = markdown.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const lines = normalized.split('\n');
   const errors: ParseError[] = [];
 
   let state: ParserState = 'INIT';
@@ -174,6 +185,22 @@ export function parseSpec(markdown: string): ParsedSpec {
       const content = (bqMatch[1] ?? '').trim();
 
       if (metadataTarget === 'project') {
+        // Check for format marker BEFORE treating as description.
+        // The format marker is strict-when-present, lenient-when-absent:
+        // - If present, parse and validate against SUPPORTED_FORMAT_VERSIONS.
+        //   Major mismatch → error. Newer minor → warning. Matching → silent.
+        // - If absent, the parser proceeds without the marker metadata
+        //   (backward compatibility with pre-versioned artifacts).
+        if (project.format === undefined) {
+          const markerMatch = FORMAT_MARKER.exec(line);
+          if (markerMatch && markerMatch[1] && markerMatch[2]) {
+            project.format = markerMatch[1].trim();
+            project.version = markerMatch[2].trim();
+            validateFormatVersion(project.format, project.version, lineNum, errors);
+            continue;
+          }
+        }
+
         if (!projectDescriptionDone) {
           if (project.description) project.description += ' ';
           project.description += content;
@@ -325,4 +352,65 @@ export function parseSpec(markdown: string): ParsedSpec {
   }
 
   return { project, groups, orphanTasks, errors };
+}
+
+/**
+ * Validates a format marker against SUPPORTED_FORMAT_VERSIONS.
+ *
+ * - Wrong format identifier (not "tech-spec") → error
+ * - Major-version mismatch (e.g., file says 2.0, parser supports 1.x) → error
+ * - Newer-minor mismatch (e.g., file says 1.1, parser supports 1.0) → warning
+ * - Matching major + current-or-older minor → silent
+ */
+function validateFormatVersion(
+  format: string,
+  version: string,
+  line: number,
+  errors: ParseError[],
+): void {
+  if (format !== 'tech-spec') {
+    errors.push({
+      line,
+      message: `Unexpected format identifier "${format}" — this parser expects "tech-spec". If this file is a strategic spec, use @ido4/spec-format instead.`,
+      severity: 'error',
+    });
+    return;
+  }
+
+  const versionMatch = /^(\d+)\.(\d+)$/.exec(version);
+  if (!versionMatch || !versionMatch[1] || !versionMatch[2]) {
+    errors.push({
+      line,
+      message: `Invalid format version "${version}" — expected MAJOR.MINOR format (e.g., "1.0"). Supported: ${SUPPORTED_FORMAT_VERSIONS.join(', ')}.`,
+      severity: 'error',
+    });
+    return;
+  }
+
+  const fileMajor = parseInt(versionMatch[1], 10);
+  const fileMinor = parseInt(versionMatch[2], 10);
+
+  if (!SUPPORTED_MAJORS.has(fileMajor)) {
+    errors.push({
+      line,
+      message: `Unsupported format version ${fileMajor}.${fileMinor} — this parser supports ${SUPPORTED_FORMAT_VERSIONS.join(', ')}. Upgrade @ido4/tech-spec-format to parse newer specs.`,
+      severity: 'error',
+    });
+    return;
+  }
+
+  // Same major — check if the file's minor is newer than anything we support.
+  const maxSupportedMinor = Math.max(
+    ...SUPPORTED_FORMAT_VERSIONS
+      .filter(v => parseInt(v.split('.')[0]!, 10) === fileMajor)
+      .map(v => parseInt(v.split('.')[1]!, 10)),
+  );
+
+  if (fileMinor > maxSupportedMinor) {
+    errors.push({
+      line,
+      message: `Format version ${fileMajor}.${fileMinor} is newer than this parser's maximum supported minor (${fileMajor}.${maxSupportedMinor}). Unknown optional fields may be ignored. Upgrade @ido4/tech-spec-format for full support.`,
+      severity: 'warning',
+    });
+  }
 }

@@ -78,6 +78,11 @@ function main(): void {
       file: absolutePath,
       parseDurationMs: durationMs,
       parserVersion: version,
+      // schemaVersion describes the shape of THIS JSON output, not the
+      // strategic-spec format version. Consumers can key their JSON-parsing
+      // logic off this field so breaking changes to the CLI output shape
+      // become explicit signals rather than silent drift.
+      schemaVersion: '1.0',
     },
     metrics: {
       groupCount: result.groups.length,

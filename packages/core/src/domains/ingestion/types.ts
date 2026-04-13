@@ -3,54 +3,24 @@
  *
  * Three layers: Parser (markdown → ParsedSpec), Mapper (ParsedSpec → MappedSpec),
  * and IngestionService (MappedSpec → GitHub issues).
+ *
+ * Parser types are owned by @ido4/tech-spec-format and re-exported here so
+ * intra-core callers (spec-mapper, ingestion-service) keep stable import paths.
+ * Mapper and service types live in this file — they depend on MethodologyProfile
+ * and are not meaningful outside @ido4/core.
  */
 
 import type { MethodologyProfile } from '../../profiles/types.js';
 
-// ─── Parser Output ───
+// ─── Parser Output (re-exported from @ido4/tech-spec-format) ───
 
-export interface ParsedSpec {
-  project: ParsedProjectHeader;
-  groups: ParsedGroup[];
-  orphanTasks: ParsedTask[];
-  errors: ParseError[];
-}
-
-export interface ParsedProjectHeader {
-  name: string;
-  description: string;
-  constraints: string[];
-  nonGoals: string[];
-  openQuestions: string[];
-}
-
-export interface ParsedGroup {
-  name: string;
-  prefix: string;
-  size?: string;
-  risk?: string;
-  description: string;
-  tasks: ParsedTask[];
-}
-
-export interface ParsedTask {
-  ref: string;
-  title: string;
-  body: string;
-  effort?: string;
-  risk?: string;
-  taskType?: string;
-  aiSuitability?: string;
-  dependsOn: string[];
-  successConditions: string[];
-  groupName: string | null;
-}
-
-export interface ParseError {
-  line: number;
-  message: string;
-  severity: 'warning' | 'error';
-}
+export type {
+  ParsedSpec,
+  ParsedProjectHeader,
+  ParsedGroup,
+  ParsedTask,
+  ParseError,
+} from '@ido4/tech-spec-format';
 
 // ─── Mapper Output ───
 
@@ -98,7 +68,7 @@ export interface IngestSpecResult {
     projectName: string;
     groupCount: number;
     taskCount: number;
-    parseErrors: ParseError[];
+    parseErrors: import('@ido4/tech-spec-format').ParseError[];
   };
   created: {
     groupIssues: Array<{ ref: string; issueNumber: number; title: string; url: string }>;

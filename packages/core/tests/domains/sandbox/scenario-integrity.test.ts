@@ -12,7 +12,7 @@ import { SCRUM_SPRINT } from '../../../src/domains/sandbox/scenarios/scrum-sprin
 import { SHAPE_UP_CYCLE } from '../../../src/domains/sandbox/scenarios/shape-up-cycle.js';
 import { ScenarioBuilder } from '../../../src/domains/sandbox/scenario-builder.js';
 import { ProfileRegistry } from '../../../src/profiles/registry.js';
-import { parseSpec } from '../../../src/domains/ingestion/spec-parser.js';
+import { parseSpec } from '@ido4/tech-spec-format';
 import { mapSpec } from '../../../src/domains/ingestion/spec-mapper.js';
 import type { ScenarioConfig, SandboxScenario } from '../../../src/domains/sandbox/types.js';
 import type { IngestSpecResult } from '../../../src/domains/ingestion/types.js';

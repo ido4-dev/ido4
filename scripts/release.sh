@@ -132,6 +132,54 @@ else
   ERRORS=$((ERRORS + 1))
 fi
 
+# 2b. Bundle builds + smoke tests (mirrors .github/workflows/ci.yml — Invariant 1)
+#
+# Catches bundle-config bugs locally before the tag lands on origin. Without
+# this, a broken esbuild config or a bundle-size regression only surfaces on
+# the GitHub runner, after the release has already been tagged and pushed.
+
+echo "▸ Bundle builds + smoke tests..."
+
+# spec-format bundle
+if npm run build:bundle -w @ido4/spec-format --silent >/dev/null 2>&1; then
+  SIZE=$(wc -c < packages/spec-format/dist/spec-validator.bundle.js)
+  LIMIT=15000
+  if [ "$SIZE" -gt "$LIMIT" ]; then
+    echo "  ✗ spec-format bundle ${SIZE} B exceeds ${LIMIT} B limit"
+    ERRORS=$((ERRORS + 1))
+  elif node packages/spec-format/dist/spec-validator.bundle.js \
+        tests/fixtures/strategic-spec-context-pipeline.md \
+        | jq -e '.valid == true and .meta.parserVersion != "unknown" and .meta.schemaVersion == "1.0"' >/dev/null 2>&1; then
+    echo "  ✓ spec-format bundle ${SIZE} B — smoke test PASS"
+  else
+    echo "  ✗ spec-format bundle smoke test FAILED"
+    ERRORS=$((ERRORS + 1))
+  fi
+else
+  echo "  ✗ spec-format bundle build FAILED"
+  ERRORS=$((ERRORS + 1))
+fi
+
+# tech-spec-format bundle
+if npm run build:bundle -w @ido4/tech-spec-format --silent >/dev/null 2>&1; then
+  SIZE=$(wc -c < packages/tech-spec-format/dist/tech-spec-validator.bundle.js)
+  LIMIT=25000
+  if [ "$SIZE" -gt "$LIMIT" ]; then
+    echo "  ✗ tech-spec-format bundle ${SIZE} B exceeds ${LIMIT} B limit"
+    ERRORS=$((ERRORS + 1))
+  elif node packages/tech-spec-format/dist/tech-spec-validator.bundle.js \
+        tests/fixtures/technical-spec-sample.md \
+        | jq -e '.valid == true and .meta.parserVersion != "unknown" and .meta.schemaVersion == "1.0" and .project.format == "tech-spec" and .project.version == "1.0"' >/dev/null 2>&1; then
+    echo "  ✓ tech-spec-format bundle ${SIZE} B — smoke test PASS"
+  else
+    echo "  ✗ tech-spec-format bundle smoke test FAILED"
+    ERRORS=$((ERRORS + 1))
+  fi
+else
+  echo "  ✗ tech-spec-format bundle build FAILED"
+  ERRORS=$((ERRORS + 1))
+fi
+
 # 3. Validation step count
 echo "▸ BRE step count..."
 STEP_COUNT=$(grep -c 'registry.register(' packages/core/src/domains/tasks/validation-steps/index.ts 2>/dev/null || echo "0")
@@ -159,15 +207,15 @@ fi
 
 # 6. Documentation freshness — check if docs were updated since last code change
 echo "▸ Documentation freshness..."
-LAST_CODE_CHANGE=$(git log -1 --format=%H -- packages/spec-format/src packages/core/src packages/mcp/src packages/plugin 2>/dev/null || echo "")
+LAST_CODE_CHANGE=$(git log -1 --format=%H -- packages/spec-format/src packages/tech-spec-format/src packages/core/src packages/mcp/src packages/plugin 2>/dev/null || echo "")
 LAST_DOC_CHANGE=$(git log -1 --format=%H -- architecture/ docs/ diagrams/ CLAUDE.md README.md 2>/dev/null || echo "")
 if [ -n "$LAST_CODE_CHANGE" ] && [ -n "$LAST_DOC_CHANGE" ]; then
   # Check if code was changed after docs
-  CODE_DATE=$(git log -1 --format=%ct -- packages/spec-format/src packages/core/src packages/mcp/src packages/plugin 2>/dev/null || echo "0")
+  CODE_DATE=$(git log -1 --format=%ct -- packages/spec-format/src packages/tech-spec-format/src packages/core/src packages/mcp/src packages/plugin 2>/dev/null || echo "0")
   DOC_DATE=$(git log -1 --format=%ct -- architecture/ docs/ diagrams/ CLAUDE.md README.md 2>/dev/null || echo "0")
   if [ "$CODE_DATE" -gt "$DOC_DATE" ]; then
     echo "  ⚠ Code changed AFTER docs — verify docs are up to date"
-    echo "    Last code change: $(git log -1 --format='%s (%cr)' -- packages/spec-format/src packages/core/src packages/mcp/src packages/plugin)"
+    echo "    Last code change: $(git log -1 --format='%s (%cr)' -- packages/spec-format/src packages/tech-spec-format/src packages/core/src packages/mcp/src packages/plugin)"
     echo "    Last doc change:  $(git log -1 --format='%s (%cr)' -- architecture/ docs/ diagrams/ CLAUDE.md README.md)"
     WARNINGS=$((WARNINGS + 1))
   else
@@ -226,24 +274,27 @@ fi
 # ═══════════════════════════════════════════════════════════════
 
 SPEC_FORMAT_PKG="packages/spec-format/package.json"
+TECH_SPEC_FORMAT_PKG="packages/tech-spec-format/package.json"
 CORE_PKG="packages/core/package.json"
 MCP_PKG="packages/mcp/package.json"
 
 CURRENT_SPEC_FORMAT=$(node -p "require('./$SPEC_FORMAT_PKG').version")
+CURRENT_TECH_SPEC_FORMAT=$(node -p "require('./$TECH_SPEC_FORMAT_PKG').version")
 CURRENT_CORE=$(node -p "require('./$CORE_PKG').version")
 CURRENT_MCP=$(node -p "require('./$MCP_PKG').version")
 
 echo ""
 echo "Releasing v$VERSION"
-echo "  @ido4/spec-format: $CURRENT_SPEC_FORMAT → $VERSION"
-echo "  @ido4/core:        $CURRENT_CORE → $VERSION"
-echo "  @ido4/mcp:         $CURRENT_MCP → $VERSION"
+echo "  @ido4/spec-format:      $CURRENT_SPEC_FORMAT → $VERSION"
+echo "  @ido4/tech-spec-format: $CURRENT_TECH_SPEC_FORMAT → $VERSION"
+echo "  @ido4/core:             $CURRENT_CORE → $VERSION"
+echo "  @ido4/mcp:              $CURRENT_MCP → $VERSION"
 echo ""
 
 # Bump versions using node to preserve JSON formatting
 node -e "
 const fs = require('fs');
-for (const pkg of ['$SPEC_FORMAT_PKG', '$CORE_PKG', '$MCP_PKG']) {
+for (const pkg of ['$SPEC_FORMAT_PKG', '$TECH_SPEC_FORMAT_PKG', '$CORE_PKG', '$MCP_PKG']) {
   const json = JSON.parse(fs.readFileSync(pkg, 'utf8'));
   json.version = '$VERSION';
   fs.writeFileSync(pkg, JSON.stringify(json, null, 2) + '\n');
@@ -251,7 +302,7 @@ for (const pkg of ['$SPEC_FORMAT_PKG', '$CORE_PKG', '$MCP_PKG']) {
 "
 
 # Commit, tag, push
-git add "$SPEC_FORMAT_PKG" "$CORE_PKG" "$MCP_PKG"
+git add "$SPEC_FORMAT_PKG" "$TECH_SPEC_FORMAT_PKG" "$CORE_PKG" "$MCP_PKG"
 git commit -m "release v$VERSION"
 git tag "v$VERSION"
 git push origin main --tags
@@ -265,8 +316,9 @@ echo "CI will build, test, and publish to npm."
 echo "Watch: gh run list --repo ido4-dev/ido4 --limit 2"
 echo ""
 echo "Post-release checklist:"
-echo "  □ Verify npm publish: https://www.npmjs.com/org/ido4 (spec-format, core, mcp)"
+echo "  □ Verify npm publish: https://www.npmjs.com/org/ido4 (spec-format, tech-spec-format, core, mcp)"
 echo "  □ Update ido4shape package.json @ido4/spec-format version"
+echo "  □ Update ido4specs bundled tech-spec-validator (once the plugin exists — Phase 2+)"
 echo "  □ Update ido4dev package.json @ido4/mcp version"
 echo "  □ Update website if numbers changed (build + firebase deploy)"
 echo "  □ Update MEMORY.md version references"

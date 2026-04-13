@@ -1,0 +1,48 @@
+{
+  "name": "@ido4/tech-spec-format",
+  "version": "0.1.0",
+  "description": "Technical spec format parser — deterministic structural validation for ido4specs artifacts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "ido4-tech-spec-format": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "build:bundle": "node esbuild.bundle.mjs",
+    "test": "vitest run",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@ido4/spec-format": "^0.7.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "esbuild": "^0.21.5",
+    "typescript": "^5.5.0",
+    "vitest": "^2.1.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "tech-spec-format",
+    "technical-spec",
+    "ido4",
+    "ido4specs",
+    "parser",
+    "markdown",
+    "validation"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ido4-dev/ido4.git",
+    "directory": "packages/tech-spec-format"
+  },
+  "homepage": "https://github.com/ido4-dev/ido4/tree/main/packages/tech-spec-format",
+  "bugs": {
+    "url": "https://github.com/ido4-dev/ido4/issues"
+  },
+  "author": "Bogdan Ionut Coman",
+  "license": "MIT"
+}

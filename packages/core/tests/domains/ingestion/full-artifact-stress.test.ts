@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { parseSpec } from '../../../src/domains/ingestion/spec-parser.js';
+import { parseSpec } from '@ido4/tech-spec-format';
 import { mapSpec, findGroupingContainer } from '../../../src/domains/ingestion/spec-mapper.js';
 import { HYDRO_PROFILE } from '../../../src/profiles/hydro.js';
 import { SCRUM_PROFILE } from '../../../src/profiles/scrum.js';

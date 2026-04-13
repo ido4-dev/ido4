@@ -21,7 +21,7 @@ import type {
 } from './types.js';
 import type { BuildContext, ScenarioRoles } from './builder/types.js';
 import type { Task } from './builder/types.js';
-import { parseSpec } from '../ingestion/spec-parser.js';
+import { parseSpec } from '@ido4/tech-spec-format';
 import { buildReverseDeps, computeDepthLayers, computeCascadeValues } from './builder/dependency-graph.js';
 import { generateAuditEvents, generateAgents, generatePRSeeds, generateContextComments } from './builder/seeding.js';
 import { generateNarrative, generateMemorySeed } from './builder/narrative.js';

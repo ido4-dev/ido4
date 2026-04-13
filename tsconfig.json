@@ -25,6 +25,7 @@
   },
   "references": [
     { "path": "packages/spec-format" },
+    { "path": "packages/tech-spec-format" },
     { "path": "packages/core" },
     { "path": "packages/mcp" }
   ],

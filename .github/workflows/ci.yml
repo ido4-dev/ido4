@@ -27,4 +27,33 @@ jobs:
         run: |
           node packages/spec-format/dist/spec-validator.bundle.js \
             tests/fixtures/strategic-spec-context-pipeline.md \
-            | jq -e '.valid == true and .meta.parserVersion != "unknown"'
+            | jq -e '.valid == true and .meta.parserVersion != "unknown" and .meta.schemaVersion == "1.0"'
+
+      - name: Bundle size check — spec-format
+        run: |
+          SIZE=$(wc -c < packages/spec-format/dist/spec-validator.bundle.js)
+          LIMIT=15000
+          echo "spec-format bundle: ${SIZE} bytes (limit ${LIMIT})"
+          if [ "$SIZE" -gt "$LIMIT" ]; then
+            echo "::error::spec-format bundle ${SIZE} bytes exceeds ${LIMIT} byte limit — investigate bloat or raise the limit intentionally"
+            exit 1
+          fi
+
+      - name: Build tech-spec-format bundle
+        run: npm run build:bundle -w @ido4/tech-spec-format
+
+      - name: Smoke test tech-spec-format bundle
+        run: |
+          node packages/tech-spec-format/dist/tech-spec-validator.bundle.js \
+            tests/fixtures/technical-spec-sample.md \
+            | jq -e '.valid == true and .meta.parserVersion != "unknown" and .meta.schemaVersion == "1.0" and .project.format == "tech-spec" and .project.version == "1.0"'
+
+      - name: Bundle size check — tech-spec-format
+        run: |
+          SIZE=$(wc -c < packages/tech-spec-format/dist/tech-spec-validator.bundle.js)
+          LIMIT=25000
+          echo "tech-spec-format bundle: ${SIZE} bytes (limit ${LIMIT})"
+          if [ "$SIZE" -gt "$LIMIT" ]; then
+            echo "::error::tech-spec-format bundle ${SIZE} bytes exceeds ${LIMIT} byte limit — investigate bloat or raise the limit intentionally"
+            exit 1
+          fi

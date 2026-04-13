@@ -25,13 +25,26 @@ jobs:
       - name: Build spec-format bundle
         run: npm run build:bundle -w @ido4/spec-format
 
+      - name: Build tech-spec-format bundle
+        run: npm run build:bundle -w @ido4/tech-spec-format
+
       - name: Read spec-format version
         id: spec-format-version
         run: echo "version=$(jq -r '.version' packages/spec-format/package.json)" >> $GITHUB_OUTPUT
 
+      - name: Read tech-spec-format version
+        id: tech-spec-format-version
+        run: echo "version=$(jq -r '.version' packages/tech-spec-format/package.json)" >> $GITHUB_OUTPUT
+
       - name: Publish @ido4/spec-format
         run: npm publish --access public
         working-directory: packages/spec-format
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish @ido4/tech-spec-format
+        run: npm publish --access public
+        working-directory: packages/tech-spec-format
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -54,3 +67,9 @@ jobs:
           repository: ido4-dev/ido4shape
           event-type: spec-format-published
           client-payload: '{"version": "${{ steps.spec-format-version.outputs.version }}"}'
+
+      # NOTE: A parallel `Dispatch bundle update to ido4specs` step will be added
+      # in Phase 5 of the ido4specs extraction (see ido4specs/docs/extraction-plan.md).
+      # The target repo `ido4-dev/ido4specs` and its `update-tech-spec-validator.yml`
+      # workflow don't exist yet. Until then, ido4specs bundle updates are manual
+      # via its `scripts/update-tech-spec-validator.sh`.

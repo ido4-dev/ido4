@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@ido4/spec-format": "*",
+    "@ido4/tech-spec-format": "^0.1.0",
     "@octokit/graphql": "^7.1.0",
     "zod": "^3.23.0"
   },

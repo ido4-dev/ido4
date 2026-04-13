@@ -1,9 +1,13 @@
 /**
  * Spec Parser tests — verifies markdown → ParsedSpec AST transformation.
+ *
+ * Moved from @ido4/core/tests/domains/ingestion/spec-parser.test.ts during the
+ * tech-spec-format extraction (see ido4specs/docs/extraction-plan.md Phase 1).
+ * Behavior is unchanged; only the import path differs.
  */
 
 import { describe, it, expect } from 'vitest';
-import { parseSpec } from '../../../src/domains/ingestion/spec-parser.js';
+import { parseSpec } from '../src/spec-parser.js';
 
 // Minimal spec artifact for reuse
 const MINIMAL_SPEC = `# Test Project
@@ -419,6 +423,152 @@ Use Zod for validation.
       const task = result.orphanTasks[0]!;
       expect(task.body).toContain('Technical notes');
       expect(task.body).toContain('Zod');
+    });
+  });
+
+  describe('format marker (version contract)', () => {
+    const MARKED_SPEC = `# Test Project
+> format: tech-spec | version: 1.0
+
+> A test project with an explicit format marker.
+
+## Capability: Core
+> size: M | risk: low
+
+Core description.
+
+### COR-01: Task
+> effort: M | risk: low | type: feature | ai: full
+> depends_on: -
+
+Body.
+
+**Success conditions:**
+- Done
+`;
+
+    it('parses format and version when marker is present', () => {
+      const result = parseSpec(MARKED_SPEC);
+      expect(result.project.format).toBe('tech-spec');
+      expect(result.project.version).toBe('1.0');
+    });
+
+    it('leaves format/version undefined when marker is absent (backward compatible)', () => {
+      const result = parseSpec(MINIMAL_SPEC);
+      expect(result.project.format).toBeUndefined();
+      expect(result.project.version).toBeUndefined();
+      // Absence of marker produces no error and no warning — lenient by design.
+      expect(result.errors.filter(e => e.severity === 'error')).toHaveLength(0);
+    });
+
+    it('errors on major-version mismatch', () => {
+      const spec = MARKED_SPEC.replace('version: 1.0', 'version: 2.0');
+      const result = parseSpec(spec);
+      const majorErrors = result.errors.filter(
+        e => e.severity === 'error' && e.message.includes('Unsupported format version'),
+      );
+      expect(majorErrors).toHaveLength(1);
+      expect(majorErrors[0]!.message).toContain('2.0');
+    });
+
+    it('warns on newer-minor mismatch within the same major', () => {
+      const spec = MARKED_SPEC.replace('version: 1.0', 'version: 1.5');
+      const result = parseSpec(spec);
+      const newerMinorWarnings = result.errors.filter(
+        e => e.severity === 'warning' && e.message.includes('newer than this parser'),
+      );
+      expect(newerMinorWarnings).toHaveLength(1);
+      // Still valid for ingestion despite the warning
+      expect(result.errors.filter(e => e.severity === 'error')).toHaveLength(0);
+    });
+
+    it('errors on wrong format identifier', () => {
+      const spec = MARKED_SPEC.replace('format: tech-spec', 'format: strategic-spec');
+      const result = parseSpec(spec);
+      const formatErrors = result.errors.filter(
+        e => e.severity === 'error' && e.message.includes('Unexpected format identifier'),
+      );
+      expect(formatErrors).toHaveLength(1);
+    });
+
+    it('errors on malformed version string', () => {
+      const spec = MARKED_SPEC.replace('version: 1.0', 'version: v1');
+      const result = parseSpec(spec);
+      const malformed = result.errors.filter(
+        e => e.severity === 'error' && e.message.includes('Invalid format version'),
+      );
+      expect(malformed).toHaveLength(1);
+    });
+
+    it('does not leak format marker into project description', () => {
+      const result = parseSpec(MARKED_SPEC);
+      expect(result.project.description).not.toContain('format:');
+      expect(result.project.description).not.toContain('tech-spec');
+      expect(result.project.description).toContain('explicit format marker');
+    });
+
+    it('tolerates surrounding whitespace in the format marker', () => {
+      const spec = `# Test Project
+>   format:   tech-spec   |   version:   1.0
+
+> Description follows.
+
+## Capability: Core
+> size: M | risk: low
+
+### COR-01: Task
+> effort: M | risk: low | type: feature | ai: full
+> depends_on: -
+
+Body.
+
+**Success conditions:**
+- Done
+`;
+      const result = parseSpec(spec);
+      expect(result.project.format).toBe('tech-spec');
+      expect(result.project.version).toBe('1.0');
+      expect(result.errors.filter(e => e.severity === 'error')).toHaveLength(0);
+    });
+
+    it('ignores "format: tech-spec" lines that appear inside task bodies (not project-level)', () => {
+      const spec = `# Test Project
+
+> Real description.
+
+## Capability: Core
+> size: M | risk: low
+
+### COR-01: Task
+> effort: M | risk: low | type: feature | ai: full
+> depends_on: -
+
+This task mentions format: tech-spec | version: 99.0 in its prose but that
+should not be treated as the project's format marker.
+
+**Success conditions:**
+- Done
+`;
+      const result = parseSpec(spec);
+      // Project has no marker — backward-compatible silent acceptance
+      expect(result.project.format).toBeUndefined();
+      expect(result.project.version).toBeUndefined();
+      // No version errors raised
+      const versionErrors = result.errors.filter(
+        e => e.severity === 'error' && e.message.toLowerCase().includes('format'),
+      );
+      expect(versionErrors).toHaveLength(0);
+    });
+
+    it('handles CRLF line endings', () => {
+      const crlfSpec = MARKED_SPEC.replace(/\n/g, '\r\n');
+      const result = parseSpec(crlfSpec);
+      expect(result.project.format).toBe('tech-spec');
+      expect(result.project.version).toBe('1.0');
+      expect(result.project.name).toBe('Test Project');
+      expect(result.groups).toHaveLength(1);
+      expect(result.groups[0]!.tasks).toHaveLength(1);
+      expect(result.errors.filter(e => e.severity === 'error')).toHaveLength(0);
     });
   });
 
