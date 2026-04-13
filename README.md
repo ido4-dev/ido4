@@ -15,7 +15,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/MCP-compatible-7C3AED" alt="MCP Compatible">
   <img src="https://img.shields.io/badge/tools-58-2563EB" alt="58 MCP Tools">
-  <img src="https://img.shields.io/badge/tests-1759-16A34A" alt="1759 Tests">
+  <img src="https://img.shields.io/badge/tests-1772-16A34A" alt="1772 Tests">
   <img src="https://img.shields.io/npm/l/@ido4/core" alt="MIT License">
 </p>
 

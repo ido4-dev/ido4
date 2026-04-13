@@ -1,12 +1,14 @@
 # Bundled Validator Architecture
 
-> Deterministic spec validation in ido4shape without runtime dependencies.
+> Deterministic spec validation in Claude Code plugins without runtime dependencies.
 
 **Status:** Implemented (2026-04). Preserved for design rationale and historical context. The current implementation has evolved from this spec — see live files for ground truth, this doc for the *why*.
 **Original spec date:** 2026-03-28
-**Repos affected:** ido4, ido4shape, ido4-plugins
+**Repos affected:** ido4, ido4shape, ido4-plugins, and (Phase 2+) ido4specs
 
 > **Cross-reference:** This document describes the *specific instance* of cross-repo release coordination between `ido4` and `ido4shape`. For the *canonical release pattern* that every active ido4 repo follows (the abstract 4-layer pipeline + 4 invariants), see `~/dev-projects/ido4-suite/release-architecture.md` in the meta-repo. This file is one of the concrete examples of that pattern.
+
+> **The pattern now applies to two bundled validators** (2026-04-14). The original pattern described here covers `@ido4/spec-format` bundled into ido4shape. The same pattern was extended in commit `a898421` to cover `@ido4/tech-spec-format` (a sibling package extracted from `@ido4/core`), which will be bundled into the new `ido4specs` plugin in Phase 2 of the ido4specs extraction (see `~/dev-projects/ido4specs/docs/extraction-plan.md`). Both bundled CLIs now emit `meta.schemaVersion: "1.0"` so consumers can key their JSON-parsing logic to the output shape and catch future breaking changes explicitly. The cross-repo dispatch for tech-spec-format → ido4specs is deferred until ido4specs exists as a repo (a placeholder comment in `publish.yml` marks the future step).
 
 > **Known staleness as of 2026-04-12:** §4.3 below shows the `sync-marketplace.yml` design as originally written (push-triggered with paths filter). The current live version uses `workflow_run` gating on CI success (introduced in `ido4shape` commit `11b10e9`). The current pattern is documented in the meta-repo's `release-architecture.md` (Layer 4) and `cross-repo-connections.md`.
 
