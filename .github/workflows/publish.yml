@@ -68,8 +68,24 @@ jobs:
           event-type: spec-format-published
           client-payload: '{"version": "${{ steps.spec-format-version.outputs.version }}"}'
 
-      # NOTE: A parallel `Dispatch bundle update to ido4specs` step will be added
-      # in Phase 5 of the ido4specs extraction (see ido4specs/docs/extraction-plan.md).
-      # The target repo `ido4-dev/ido4specs` and its `update-tech-spec-validator.yml`
-      # workflow don't exist yet. Until then, ido4specs bundle updates are manual
-      # via its `scripts/update-tech-spec-validator.sh`.
+      # NOTE: TWO parallel dispatch steps to ido4specs will be added in Phase 5
+      # of the ido4specs extraction. ido4specs bundles BOTH parsers (the
+      # technical-spec validator AND the strategic-spec validator that
+      # /ido4specs:create-spec uses to parse upstream strategic specs from
+      # ido4shape), so both bundles need auto-update flows:
+      #
+      #   1. Dispatch bundle update to ido4specs (tech-spec-format)
+      #      → repository_dispatch type: tech-spec-format-published
+      #      → target: ido4specs/.github/workflows/update-tech-spec-validator.yml
+      #
+      #   2. Dispatch bundle update to ido4specs (spec-format)
+      #      → repository_dispatch type: spec-format-published
+      #      → target: ido4specs/.github/workflows/update-spec-validator.yml
+      #      → mirrors the ido4shape spec-format dispatch above (same payload)
+      #
+      # Both target workflows already exist in the ido4specs local repo. Phase 5
+      # creates the GitHub repo (ido4-dev/ido4specs), creates the
+      # IDO4SPECS_DISPATCH_TOKEN secret, and adds these two steps. Until then,
+      # ido4specs bundle updates can be triggered manually via its
+      # scripts/update-tech-spec-validator.sh and scripts/update-spec-validator.sh.
+      # See ido4specs/docs/extraction-plan.md §10 and ido4-suite/PLAN.md Phase 9.5.4.
