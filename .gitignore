@@ -40,3 +40,8 @@ yarn-error.log*
 credentials.json
 token
 auth.json
+
+# Personal workspace — scratch notes, drafts, strategy docs kept local only
+drafts/
+ideas/
+strategy/
