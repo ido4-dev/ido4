@@ -1,6 +1,6 @@
 {
   "name": "@ido4/core",
-  "version": "0.7.2",
+  "version": "0.8.0",
   "description": "ido4 core — context intelligence, task distribution, and deterministic governance for AI-hybrid software development",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,8 +11,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@ido4/spec-format": "*",
-    "@ido4/tech-spec-format": "^0.1.0",
+    "@ido4/spec-format": "~0.8.0",
+    "@ido4/tech-spec-format": "~0.8.0",
     "@octokit/graphql": "^7.1.0",
     "zod": "^3.23.0"
   },

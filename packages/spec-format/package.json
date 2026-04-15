@@ -1,6 +1,6 @@
 {
   "name": "@ido4/spec-format",
-  "version": "0.7.2",
+  "version": "0.8.0",
   "description": "Strategic spec format parser — deterministic structural validation for ido4shape artifacts",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
