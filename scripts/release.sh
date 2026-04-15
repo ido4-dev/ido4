@@ -291,12 +291,25 @@ echo "  @ido4/core:             $CURRENT_CORE → $VERSION"
 echo "  @ido4/mcp:              $CURRENT_MCP → $VERSION"
 echo ""
 
-# Bump versions using node to preserve JSON formatting
+# Bump versions using node to preserve JSON formatting.
+# Also normalize every internal @ido4/* runtime dep to ~\${VERSION} to enforce
+# the same-version contract mechanically (see ido4/CLAUDE.md + interface
+# contract #5 in ido4-suite/docs/interface-contracts.md). This replaces any
+# wildcard or stale range with a pinned tilde range matching the release,
+# closing the class of bug that Phase 7 of ido4-suite/PLAN.md tracks.
 node -e "
 const fs = require('fs');
+const newRange = '~$VERSION';
 for (const pkg of ['$SPEC_FORMAT_PKG', '$TECH_SPEC_FORMAT_PKG', '$CORE_PKG', '$MCP_PKG']) {
   const json = JSON.parse(fs.readFileSync(pkg, 'utf8'));
   json.version = '$VERSION';
+  if (json.dependencies) {
+    for (const dep of Object.keys(json.dependencies)) {
+      if (dep.startsWith('@ido4/')) {
+        json.dependencies[dep] = newRange;
+      }
+    }
+  }
   fs.writeFileSync(pkg, JSON.stringify(json, null, 2) + '\n');
 }
 "
