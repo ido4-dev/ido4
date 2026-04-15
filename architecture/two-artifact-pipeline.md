@@ -1,5 +1,20 @@
 # Two-Artifact Pipeline — ido4shape ↔ ido4 MCP Connection
 
+> **⚠️ Superseded by the three-plugin architecture introduced in the ido4specs extraction (Phase 9, 2026-04-14).**
+>
+> This document describes the pre-extraction two-artifact pipeline (`ido4shape → ido4 MCP → GitHub issues`), where ido4dev's `decompose` skill and `code-analyzer` / `technical-spec-writer` / `spec-reviewer` agents lived inside ido4dev alongside the governance workflow. That slice was extracted into a standalone companion plugin, `ido4specs`, during Phase 2 of the extraction. The current architecture is three plugins:
+>
+> ```
+> ido4shape → ido4specs → ido4dev → GitHub issues
+> ```
+>
+> **For the current state, see:**
+> - `~/dev-projects/ido4-suite/docs/ecosystem-overview.md` — the three-plugin pipeline diagram with the dual-bundle validator architecture
+> - `~/dev-projects/ido4-suite/docs/interface-contracts.md` — contracts #1 (strategic-spec format) and #6 (technical-spec format) are the two trust boundaries between plugins
+> - `~/dev-projects/ido4specs/docs/extraction-plan.md` — complete architecture, extraction phases, and the why
+>
+> This file is retained for historical context. The body below describes the pre-extraction state. Deleted agents and skills (code-analyzer, technical-spec-writer, spec-reviewer, decompose, decompose-tasks, decompose-validate) now live in `~/dev-projects/ido4specs/agents/` and `~/dev-projects/ido4specs/skills/`. The technical-spec format reference moved from this monorepo's `architecture/spec-artifact-format.md` to `~/dev-projects/ido4specs/references/technical-spec-format.md`.
+
 ## Overview
 
 The two-artifact pipeline is how ideas become executable work for AI agents. ido4shape captures multi-stakeholder understanding (the WHAT), ido4 MCP decomposes it against the codebase (the HOW), and the result is GitHub issues that carry full context — not just task titles, but specifications that AI agents can execute against with understanding of intent, dependencies, and success criteria.
@@ -62,7 +77,7 @@ The decomposition pipeline (`/ido4dev:decompose` skill):
 
 ## The Contract: Technical Spec Format
 
-The technical spec is the interface between the decomposition pipeline and the ingestion engine. Defined in `architecture/spec-artifact-format.md`.
+The technical spec is the interface between the decomposition pipeline and the ingestion engine. Defined in `~/dev-projects/ido4specs/references/technical-spec-format.md` (moved from this monorepo's `architecture/spec-artifact-format.md` during the Phase 9 ido4specs extraction).
 
 **Structure:**
 ```markdown
@@ -102,5 +117,5 @@ ido4shape and ido4 MCP are independent systems connected by the strategic spec c
 - Code analysis agent: `[ido4dev](https://github.com/ido4-dev/ido4dev) agents/code-analyzer.md`
 - Technical spec writer: `[ido4dev](https://github.com/ido4-dev/ido4dev) agents/technical-spec-writer.md`
 - Decompose skill: `[ido4dev](https://github.com/ido4-dev/ido4dev) skills/decompose/SKILL.md`
-- Technical spec format: `architecture/spec-artifact-format.md`
+- Technical spec format: `~/dev-projects/ido4specs/references/technical-spec-format.md` (moved from `architecture/spec-artifact-format.md` during Phase 9 extraction)
 - ido4shape repo: `/Users/bogdanionutcoman/dev-projects/ido4shape/`

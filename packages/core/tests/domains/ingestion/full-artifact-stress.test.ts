@@ -1,6 +1,12 @@
 /**
- * Full artifact stress test — runs the complete example from spec-artifact-format.md
- * through parse + map for all 3 profiles. This is the real-world validation.
+ * Full artifact stress test — runs the complete example from the canonical
+ * technical-spec format reference through parse + map for all 3 profiles.
+ * This is the real-world validation.
+ *
+ * The FULL_ARTIFACT constant below was originally copied from
+ * ido4/architecture/spec-artifact-format.md, which was moved to
+ * ido4specs/references/technical-spec-format.md during Phase 9 of the
+ * ido4specs extraction (2026-04-14).
  */
 
 import { describe, it, expect } from 'vitest';
@@ -10,7 +16,8 @@ import { HYDRO_PROFILE } from '../../../src/profiles/hydro.js';
 import { SCRUM_PROFILE } from '../../../src/profiles/scrum.js';
 import { SHAPE_UP_PROFILE } from '../../../src/profiles/shape-up.js';
 
-// The full example from spec-artifact-format.md (lines 155-501)
+// The full example (copied from the canonical technical-spec format reference —
+// see the file header for the provenance trail)
 const FULL_ARTIFACT = `# Real-time Notification System
 
 > Build a multi-channel notification system that delivers events to users

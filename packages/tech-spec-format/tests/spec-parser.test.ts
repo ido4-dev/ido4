@@ -30,7 +30,9 @@ Task body for COR-01.
 - Condition two
 `;
 
-// Full example spec (from spec-artifact-format.md)
+// Full example spec (originally copied from ido4/architecture/spec-artifact-format.md,
+// which was moved to ido4specs/references/technical-spec-format.md during Phase 9 of
+// the ido4specs extraction, 2026-04-14)
 const FULL_SPEC = `# Real-time Notification System
 
 > Build a multi-channel notification system that delivers events to users
@@ -586,7 +588,7 @@ should not be treated as the project's format marker.
       expect(result.errors.some(e => e.message.includes('no tasks'))).toBe(true);
     });
 
-    it('parses full example from spec-artifact-format', () => {
+    it('parses full example from the canonical technical-spec format reference', () => {
       const result = parseSpec(FULL_SPEC);
       // 2 groups, 4 total tasks
       expect(result.groups).toHaveLength(2);

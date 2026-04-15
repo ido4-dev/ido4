@@ -18,10 +18,16 @@ const core = await import(path.join(projectRoot, 'packages/core/dist/index.js'))
 const REPOSITORY = 'b-coman/ido4-test';
 const SCENARIO = 'hydro-governance';
 
-// The full example from spec-artifact-format.md
-const specMd = fs.readFileSync(path.join(projectRoot, 'spec-artifact-format.md'), 'utf-8');
-const specStart = specMd.indexOf('# Real-time Notification System');
-const SPEC_CONTENT = specMd.slice(specStart);
+// Technical spec fixture for live ingestion testing. Reads the canonical CI
+// smoke-test fixture at tests/fixtures/technical-spec-sample.md — the same
+// file @ido4/tech-spec-format's CI uses. Previously sourced from
+// architecture/spec-artifact-format.md, which was moved to
+// ido4specs/references/technical-spec-format.md during Phase 9 of the
+// ido4specs extraction (2026-04-14).
+const SPEC_CONTENT = fs.readFileSync(
+  path.join(projectRoot, 'tests/fixtures/technical-spec-sample.md'),
+  'utf-8'
+);
 
 const logger = new core.ConsoleLogger({ component: 'live-test' });
 
