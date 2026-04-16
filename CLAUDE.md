@@ -146,7 +146,7 @@ ido4shape ships a bundled copy of the `@ido4/spec-format` CLI for deterministic 
 
 `ido4specs` (the technical-spec authoring plugin, extracted from `ido4dev`) will ship a bundled copy of the `@ido4/tech-spec-format` CLI for deterministic technical-spec validation. The bundle is built by `npm run build:bundle -w @ido4/tech-spec-format`, producing `packages/tech-spec-format/dist/tech-spec-validator.bundle.js` — a single-file esbuild bundle (~14KB including the CLI, depending transitively on `@ido4/spec-format`).
 
-**Status:** the package and bundle exist in v0.8.0 but the `ido4specs` plugin and its `update-tech-spec-validator.yml` workflow do not exist yet. Until Phase 5 of the extraction lands, bundle updates to `ido4specs` are manual.
+**Status:** live since 2026-04-15. `@ido4/tech-spec-format@0.8.0` on npm, bundled by `ido4specs@0.1.0` as `dist/tech-spec-validator.js`, auto-updated via `tech-spec-format-published` dispatch from `publish.yml` → `ido4specs/.github/workflows/update-tech-spec-validator.yml`. First verified end-to-end by the `v0.8.0` release that shipped the new dispatch wiring and the new package simultaneously.
 
 **No manual downstream steps needed after tagging a release.** Requires `IDO4SHAPE_DISPATCH_TOKEN` secret (PAT with `repo` scope) in this repo for cross-repo dispatch. ido4shape requires a `PAT` secret for PR creation that triggers CI.
 
