@@ -6,10 +6,12 @@
   "types": "dist/index.d.ts",
   "bin": {
     "ido4-mcp": "dist/index.js",
-    "mcp": "dist/index.js"
+    "mcp": "dist/index.js",
+    "ido4-render-prompt": "dist/render-prompt-cli.js"
   },
   "scripts": {
     "build": "tsc",
+    "prepare": "npm run build",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
     "test": "vitest run",
