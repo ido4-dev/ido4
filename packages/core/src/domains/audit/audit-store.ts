@@ -34,6 +34,7 @@ export interface AuditQuery {
   since?: string;
   until?: string;
   actorId?: string;
+  actorType?: string;
   transition?: string;
   issueNumber?: number;
   sessionId?: string;
@@ -179,6 +180,7 @@ export class JsonlAuditStore implements IAuditStore {
       if (query.since && event.timestamp < query.since) return false;
       if (query.until && event.timestamp > query.until) return false;
       if (query.actorId && event.actor.id !== query.actorId) return false;
+      if (query.actorType && event.actor.type !== query.actorType) return false;
       if (query.sessionId && event.sessionId !== query.sessionId) return false;
       if (query.eventType && event.type !== query.eventType) return false;
 

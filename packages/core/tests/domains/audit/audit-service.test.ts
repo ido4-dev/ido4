@@ -193,6 +193,14 @@ describe('AuditService', () => {
       expect(result.total).toBe(1);
       expect(result.query).toEqual({ since: '2024-01-01T00:00:00Z', transition: 'start' });
     });
+
+    it('passes actorType filter through to store', async () => {
+      vi.mocked(store.readEvents).mockResolvedValue({ events: [], total: 0 });
+
+      await service.queryEvents({ actorType: 'ai-agent' });
+
+      expect(store.readEvents).toHaveBeenCalledWith({ actorType: 'ai-agent' });
+    });
   });
 
   describe('getSummary', () => {

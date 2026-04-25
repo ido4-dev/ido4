@@ -17,6 +17,7 @@ export function registerAuditTools(server: McpServer): void {
         since: args.since,
         until: args.until,
         actorId: args.actorId,
+        actorType: args.actorType,
         transition: args.transition,
         issueNumber: args.issueNumber,
         sessionId: args.sessionId,

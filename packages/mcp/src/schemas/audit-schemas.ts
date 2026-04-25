@@ -4,6 +4,7 @@ export const QueryAuditTrailSchema = {
   since: z.string().optional().describe('ISO-8601 start time (e.g., "2024-01-01T00:00:00Z")'),
   until: z.string().optional().describe('ISO-8601 end time'),
   actorId: z.string().optional().describe('Filter by actor ID (e.g., "mcp-session", agent ID)'),
+  actorType: z.enum(['human', 'ai-agent', 'system']).optional().describe('Filter by actor type — useful for scoping audit queries to AI work product (ai-agent) or human-driven transitions'),
   transition: z.string().optional().describe('Filter by transition type (e.g., "start", "approve")'),
   issueNumber: z.number().int().positive().optional().describe('Filter by GitHub issue number'),
   sessionId: z.string().optional().describe('Filter by session ID'),

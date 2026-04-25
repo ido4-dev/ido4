@@ -114,6 +114,22 @@ describe('JsonlAuditStore', () => {
       expect(events).toHaveLength(2);
     });
 
+    it('filters by actorType', async () => {
+      await store.appendEvent(makeEvent({ actor: { type: 'ai-agent', id: 'agent-1' } }));
+      await store.appendEvent(makeEvent({ actor: { type: 'human', id: 'user-1' } }));
+      await store.appendEvent(makeEvent({ actor: { type: 'ai-agent', id: 'agent-2' } }));
+      await store.appendEvent(makeEvent({ actor: { type: 'system', id: 'sys-cron' } }));
+
+      const aiOnly = await store.readEvents({ actorType: 'ai-agent' });
+      expect(aiOnly.events).toHaveLength(2);
+
+      const humanOnly = await store.readEvents({ actorType: 'human' });
+      expect(humanOnly.events).toHaveLength(1);
+
+      const systemOnly = await store.readEvents({ actorType: 'system' });
+      expect(systemOnly.events).toHaveLength(1);
+    });
+
     it('filters by transition', async () => {
       await store.appendEvent(makeEvent({ transition: 'start' }));
       await store.appendEvent(makeEvent({ transition: 'approve' }));
