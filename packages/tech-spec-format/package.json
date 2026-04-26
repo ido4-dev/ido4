@@ -1,6 +1,6 @@
 {
   "name": "@ido4/tech-spec-format",
-  "version": "0.8.1",
+  "version": "0.9.0",
   "description": "Technical spec format parser — deterministic structural validation for ido4specs artifacts",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -14,7 +14,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@ido4/spec-format": "~0.8.1"
+    "@ido4/spec-format": "~0.9.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
