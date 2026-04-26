@@ -224,6 +224,23 @@ describe('IngestionService', () => {
       expect(mockIssueRepo.addSubIssue).toHaveBeenCalledTimes(2);
     });
 
+    it('prepends ido4-lineage marker to created task and group bodies', async () => {
+      await service.ingestSpec({
+        specContent: SAMPLE_SPEC,
+        dryRun: false,
+        profile: HYDRO_PROFILE,
+      });
+
+      // Capability/group issue body
+      const groupCall = mockIssueRepo.createIssue.mock.calls[0]!;
+      const groupBody = groupCall[1] as string;
+      expect(groupBody).toMatch(/^<!-- ido4-lineage: ref=capability:[^ ]+ -->/);
+
+      // First task body
+      const firstTask = mockTaskService.createTask.mock.calls[0]![0] as { body: string };
+      expect(firstTask.body).toMatch(/^<!-- ido4-lineage: ref=[A-Z]+-\d+ -->/);
+    });
+
     it('adds project items for groups', async () => {
       await service.ingestSpec({
         specContent: SAMPLE_SPEC,

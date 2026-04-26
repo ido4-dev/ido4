@@ -10,6 +10,8 @@ export {
   FindTaskPrSchema,
   GetPrReviewsSchema,
   AddTaskCommentSchema,
+  GetTaskCommentsSchema,
+  GetTaskLineageSchema,
   GetSubIssuesSchema,
 } from './task-schemas.js';
 

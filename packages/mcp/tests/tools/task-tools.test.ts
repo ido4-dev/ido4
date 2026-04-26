@@ -17,6 +17,7 @@ const mockTransitionValidator = {
 const mockIssueRepository = {
   findPullRequestForIssue: vi.fn(),
   addComment: vi.fn(),
+  getIssueComments: vi.fn(),
   getSubIssues: vi.fn(),
 };
 
@@ -388,6 +389,86 @@ describe('Task Tools', () => {
       expect(parsed.success).toBe(true);
       expect(parsed.data.issueNumber).toBe(42);
       expect(parsed.data.commented).toBe(true);
+    });
+
+    it('get_task_comments classifies governed comments as ai-agent and others as human', async () => {
+      mockIssueRepository.getIssueComments.mockResolvedValue([
+        {
+          id: 'C_1',
+          body: '<!-- ido4:context transition=start agent=mcp-session timestamp=2026-04-26T10:00:00Z -->\nApproach: extend the type.\n<!-- /ido4:context -->',
+          author: 'b-coman',
+          createdAt: '2026-04-26T10:00:00Z',
+          updatedAt: '2026-04-26T10:00:00Z',
+        },
+        {
+          id: 'C_2',
+          body: 'Looks good to me, ship it.',
+          author: 'reviewer-jane',
+          createdAt: '2026-04-26T11:30:00Z',
+          updatedAt: '2026-04-26T11:30:00Z',
+        },
+      ]);
+
+      const result = await callTool(server, 'get_task_comments', { issueNumber: 42 }) as { content: Array<{ text: string }> };
+      const parsed = JSON.parse(result.content[0]!.text);
+
+      expect(mockIssueRepository.getIssueComments).toHaveBeenCalledWith(42);
+      expect(parsed.success).toBe(true);
+      expect(parsed.data.issueNumber).toBe(42);
+      expect(parsed.data.total).toBe(2);
+      expect(parsed.data.comments).toHaveLength(2);
+      expect(parsed.data.comments[0].actorType).toBe('ai-agent');
+      expect(parsed.data.comments[0].author).toBe('b-coman');
+      expect(parsed.data.comments[1].actorType).toBe('human');
+      expect(parsed.data.comments[1].author).toBe('reviewer-jane');
+    });
+
+    it('get_task_comments returns empty list when no comments exist', async () => {
+      mockIssueRepository.getIssueComments.mockResolvedValue([]);
+
+      const result = await callTool(server, 'get_task_comments', { issueNumber: 42 }) as { content: Array<{ text: string }> };
+      const parsed = JSON.parse(result.content[0]!.text);
+
+      expect(parsed.success).toBe(true);
+      expect(parsed.data.total).toBe(0);
+      expect(parsed.data.comments).toHaveLength(0);
+    });
+  });
+
+  describe('spec lineage', () => {
+    it('get_task_lineage recovers ref from issue body when marker present', async () => {
+      mockTaskService.getTask.mockResolvedValue({
+        id: 'I_42',
+        number: 42,
+        title: 'Wire login',
+        body: '<!-- ido4-lineage: ref=AUTH-01 -->\n\nReal task body.',
+        status: 'In Progress',
+        containers: {},
+      });
+
+      const result = await callTool(server, 'get_task_lineage', { issueNumber: 42 }) as { content: Array<{ text: string }> };
+      const parsed = JSON.parse(result.content[0]!.text);
+
+      expect(mockTaskService.getTask).toHaveBeenCalledWith({ issueNumber: 42 });
+      expect(parsed.success).toBe(true);
+      expect(parsed.data).toEqual({ issueNumber: 42, ref: 'AUTH-01' });
+    });
+
+    it('get_task_lineage returns null ref when marker absent', async () => {
+      mockTaskService.getTask.mockResolvedValue({
+        id: 'I_42',
+        number: 42,
+        title: 'Manually-created issue',
+        body: 'No lineage marker here.',
+        status: 'Backlog',
+        containers: {},
+      });
+
+      const result = await callTool(server, 'get_task_lineage', { issueNumber: 42 }) as { content: Array<{ text: string }> };
+      const parsed = JSON.parse(result.content[0]!.text);
+
+      expect(parsed.success).toBe(true);
+      expect(parsed.data).toEqual({ issueNumber: 42, ref: null });
     });
   });
 

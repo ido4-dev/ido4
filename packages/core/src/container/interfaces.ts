@@ -248,6 +248,7 @@ export interface PullRequestInfo {
   state: string;
   merged: boolean;
   headRefName?: string;
+  body: string;
 }
 
 export interface UserInfo {

@@ -7,7 +7,7 @@
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { MethodologyProfile } from '@ido4/core';
-import { formatIdo4ContextComment } from '@ido4/core';
+import { formatIdo4ContextComment, parseIdo4LineageMarker } from '@ido4/core';
 import { z } from 'zod';
 import {
   GetTaskSchema,
@@ -18,6 +18,8 @@ import {
   FindTaskPrSchema,
   GetPrReviewsSchema,
   AddTaskCommentSchema,
+  GetTaskCommentsSchema,
+  GetTaskLineageSchema,
   GetSubIssuesSchema,
 } from '../schemas/index.js';
 import { handleErrors, toCallToolResult, getContainer, createMcpActor } from '../helpers/index.js';
@@ -181,6 +183,55 @@ export function registerTaskTools(server: McpServer, profile: MethodologyProfile
       const container = await getContainer();
       await container.issueRepository.addComment(args.issueNumber, args.comment);
       return toCallToolResult({ success: true, data: { issueNumber: args.issueNumber, commented: true } });
+    }),
+  );
+
+  server.tool(
+    'get_task_comments',
+    `List all comments on a ${profile.workItems.primary.singular.toLowerCase()} issue with author, body, and timestamps. Each comment is classified as 'ai-agent' (when body contains the ido4 governed-context marker) or 'human' (the default). Used by audit pipelines to compute comment-trail metrics for AI work product (Tier B).`,
+    GetTaskCommentsSchema,
+    async (args) => handleErrors(async () => {
+      const container = await getContainer();
+      const comments = await container.issueRepository.getIssueComments(args.issueNumber);
+      const classified = comments.map((c) => ({
+        id: c.id,
+        author: c.author,
+        actorType: c.body.includes('<!-- ido4:context ') ? 'ai-agent' as const : 'human' as const,
+        body: c.body,
+        createdAt: c.createdAt,
+        updatedAt: c.updatedAt,
+      }));
+      return toCallToolResult({
+        success: true,
+        data: {
+          issueNumber: args.issueNumber,
+          comments: classified,
+          total: classified.length,
+        },
+      });
+    }),
+  );
+
+  // --- Spec Lineage ---
+  //
+  // Recovers the spec-side ref (e.g., `T-001`, `capability:Foo`) from the
+  // lineage marker that IngestionService prepends to issue bodies. Returns
+  // `ref: null` when the issue was created outside the ingestion path or the
+  // body was edited to remove the marker. Used by AI-work-product audit to
+  // compute spec-orphan metrics — closures without recoverable lineage.
+
+  server.tool(
+    'get_task_lineage',
+    `Recover the spec-side ref for an issue created via ingestion. Reads the lineage marker from the issue body. Returns null when the issue was created outside the ingestion path or the marker is missing.`,
+    GetTaskLineageSchema,
+    async (args) => handleErrors(async () => {
+      const container = await getContainer();
+      const task = await container.taskService.getTask({ issueNumber: args.issueNumber });
+      const { ref } = parseIdo4LineageMarker(task.body ?? '');
+      return toCallToolResult({
+        success: true,
+        data: { issueNumber: args.issueNumber, ref },
+      });
     }),
   );
 

@@ -21,7 +21,7 @@ function createMocks() {
 
   const issueRepository = {
     findPullRequestForIssue: vi.fn().mockResolvedValue({
-      number: 100, title: 'PR for #42', url: 'https://github.com/pr/100', state: 'OPEN', merged: false,
+      number: 100, title: 'PR for #42', url: 'https://github.com/pr/100', state: 'OPEN', merged: false, body: '',
     }),
   };
 
@@ -175,7 +175,7 @@ describe('MergeReadinessService', () => {
     it('passes for already merged PR', async () => {
       const { service, issueRepository } = createMocks();
       issueRepository.findPullRequestForIssue.mockResolvedValue({
-        number: 100, title: 'PR', url: '', state: 'MERGED', merged: true,
+        number: 100, title: 'PR', url: '', state: 'MERGED', merged: true, body: '',
       });
 
       const result = await service.checkMergeReadiness(42);

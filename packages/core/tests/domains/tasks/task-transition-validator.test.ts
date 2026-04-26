@@ -133,7 +133,7 @@ describe('TaskTransitionValidator', () => {
         createMockTaskData({ status: 'In Progress' }),
       );
       vi.mocked(repoRepo.findPullRequestForIssue).mockResolvedValue({
-        number: 100, title: 'PR', url: '', state: 'OPEN', merged: false,
+        number: 100, title: 'PR', url: '', state: 'OPEN', merged: false, body: '',
       });
 
       const result = await validator.validateTransition(42, 'review');
@@ -187,7 +187,7 @@ describe('TaskTransitionValidator', () => {
         createMockTaskData({ status: 'In Progress' }),
       );
       vi.mocked(repoRepo.findPullRequestForIssue).mockResolvedValue({
-        number: 100, title: 'PR', url: '', state: 'OPEN', merged: false,
+        number: 100, title: 'PR', url: '', state: 'OPEN', merged: false, body: '',
       });
 
       const result = await validator.validateAllTransitions(42);

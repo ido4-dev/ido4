@@ -173,6 +173,7 @@ export { parseIdo4ContextBlocks, parseIdo4ContextComments, filterIdo4ContextComm
 export type { Ido4ContextBlock } from './shared/utils/index.js';
 export { formatIdo4ContextComment } from './shared/utils/index.js';
 export type { FormatContextOptions } from './shared/utils/index.js';
+export { formatIdo4LineageMarker, withLineageMarker, parseIdo4LineageMarker } from './shared/utils/index.js';
 
 // Domain Services — Tasks
 export { TaskService } from './domains/tasks/index.js';

@@ -70,6 +70,14 @@ export const AddTaskCommentSchema = {
   comment: z.string().describe('Comment text (supports Markdown)'),
 };
 
+export const GetTaskCommentsSchema = {
+  issueNumber: z.number().int().positive().describe('Task issue number'),
+};
+
+export const GetTaskLineageSchema = {
+  issueNumber: z.number().int().positive().describe('Issue number to inspect for spec-side lineage'),
+};
+
 export const GetSubIssuesSchema = {
   issueNumber: z.number().int().positive().describe('Parent issue number'),
 };

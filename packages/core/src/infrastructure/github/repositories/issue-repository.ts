@@ -261,6 +261,7 @@ export class GitHubIssueRepository implements IIssueRepository {
           state: pr.state,
           merged: pr.merged,
           headRefName: pr.headRefName,
+          body: pr.body,
         };
       }
     }
@@ -276,6 +277,7 @@ export class GitHubIssueRepository implements IIssueRepository {
           state: pr.state,
           merged: pr.merged,
           headRefName: pr.headRefName,
+          body: pr.body,
         };
       }
     }

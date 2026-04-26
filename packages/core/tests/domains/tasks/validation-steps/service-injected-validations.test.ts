@@ -134,7 +134,7 @@ describe('ImplementationReadinessValidation', () => {
   it('passes when PR exists and is open', async () => {
     vi.mocked(repoRepo.findPullRequestForIssue).mockResolvedValue({
       number: 100, title: 'PR', url: 'https://github.com/test/repo/pull/100',
-      state: 'OPEN', merged: false,
+      state: 'OPEN', merged: false, body: '',
     });
     const result = await step.validate(makeContext({}, createMockGitWorkflowConfig()));
     expect(result.passed).toBe(true);
@@ -150,7 +150,7 @@ describe('ImplementationReadinessValidation', () => {
   it('fails when PR is not open', async () => {
     vi.mocked(repoRepo.findPullRequestForIssue).mockResolvedValue({
       number: 100, title: 'PR', url: 'https://github.com/test/repo/pull/100',
-      state: 'CLOSED', merged: false,
+      state: 'CLOSED', merged: false, body: '',
     });
     const result = await step.validate(makeContext({}, createMockGitWorkflowConfig()));
     expect(result.passed).toBe(false);

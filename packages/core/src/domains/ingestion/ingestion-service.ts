@@ -12,6 +12,7 @@ import type { IngestSpecResult, IngestSpecOptions, MappedTask } from './types.js
 import { parseSpec } from '@ido4/tech-spec-format';
 import { mapSpec, findGroupingContainer } from './spec-mapper.js';
 import { SYSTEM_ACTOR } from '../../shared/actor.js';
+import { withLineageMarker } from '../../shared/utils/lineage-marker.js';
 
 /** Delay between sub-issue creation to avoid GitHub API race conditions */
 const SUB_ISSUE_DELAY_MS = 1000;
@@ -86,7 +87,7 @@ export class IngestionService {
 
     for (const group of mapped.groupIssues) {
       try {
-        const issue = await this.issueRepository.createIssue(group.title, group.body);
+        const issue = await this.issueRepository.createIssue(group.title, withLineageMarker(group.ref, group.body));
         await this.projectRepository.addItemToProject(issue.id);
         groupRefToIssue.set(group.ref, issue);
         createdGroups.push({
@@ -138,7 +139,7 @@ export class IngestionService {
 
         const result = await this.taskService.createTask({
           title: task.request.title,
-          body: task.request.body,
+          body: withLineageMarker(task.ref, task.request.body),
           initialStatus: task.request.initialStatus,
           containers,
           dependencies: resolvedDeps,

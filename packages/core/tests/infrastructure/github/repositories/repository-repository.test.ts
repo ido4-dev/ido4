@@ -125,6 +125,7 @@ describe('GitHubRepositoryRepository', () => {
       const result = await repo.findPullRequestForIssue(42);
       expect(result).not.toBeNull();
       expect(result!.number).toBe(5);
+      expect(result!.body).toBe('Body');
     });
 
     it('returns null when no PR matches', async () => {

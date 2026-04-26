@@ -194,6 +194,7 @@ describe('GitHubIssueRepository', () => {
       expect(result).not.toBeNull();
       expect(result!.number).toBe(10);
       expect(result!.headRefName).toBe('fix-42');
+      expect(result!.body).toBe('Fixes stuff');
     });
 
     it('returns PullRequestInfo when found via title mention', async () => {

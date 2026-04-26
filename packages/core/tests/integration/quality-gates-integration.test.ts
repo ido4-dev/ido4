@@ -48,6 +48,7 @@ describe('Quality Gates Integration', () => {
         url: 'https://github.com/test/repo/pull/100',
         merged: false,
         headRefName: 'feature-42',
+        body: '',
       }),
       getPullRequestReviews: vi.fn().mockResolvedValue([
         { id: 'r1', state: 'APPROVED', author: 'reviewer1', body: 'LGTM', submittedAt: new Date().toISOString() },
@@ -85,6 +86,7 @@ describe('Quality Gates Integration', () => {
         url: 'https://github.com/test/repo/pull/100',
         merged: false,
         headRefName: 'feature-42',
+        body: '',
       }),
       getPullRequestReviews: vi.fn().mockResolvedValue([
         { id: 'r1', state: 'CHANGES_REQUESTED', author: 'reviewer1', body: 'Fix this', submittedAt: new Date().toISOString() },
@@ -120,6 +122,7 @@ describe('Quality Gates Integration', () => {
         url: 'https://github.com/test/repo/pull/100',
         merged: false,
         headRefName: 'feature-42',
+        body: '',
       }),
       getCommitStatusChecks: vi.fn().mockResolvedValue([
         { name: 'coverage', state: 'SUCCESS', conclusion: 'SUCCESS' },

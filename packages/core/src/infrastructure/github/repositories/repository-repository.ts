@@ -127,6 +127,7 @@ export class GitHubRepositoryRepository implements IRepositoryRepository {
           state: pr.state,
           merged: pr.merged,
           headRefName: pr.headRefName,
+          body: pr.body,
         };
       }
     }
@@ -142,6 +143,7 @@ export class GitHubRepositoryRepository implements IRepositoryRepository {
           state: pr.state,
           merged: pr.merged,
           headRefName: pr.headRefName,
+          body: pr.body,
         };
       }
     }

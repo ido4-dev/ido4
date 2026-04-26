@@ -15,6 +15,7 @@ function createMockRepositoryRepo(): IRepositoryRepository {
       state: 'OPEN',
       merged: false,
       headRefName: 'fix-42',
+      body: '',
     }),
     checkContainerBranchMerged: vi.fn(),
     getPullRequestReviews: vi.fn().mockResolvedValue([]),
