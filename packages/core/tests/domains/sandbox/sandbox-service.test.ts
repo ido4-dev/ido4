@@ -190,13 +190,24 @@ describe('SandboxService', () => {
         configRemoved: true,
       });
 
+      // Phase 5 OBS-06: preflight runs after ensureNoExistingSandbox (auto-destroy)
+      // and before ProjectInitService. Mock the preflight GraphQL query to succeed
+      // so the test can verify destroy → init ordering.
+      mockGraphqlClient.query.mockResolvedValueOnce({
+        repository: { defaultBranchRef: { name: 'main' } },
+        viewer: { id: 'U_test', login: 'test-user' },
+      });
+
       vi.mocked(ProjectInitService).mockImplementation(() => ({
         initializeProject: vi.fn().mockRejectedValue(new Error('stopped after destroy check')),
       }) as unknown as InstanceType<typeof ProjectInitService>);
 
+      // The Phase 5 wrapper catches initializeProject's error, attempts rollback,
+      // and rethrows wrapped — so the original "stopped after destroy check"
+      // string is preserved in the wrapped error message.
       await expect(
         service.createSandbox({ repository: 'owner/repo', projectRoot: '/tmp/test' }),
-      ).rejects.toThrow('stopped after destroy check');
+      ).rejects.toThrow(/stopped after destroy check/);
 
       expect(destroySpy).toHaveBeenCalledWith('/tmp/test');
     });
@@ -215,6 +226,12 @@ describe('SandboxService', () => {
     it('creates sandbox using ingestion pipeline', async () => {
       // No existing config
       mockFs.readFile.mockRejectedValueOnce(new Error('ENOENT'));
+
+      // Phase 5 OBS-06: preflight runs before ProjectInitService.
+      mockGraphqlClient.query.mockResolvedValueOnce({
+        repository: { defaultBranchRef: { name: 'main' } },
+        viewer: { id: 'U_test', login: 'test-user' },
+      });
 
       // Mock ProjectInitService
       const mockInitResult = {
@@ -463,6 +480,155 @@ describe('SandboxService', () => {
 
       expect(result.destroyed).toEqual(destroyResult);
       expect(result.created).toEqual(createResult);
+    });
+  });
+
+  // ─── Phase 5 WS4 — Sandbox UX Hardening ───
+
+  describe('preflightCreate (Phase 5 OBS-06/03/04)', () => {
+    // Phase 5 WS4: pre-flight all external dependencies before any mutation.
+    // Prior to this fix, sandbox creation against an empty repo (no default
+    // branch) would fail at PR-seeding time — by which point Project V2 +
+    // N issues + local config were already created. Pre-flight catches the
+    // empty-repo case before any mutation, so user can fix and retry cleanly.
+
+    it('rejects empty repo (no default branch) with clean remediation', async () => {
+      mockFs.readFile.mockRejectedValueOnce(new Error('ENOENT'));
+      // Preflight query: viewer authenticated, repo accessible, but no default branch
+      mockGraphqlClient.query.mockResolvedValueOnce({
+        repository: { defaultBranchRef: null },
+        viewer: { id: 'U_test', login: 'test-user' },
+      });
+
+      await expect(
+        service.createSandbox({ repository: 'owner/empty-repo', projectRoot: '/tmp/test' }),
+      ).rejects.toThrow(/no default branch/);
+
+      // Critical regression assertion: NO mutations happened.
+      expect(ProjectInitService).not.toHaveBeenCalled();
+      expect(IngestionService).not.toHaveBeenCalled();
+    });
+
+    it('rejects when repository not accessible', async () => {
+      mockFs.readFile.mockRejectedValueOnce(new Error('ENOENT'));
+      mockGraphqlClient.query.mockResolvedValueOnce({
+        repository: null,
+        viewer: { id: 'U_test', login: 'test-user' },
+      });
+
+      await expect(
+        service.createSandbox({ repository: 'owner/missing-repo', projectRoot: '/tmp/test' }),
+      ).rejects.toThrow(/not accessible/);
+
+      expect(ProjectInitService).not.toHaveBeenCalled();
+    });
+
+    it('rejects when GitHub auth not active', async () => {
+      mockFs.readFile.mockRejectedValueOnce(new Error('ENOENT'));
+      mockGraphqlClient.query.mockResolvedValueOnce({
+        repository: null,
+        viewer: null,
+      });
+
+      await expect(
+        service.createSandbox({ repository: 'owner/repo', projectRoot: '/tmp/test' }),
+      ).rejects.toThrow(/auth not active/);
+
+      expect(ProjectInitService).not.toHaveBeenCalled();
+    });
+
+    it('rejects malformed repository format', async () => {
+      mockFs.readFile.mockRejectedValueOnce(new Error('ENOENT'));
+
+      await expect(
+        service.createSandbox({ repository: 'invalid-format', projectRoot: '/tmp/test' }),
+      ).rejects.toThrow(/Invalid repository format/);
+
+      // No GraphQL query attempted — format check is cheap-and-first.
+      expect(mockGraphqlClient.query).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('listOrphanSandboxes (Phase 5 OBS-09)', () => {
+    // Phase 5 WS4: GitHub Projects V2 don't cascade-delete with the repo.
+    // listOrphanSandboxes scans the viewer's projects, filters for "ido4 Sandbox"
+    // titles, and identifies orphans whose linked repo no longer exists.
+
+    it('identifies orphans (linked repo deleted) and non-orphans (repo still exists)', async () => {
+      // Page 1: list of ido4 Sandbox projects + a non-sandbox project
+      mockGraphqlClient.query.mockResolvedValueOnce({
+        viewer: {
+          projectsV2: {
+            nodes: [
+              { id: 'PVT_alive', number: 1, title: 'ido4 Sandbox — Hydro Governance', url: 'https://gh/...', repositories: { nodes: [{ nameWithOwner: 'me/alive-repo' }] } },
+              { id: 'PVT_orphan', number: 2, title: 'ido4 Sandbox — Scrum Sprint', url: 'https://gh/...', repositories: { nodes: [{ nameWithOwner: 'me/deleted-repo' }] } },
+              { id: 'PVT_unrelated', number: 3, title: 'Real Project', url: 'https://gh/...', repositories: { nodes: [{ nameWithOwner: 'me/real-repo' }] } },
+            ],
+            pageInfo: { hasNextPage: false, endCursor: null },
+          },
+        },
+      });
+      // Repo existence checks (parallel — order-insensitive)
+      mockGraphqlClient.query.mockImplementation(async (_query, vars) => {
+        const v = vars as { owner?: string; name?: string };
+        if (v.owner === 'me' && v.name === 'alive-repo') return { repository: { id: 'R_alive' } };
+        if (v.owner === 'me' && v.name === 'deleted-repo') return { repository: null };
+        // Fallback for any other call
+        return { repository: null };
+      });
+
+      const result = await service.listOrphanSandboxes();
+
+      // Two ido4 Sandbox candidates (PVT_alive, PVT_orphan); PVT_unrelated filtered out
+      expect(result.candidates).toHaveLength(2);
+      expect(result.candidates.map((c) => c.projectId).sort()).toEqual(['PVT_alive', 'PVT_orphan']);
+
+      // One orphan (the deleted repo)
+      expect(result.orphans).toHaveLength(1);
+      expect(result.orphans[0]!.projectId).toBe('PVT_orphan');
+      expect(result.orphans[0]!.repositoryExists).toBe(false);
+    });
+
+    it('returns empty result when no ido4 Sandbox projects exist', async () => {
+      mockGraphqlClient.query.mockResolvedValueOnce({
+        viewer: {
+          projectsV2: {
+            nodes: [
+              { id: 'PVT_real', number: 1, title: 'Real Project', url: 'https://gh/...', repositories: { nodes: [] } },
+            ],
+            pageInfo: { hasNextPage: false, endCursor: null },
+          },
+        },
+      });
+
+      const result = await service.listOrphanSandboxes();
+
+      expect(result.candidates).toEqual([]);
+      expect(result.orphans).toEqual([]);
+    });
+  });
+
+  describe('deleteOrphanSandbox (Phase 5 OBS-09)', () => {
+    it('deletes orphan when title contains "Sandbox"', async () => {
+      // verifySandboxProject query
+      mockGraphqlClient.query.mockResolvedValueOnce({ node: { title: 'ido4 Sandbox — Hydro Governance' } });
+      // deleteProjectByIdViaGraphQL mutation
+      mockGraphqlClient.query.mockResolvedValueOnce({ deleteProjectV2: { projectV2: { id: 'PVT_orphan' } } });
+
+      const result = await service.deleteOrphanSandbox('PVT_orphan');
+
+      expect(result.success).toBe(true);
+      expect(result.deleted).toBe(true);
+    });
+
+    it('refuses to delete project whose title does not contain "Sandbox" (safety guard)', async () => {
+      mockGraphqlClient.query.mockResolvedValueOnce({ node: { title: 'My Real Project' } });
+
+      const result = await service.deleteOrphanSandbox('PVT_misuse');
+
+      expect(result.success).toBe(true);
+      expect(result.deleted).toBe(false);
+      expect(result.reason).toContain('safety guard');
     });
   });
 });

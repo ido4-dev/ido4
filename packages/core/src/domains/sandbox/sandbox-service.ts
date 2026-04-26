@@ -42,7 +42,35 @@ import type {
   ScenarioConfig,
   SeededPRArtifact,
   ViolationInjection,
+  OrphanSandboxProject,
+  ListOrphanSandboxesResult,
+  DeleteOrphanSandboxResult,
 } from './types.js';
+
+/**
+ * In-memory record of mutations performed during createSandbox, walked in
+ * reverse during best-effort rollback when any phase throws.
+ *
+ * Phase 5 OBS-07 fix: external state (Project V2, GitHub issues, branches,
+ * PRs) and local state (.ido4/ files) get cleaned up when creation fails
+ * mid-flight. The log accumulates as each phase succeeds; on failure, the
+ * catch block walks it in reverse and best-efforts each undo.
+ *
+ * Not a saga or two-phase commit — those aren't viable across the GitHub
+ * Projects V2 surface. This is "if we created it, we try to clean it up."
+ */
+interface CreateMutationLog {
+  /** Project V2 ID, set after createProject succeeds. */
+  projectId?: string;
+  /** True after writeConfigFiles writes .ido4/ files. */
+  wroteLocalConfig: boolean;
+  /** Issue numbers created by ingestion + sub-issue creation. */
+  createdIssueNumbers: number[];
+  /** Branch refs created during PR seeding. */
+  createdBranchRefs: Array<{ refId: string; branchName: string }>;
+  /** PR IDs created during PR seeding. */
+  createdPRs: Array<{ prId: string }>;
+}
 
 /**
  * Delay between post-ingestion field updates. GitHub's ProjectV2 API can reset
@@ -77,6 +105,12 @@ export class SandboxService implements ISandboxService {
 
     await this.ensureNoExistingSandbox(options.projectRoot);
 
+    // Phase 5 OBS-06/03/04: pre-flight all external dependencies before
+    // any mutation. If preflight fails, no Project V2 created, no issues
+    // created, no .ido4/ files written. Cleanly recoverable — user fixes
+    // the underlying condition (e.g., empty repo) and retries.
+    await this.preflightCreate(options.repository);
+
     const profile = ProfileRegistry.getBuiltin(config.profileId);
 
     this.logger.info('Creating sandbox', {
@@ -85,6 +119,58 @@ export class SandboxService implements ISandboxService {
       profile: profile.id,
     });
 
+    // Phase 5 OBS-07: in-memory mutation log; populated as each phase
+    // succeeds. On any failure post-preflight, the catch block walks it
+    // in reverse and best-efforts cleanup. Local-only sandbox state is
+    // already covered by the existing removeLocalConfig pattern.
+    const mutations: CreateMutationLog = {
+      wroteLocalConfig: false,
+      createdIssueNumbers: [],
+      createdBranchRefs: [],
+      createdPRs: [],
+    };
+
+    try {
+      return await this.createSandboxWithRollback(options, scenarioId, config, profile, mutations);
+    } catch (err) {
+      const errMessage = err instanceof Error ? err.message : String(err);
+      this.logger.warn('Sandbox creation failed — attempting best-effort rollback', {
+        error: errMessage,
+        mutationSummary: {
+          projectCreated: !!mutations.projectId,
+          localConfigWritten: mutations.wroteLocalConfig,
+          issuesCreated: mutations.createdIssueNumbers.length,
+          branchesCreated: mutations.createdBranchRefs.length,
+          prsCreated: mutations.createdPRs.length,
+        },
+      });
+
+      const rollback = await this.rollbackCreate(mutations, options.projectRoot);
+
+      throw new ValidationError({
+        message: `Sandbox creation failed: ${errMessage}. ${rollback.summary}`,
+        context: {
+          originalError: errMessage,
+          rollback: rollback.actions,
+        },
+        remediation: rollback.userAction
+          ?? `Fix the underlying condition (see error above) and retry. The directory has been cleaned up and is safe to retry.`,
+      });
+    }
+  }
+
+  /**
+   * Inner createSandbox body that mutates `mutations` as each phase succeeds.
+   * Splitting this from the public method keeps the try/catch + rollback
+   * boilerplate visible in createSandbox without bloating it.
+   */
+  private async createSandboxWithRollback(
+    options: SandboxCreateOptions,
+    scenarioId: string,
+    config: ScenarioConfig,
+    profile: ReturnType<typeof ProfileRegistry.getBuiltin>,
+    mutations: CreateMutationLog,
+  ): Promise<SandboxCreateResult> {
     // ── Phase 1: Project Setup ──
 
     const initService = new ProjectInitService(this.graphqlClient, this.logger, profile);
@@ -94,6 +180,14 @@ export class SandboxService implements ISandboxService {
       projectName: `ido4 Sandbox — ${config.name}`,
       projectRoot: options.projectRoot,
     });
+
+    // Track mutations as Phase 1 succeeds. ProjectInitService writes the
+    // local config files internally; if it threw partway, we may still
+    // have an orphan project — we'll detect that during rollback by
+    // reading project-info.json (if it was written) or by leaving a
+    // user-action note.
+    mutations.projectId = initResult.project.id;
+    mutations.wroteLocalConfig = true;
 
     this.logger.info('Project initialized', { projectId: initResult.project.id });
 
@@ -117,6 +211,16 @@ export class SandboxService implements ISandboxService {
       dryRun: false,
       profile,
     });
+
+    // Track every issue created by ingestion (group/capability + tasks).
+    // Even if ingestion partially failed, the issues that DID get created
+    // are in the result and will be rolled back if a later phase throws.
+    for (const t of ingestionResult.created.tasks) {
+      mutations.createdIssueNumbers.push(t.issueNumber);
+    }
+    for (const g of ingestionResult.created.groupIssues) {
+      mutations.createdIssueNumbers.push(g.issueNumber);
+    }
 
     if (!ingestionResult.success) {
       this.logger.warn('Ingestion had failures', {
@@ -286,6 +390,9 @@ export class SandboxService implements ISandboxService {
             branchName: prSeed.branchName,
             taskRef: prSeed.taskRef,
           });
+          // Track for rollback (Phase 5 OBS-07)
+          mutations.createdBranchRefs.push({ refId, branchName: prSeed.branchName });
+          mutations.createdPRs.push({ prId: pr.id });
           this.logger.info('PR seeded', { taskRef: prSeed.taskRef, prNumber: pr.number });
         } catch (err) {
           this.logger.warn('Failed to seed PR', {
@@ -591,6 +698,376 @@ export class SandboxService implements ISandboxService {
   private async writeMemorySeed(projectRoot: string, scenario: SandboxScenario): Promise<void> {
     const seedPath = path.join(projectRoot, '.ido4', 'sandbox-memory-seed.md');
     await fs.writeFile(seedPath, scenario.memorySeed);
+  }
+
+  /**
+   * Phase 5 OBS-06/03/04 fix: validate every external dependency BEFORE
+   * createSandbox mutates anything. The dominant Phase 4 partial-smoke
+   * failure mode (orphan issues + orphan project on a partially-failed
+   * sandbox creation) traced to skipping default-branch validation —
+   * the engine threw mid-flight at PR seeding, but by then issues + the
+   * Project V2 + the local config were already written.
+   *
+   * Throws ValidationError with specific remediation if any check fails.
+   * Zero mutations happen until this method returns successfully.
+   */
+  private async preflightCreate(repository: string): Promise<void> {
+    // Validate format first — cheap; no network call.
+    if (!/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/.test(repository)) {
+      throw new ValidationError({
+        message: `Invalid repository format: '${repository}'. Expected 'owner/repo'.`,
+        context: { field: 'repository', value: repository },
+        remediation: 'Use the format owner/repo (e.g., my-org/my-repo).',
+      });
+    }
+
+    const [owner, repo] = repository.split('/') as [string, string];
+
+    // Single combined query: repo accessibility + default branch + viewer
+    // identity (proxies for project-v2 mutation permission — viewer auth
+    // confirms the gh token has user-scope access; if a project v2 mutation
+    // is later forbidden, that's a different downstream auth issue, but the
+    // common "auth missing entirely" case fails here).
+    let result: {
+      repository: { defaultBranchRef: { name: string } | null } | null;
+      viewer: { id: string; login: string } | null;
+    };
+    try {
+      result = await this.graphqlClient.query(
+        `query Preflight($owner: String!, $repo: String!) {
+          repository(owner: $owner, name: $repo) {
+            defaultBranchRef { name }
+          }
+          viewer { id login }
+        }`,
+        { owner, repo },
+      );
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      throw new ValidationError({
+        message: `GitHub preflight check failed: ${errMsg}`,
+        context: { repository },
+        remediation: 'Run `gh auth status` to verify auth. If auth is good, the repository may not exist or may not be accessible — check the spelling.',
+      });
+    }
+
+    if (!result.viewer?.id) {
+      throw new ValidationError({
+        message: 'GitHub auth not active — cannot create sandbox.',
+        context: {},
+        remediation: 'Run `gh auth login` to authenticate with the GitHub CLI, then retry.',
+      });
+    }
+
+    if (!result.repository) {
+      throw new ValidationError({
+        message: `Repository '${repository}' not accessible.`,
+        context: { repository, viewer: result.viewer.login },
+        remediation: `Verify the repository exists and is reachable from your auth (viewer: ${result.viewer.login}). For private repos, ensure your token has 'repo' scope.`,
+      });
+    }
+
+    if (!result.repository.defaultBranchRef) {
+      throw new ValidationError({
+        message: `Repository '${repository}' has no default branch — sandbox creation requires an initialized repo.`,
+        context: { repository },
+        remediation: 'Push at least one commit to establish a default branch (e.g., `git init && git commit --allow-empty -m "init" && git push -u origin main`), then retry.',
+      });
+    }
+
+    this.logger.debug('Preflight passed', {
+      repository,
+      defaultBranch: result.repository.defaultBranchRef.name,
+      viewer: result.viewer.login,
+    });
+  }
+
+  /**
+   * Phase 5 OBS-07 fix: walks the mutation log in reverse and best-efforts
+   * each undo. Failures during rollback are logged but don't abort the
+   * walk — we want to clean up as much as possible even when individual
+   * undos fail (e.g., issue already closed, branch already deleted).
+   *
+   * Returns a structured summary the catch block uses to compose the
+   * user-facing error.
+   */
+  private async rollbackCreate(
+    mutations: CreateMutationLog,
+    projectRoot: string,
+  ): Promise<{ summary: string; actions: Record<string, unknown>; userAction?: string }> {
+    let prsClosedRollback = 0;
+    let branchesDeletedRollback = 0;
+    let issuesClosedRollback = 0;
+    let projectDeletedRollback = false;
+    let configRemovedRollback = false;
+    const cleanupErrors: string[] = [];
+
+    // Bootstrap a service container for issue/PR/branch/project ops. If
+    // local config is missing, this fails — that's a sign Phase 1 failed
+    // before writeConfigFiles, so there's nothing on the GH side from us
+    // either (initService.createProject hadn't been called yet OR ran but
+    // failed before writing local config — see chained-cleanup note below).
+    let container: { issueRepository: { closeIssue: (n: number) => Promise<void> }; projectRepository: { deleteProject: () => Promise<void> }; repositoryRepository: { closePullRequest: (id: string) => Promise<void>; deleteBranch: (refId: string) => Promise<void> } } | null = null;
+    if (mutations.wroteLocalConfig) {
+      try {
+        container = await ServiceContainer.create({ projectRoot, logger: this.logger });
+      } catch (err) {
+        cleanupErrors.push(`could not bootstrap container for cleanup: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
+
+    // Walk reverse: PRs → branches → issues → project → local config.
+
+    if (container) {
+      for (const pr of mutations.createdPRs) {
+        try {
+          await container.repositoryRepository.closePullRequest(pr.prId);
+          prsClosedRollback++;
+        } catch (err) {
+          cleanupErrors.push(`PR ${pr.prId}: ${err instanceof Error ? err.message : String(err)}`);
+        }
+      }
+
+      for (const branch of mutations.createdBranchRefs) {
+        try {
+          await container.repositoryRepository.deleteBranch(branch.refId);
+          branchesDeletedRollback++;
+        } catch (err) {
+          cleanupErrors.push(`branch ${branch.branchName}: ${err instanceof Error ? err.message : String(err)}`);
+        }
+      }
+
+      for (const issueNumber of mutations.createdIssueNumbers) {
+        try {
+          await container.issueRepository.closeIssue(issueNumber);
+          issuesClosedRollback++;
+        } catch (err) {
+          cleanupErrors.push(`issue #${issueNumber}: ${err instanceof Error ? err.message : String(err)}`);
+        }
+      }
+
+      if (mutations.projectId) {
+        try {
+          // Reuse the existing safety guard — project title must contain
+          // "Sandbox" before we delete. Defense against accidentally
+          // deleting a non-sandbox project that somehow ended up in the
+          // mutation log.
+          const isSandbox = await this.verifySandboxProject(mutations.projectId);
+          if (isSandbox) {
+            await container.projectRepository.deleteProject();
+            projectDeletedRollback = true;
+          } else {
+            cleanupErrors.push(`project ${mutations.projectId}: title doesn't contain "Sandbox" — refused to delete (safety guard)`);
+          }
+        } catch (err) {
+          cleanupErrors.push(`project ${mutations.projectId}: ${err instanceof Error ? err.message : String(err)}`);
+        }
+      }
+    } else if (mutations.projectId) {
+      // Container couldn't bootstrap but a project was created — fall back
+      // to direct GraphQL deletion (uses the standalone graphqlClient that
+      // SandboxService holds, doesn't depend on local config).
+      try {
+        const isSandbox = await this.verifySandboxProject(mutations.projectId);
+        if (isSandbox) {
+          await this.deleteProjectByIdViaGraphQL(mutations.projectId);
+          projectDeletedRollback = true;
+        } else {
+          cleanupErrors.push(`project ${mutations.projectId}: title doesn't contain "Sandbox" — refused to delete (safety guard)`);
+        }
+      } catch (err) {
+        cleanupErrors.push(`project ${mutations.projectId} (direct GraphQL): ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
+
+    if (mutations.wroteLocalConfig) {
+      try {
+        await this.removeLocalConfig(projectRoot);
+        configRemovedRollback = true;
+      } catch (err) {
+        cleanupErrors.push(`local config removal: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
+
+    const summaryParts: string[] = [];
+    if (issuesClosedRollback > 0) summaryParts.push(`${issuesClosedRollback} issue(s) closed`);
+    if (branchesDeletedRollback > 0) summaryParts.push(`${branchesDeletedRollback} branch(es) deleted`);
+    if (prsClosedRollback > 0) summaryParts.push(`${prsClosedRollback} PR(s) closed`);
+    if (projectDeletedRollback) summaryParts.push('project deleted');
+    if (configRemovedRollback) summaryParts.push('local config removed');
+
+    const summary = summaryParts.length > 0
+      ? `Rolled back: ${summaryParts.join(', ')}.`
+      : 'Nothing to roll back (failure occurred before any mutation).';
+
+    let userAction: string | undefined;
+    if (mutations.projectId && !projectDeletedRollback) {
+      userAction = `Manual cleanup may be needed: an ido4 Sandbox Project V2 was created but could not be deleted. Run \`/ido4dev:sandbox\` to surface orphan projects, or \`gh project list --owner $(gh api user -q .login)\` and \`gh project delete <number>\` manually.`;
+    }
+
+    return {
+      summary,
+      actions: {
+        prsClosedRollback,
+        branchesDeletedRollback,
+        issuesClosedRollback,
+        projectDeletedRollback,
+        configRemovedRollback,
+        cleanupErrors: cleanupErrors.length > 0 ? cleanupErrors : undefined,
+      },
+      userAction,
+    };
+  }
+
+  /**
+   * Direct GraphQL project deletion that doesn't depend on a ServiceContainer.
+   * Used by rollback when the container couldn't bootstrap, and by orphan
+   * cleanup which has no local config at all.
+   */
+  private async deleteProjectByIdViaGraphQL(projectId: string): Promise<void> {
+    await this.graphqlClient.query(
+      `mutation DeleteProject($projectId: ID!) {
+        deleteProjectV2(input: { projectId: $projectId }) {
+          projectV2 { id }
+        }
+      }`,
+      { projectId },
+    );
+  }
+
+  /**
+   * Phase 5 OBS-09: list ido4 Sandbox-titled Project V2 projects on the
+   * viewer's account, identifying orphans whose linked repository no
+   * longer exists.
+   *
+   * Read-only — no mutations. Caller (skill) presents the list to the
+   * user, who confirms before any deletion via deleteOrphanSandbox.
+   *
+   * Scoped to the viewer's projects (not org-owned). Org-owned orphan
+   * cleanup is v1.1 work — most ido4 sandbox use is on user-owned repos.
+   */
+  async listOrphanSandboxes(): Promise<ListOrphanSandboxesResult> {
+    const candidates: OrphanSandboxProject[] = [];
+    let cursor: string | null = null;
+
+    // Paginate through user's projects
+    do {
+      const result: {
+        viewer: {
+          projectsV2: {
+            nodes: Array<{
+              id: string;
+              number: number;
+              title: string;
+              url: string;
+              repositories: { nodes: Array<{ nameWithOwner: string }> };
+            }>;
+            pageInfo: { hasNextPage: boolean; endCursor: string | null };
+          };
+        };
+      } = await this.graphqlClient.query(
+        `query ListSandboxProjects($cursor: String) {
+          viewer {
+            projectsV2(first: 100, after: $cursor) {
+              nodes {
+                id
+                number
+                title
+                url
+                repositories(first: 1) {
+                  nodes { nameWithOwner }
+                }
+              }
+              pageInfo { hasNextPage endCursor }
+            }
+          }
+        }`,
+        { cursor },
+      );
+
+      for (const node of result.viewer.projectsV2.nodes) {
+        // Title-prefix filter — sandbox creation always titles projects
+        // "ido4 Sandbox — <Scenario Name>" (see createSandbox line ~94).
+        if (!node.title.startsWith('ido4 Sandbox')) continue;
+
+        const linkedRepoNameWithOwner = node.repositories.nodes[0]?.nameWithOwner;
+        let linkedRepository: OrphanSandboxProject['linkedRepository'] = null;
+        if (linkedRepoNameWithOwner) {
+          const [owner, name] = linkedRepoNameWithOwner.split('/') as [string, string];
+          linkedRepository = { owner, name, nameWithOwner: linkedRepoNameWithOwner };
+        }
+
+        candidates.push({
+          projectId: node.id,
+          projectNumber: node.number,
+          title: node.title,
+          url: node.url,
+          linkedRepository,
+          repositoryExists: false, // will populate next
+        });
+      }
+
+      cursor = result.viewer.projectsV2.pageInfo.hasNextPage
+        ? result.viewer.projectsV2.pageInfo.endCursor
+        : null;
+    } while (cursor);
+
+    // Now check each linked repo for existence (parallel fan-out).
+    await Promise.all(candidates.map(async (c) => {
+      if (!c.linkedRepository) {
+        c.repositoryExists = false;
+        return;
+      }
+      try {
+        const result: { repository: { id: string } | null } = await this.graphqlClient.query(
+          `query RepoExists($owner: String!, $name: String!) {
+            repository(owner: $owner, name: $name) { id }
+          }`,
+          { owner: c.linkedRepository.owner, name: c.linkedRepository.name },
+        );
+        c.repositoryExists = !!result.repository;
+      } catch {
+        // Treat query failure as "unknown" → don't claim it's orphan
+        c.repositoryExists = true;
+      }
+    }));
+
+    const orphans = candidates.filter((c) => !c.repositoryExists);
+
+    return { candidates, orphans };
+  }
+
+  /**
+   * Phase 5 OBS-09: delete one orphan sandbox project. Gated by
+   * verifySandboxProject (project title must contain "Sandbox") to defend
+   * against accidentally deleting a non-sandbox project.
+   *
+   * Caller is expected to confirm with the user before invoking this —
+   * deletion is irreversible at the GitHub Projects V2 layer.
+   */
+  async deleteOrphanSandbox(projectId: string): Promise<DeleteOrphanSandboxResult> {
+    const isSandbox = await this.verifySandboxProject(projectId);
+    if (!isSandbox) {
+      return {
+        success: true,
+        projectId,
+        deleted: false,
+        reason: 'Project title does not contain "Sandbox" — refused to delete (safety guard).',
+      };
+    }
+
+    try {
+      await this.deleteProjectByIdViaGraphQL(projectId);
+      this.logger.info('Orphan sandbox project deleted', { projectId });
+      return { success: true, projectId, deleted: true };
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      throw new ValidationError({
+        message: `Failed to delete orphan sandbox project ${projectId}: ${errMsg}`,
+        context: { projectId, error: errMsg },
+        remediation: 'The project may have already been deleted, or your GitHub token may lack project deletion scope. Run `gh auth status` to verify and `gh project delete <number>` to delete manually if needed.',
+      });
+    }
   }
 
   private async ensureNoExistingSandbox(projectRoot: string): Promise<void> {

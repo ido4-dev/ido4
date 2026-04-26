@@ -1,11 +1,17 @@
 /**
- * Sandbox tool registrations — 3 MCP tools for sandbox lifecycle management.
+ * Sandbox tool registrations — 5 MCP tools for sandbox lifecycle management.
  *
  * Sandbox tools bootstrap standalone (like init_project) — they create their own
  * GraphQL client and SandboxService, then reset the shared container after completion
  * so subsequent tool calls pick up the new/removed config.
+ *
+ * Phase 5 OBS-09 added two orphan-cleanup tools (list_orphan_sandboxes,
+ * delete_orphan_sandbox) for the case where a user deletes a sandbox repo via
+ * `gh repo delete` without running destroy_sandbox first — Project V2 doesn't
+ * cascade-delete with the repo, so it lives on the user's account orphaned.
  */
 
+import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import {
   CreateSandboxSchema,
@@ -85,6 +91,37 @@ export function registerSandboxTools(server: McpServer): void {
       resetContainer();
       await activateMethodology(server);
       return toCallToolResult(result);
+    }),
+  );
+
+  // ─── Phase 5 OBS-09: Orphan Sandbox Cleanup ───
+  //
+  // GitHub Projects V2 don't cascade-delete with the repository. When a user
+  // runs `gh repo delete` on a sandbox without calling destroy_sandbox first,
+  // the linked Project V2 outlives the repo and accumulates on the user's
+  // account. These tools surface and clean up those orphans.
+
+  server.tool(
+    'list_orphan_sandboxes',
+    'Phase 5 OBS-09: List ido4 Sandbox-titled Project V2 projects on the viewer\'s account, identifying orphans whose linked GitHub repository no longer exists. Read-only; no mutations. Use the result to decide which projects to clean up via delete_orphan_sandbox.',
+    {},
+    async () => handleErrors(async () => {
+      const service = createSandboxService();
+      const result = await service.listOrphanSandboxes();
+      return toCallToolResult({ success: true, data: result });
+    }),
+  );
+
+  server.tool(
+    'delete_orphan_sandbox',
+    'Phase 5 OBS-09: Delete one orphan sandbox Project V2 by ID. Gated by a sandbox-title safety check (project title must contain "Sandbox") to defend against accidentally deleting a non-sandbox project. Caller is expected to confirm with the user before invoking — deletion is irreversible.',
+    {
+      projectId: z.string().describe('The Project V2 node ID to delete (e.g., "PVT_xxx"). Get from list_orphan_sandboxes.'),
+    },
+    async (args) => handleErrors(async () => {
+      const service = createSandboxService();
+      const result = await service.deleteOrphanSandbox(args.projectId);
+      return toCallToolResult({ success: true, data: result });
     }),
   );
 }

@@ -259,10 +259,55 @@ export interface SeededPRArtifact {
   taskRef: string;
 }
 
+// ─── Orphan Sandbox Cleanup (Phase 5 OBS-09) ───
+//
+// Project V2 doesn't cascade-delete with the repository at the GitHub API
+// level. When a user deletes a sandbox repo via `gh repo delete` without
+// running destroy_sandbox first, the linked Project V2 outlives the repo
+// and accumulates on the user's account. Orphan-cleanup discovers and
+// deletes those abandoned projects.
+
+export interface OrphanSandboxProject {
+  /** Project V2 node ID */
+  projectId: string;
+  /** Project V2 number (display) */
+  projectNumber: number;
+  /** Project V2 title (e.g., "ido4 Sandbox — Hydro Governance") */
+  title: string;
+  /** Project URL */
+  url: string;
+  /** Linked repository (owner/name) if any; null if no linked repo or repo deleted */
+  linkedRepository: { owner: string; name: string; nameWithOwner: string } | null;
+  /** Whether the linked repository still exists. False = orphan candidate. */
+  repositoryExists: boolean;
+}
+
+export interface ListOrphanSandboxesResult {
+  /** All ido4 Sandbox-titled projects on the user's account */
+  candidates: OrphanSandboxProject[];
+  /** Subset that are orphans (linked repo doesn't exist OR no linked repo) */
+  orphans: OrphanSandboxProject[];
+}
+
+export interface DeleteOrphanSandboxResult {
+  success: boolean;
+  projectId: string;
+  /** True if the project was actually deleted; false if safety check rejected. */
+  deleted: boolean;
+  /** Reason set when deleted=false (e.g., title doesn't contain "Sandbox"). */
+  reason?: string;
+}
+
 // ─── Service Interface ───
 
 export interface ISandboxService {
   createSandbox(options: SandboxCreateOptions): Promise<SandboxCreateResult>;
   destroySandbox(projectRoot: string): Promise<SandboxDestroyResult>;
   resetSandbox(options: SandboxCreateOptions): Promise<SandboxResetResult>;
+  /** Phase 5 OBS-09: discover ido4 Sandbox projects on the user's account
+   *  whose linked repo no longer exists. Read-only; no mutations. */
+  listOrphanSandboxes(): Promise<ListOrphanSandboxesResult>;
+  /** Phase 5 OBS-09: delete one orphan sandbox project. Gated by sandbox-title
+   *  safety check (project title must contain "Sandbox"). */
+  deleteOrphanSandbox(projectId: string): Promise<DeleteOrphanSandboxResult>;
 }
