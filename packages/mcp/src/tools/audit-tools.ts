@@ -22,6 +22,7 @@ export function registerAuditTools(server: McpServer): void {
         issueNumber: args.issueNumber,
         sessionId: args.sessionId,
         eventType: args.eventType,
+        executed: args.executed,
         limit: args.limit,
         offset: args.offset,
       });

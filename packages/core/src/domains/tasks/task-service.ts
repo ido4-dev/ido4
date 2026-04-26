@@ -202,7 +202,7 @@ export class TaskService implements ITaskService {
       }
     }
 
-    // 6. Emit event
+    // 6. Emit event — task creation always commits (no validation gate on create)
     this.eventBus.emit({
       type: 'task.transition',
       timestamp: new Date().toISOString(),
@@ -213,6 +213,7 @@ export class TaskService implements ITaskService {
       toStatus: statusKey,
       transition: 'create' as TransitionType,
       dryRun: false,
+      executed: true,
     });
 
     return {
@@ -238,38 +239,44 @@ export class TaskService implements ITaskService {
     // 1. Execute workflow
     const workflowResult = await this.workflowService.executeTransition(transition, request);
 
-    // 2. If validation failed, return failure response
-    if (!workflowResult.validationResult.canProceed) {
-      const task = await this.issueRepository.getTask(request.issueNumber);
-      return this.buildFailureResponse(transition, workflowResult, task, request);
+    // 2. Build the audit-validation projection (used in both response and event)
+    const validationResult = this.buildAuditValidation(workflowResult.validationResult);
+
+    // 3. Emit event for every non-dryRun transition attempt.
+    //
+    // As of @ido4/mcp@0.9.0 we persist failed-validation attempts too — the
+    // `executed` field on the event carries the committed-or-not distinction
+    // so audit consumers can filter as needed. Dry-runs are still gated out
+    // (governance signal would be misleading).
+    if (!request.dryRun) {
+      this.emitTransitionEvent(transition, request, workflowResult, validationResult);
     }
 
-    // 3. Fetch fresh task data
+    // 4. If validation failed, return failure response
+    if (!workflowResult.validationResult.canProceed) {
+      const task = await this.issueRepository.getTask(request.issueNumber);
+      return this.buildFailureResponse(transition, workflowResult, task, request, validationResult);
+    }
+
+    // 5. Fetch fresh task data
     const task = await this.issueRepository.getTask(request.issueNumber);
 
-    // 4. Generate suggestions
+    // 6. Generate suggestions
     const suggestions = this.suggestionService.generateSuggestions(
       transition,
       workflowResult.validationResult,
       task,
     );
 
-    // 5. Build audit entry
+    // 7. Build audit entry
     const auditEntry = this.buildAuditEntry(transition, request, workflowResult);
 
-    // 6. Extract warnings
+    // 8. Extract warnings
     const warnings = this.extractWarnings(workflowResult.validationResult);
-
-    // 7. Build audit validation result
-    const validationResult = this.buildAuditValidation(workflowResult.validationResult);
-
-    // 8. Emit event (only on actual execution, not dry run)
-    if (workflowResult.executed && !request.dryRun) {
-      this.emitTransitionEvent(transition, request, workflowResult, validationResult);
-    }
 
     return {
       success: workflowResult.executed,
+      executed: workflowResult.executed,
       data: {
         issueNumber: workflowResult.issueNumber,
         fromStatus: workflowResult.fromStatus,
@@ -287,6 +294,7 @@ export class TaskService implements ITaskService {
     workflowResult: WorkflowTransitionResult,
     task: TaskData,
     request: TaskTransitionRequest | BlockTaskRequest | ReturnTaskRequest,
+    validationResult: AuditValidationResult,
   ): ToolResponse<TaskTransitionData> {
     const suggestions = this.suggestionService.generateSuggestions(
       transition,
@@ -296,6 +304,7 @@ export class TaskService implements ITaskService {
 
     return {
       success: false,
+      executed: false,
       data: {
         issueNumber: workflowResult.issueNumber,
         fromStatus: workflowResult.fromStatus,
@@ -303,7 +312,7 @@ export class TaskService implements ITaskService {
       },
       suggestions,
       warnings: this.extractWarnings(workflowResult.validationResult),
-      validationResult: this.buildAuditValidation(workflowResult.validationResult),
+      validationResult,
       auditEntry: this.buildAuditEntry(transition, request, workflowResult),
     };
   }
@@ -370,6 +379,7 @@ export class TaskService implements ITaskService {
       transition,
       validationResult,
       dryRun: false,
+      executed: result.executed,
     };
 
     this.eventBus.emit(event);

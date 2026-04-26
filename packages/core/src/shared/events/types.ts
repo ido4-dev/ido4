@@ -23,7 +23,12 @@ export interface GovernanceEvent {
   readonly actor: ActorIdentity;
 }
 
-/** Emitted when a task transitions between workflow states */
+/** Emitted when a task transitions between workflow states.
+ *
+ * As of @ido4/mcp@0.9.0, this event is emitted on every non-dryRun transition
+ * attempt — including those rejected by BRE validation. The `executed` field
+ * carries the committed-or-not distinction. Audit consumers that want only
+ * committed transitions should filter `executed === true`. */
 export interface TaskTransitionEvent extends GovernanceEvent {
   readonly type: 'task.transition';
   readonly issueNumber: number;
@@ -32,6 +37,8 @@ export interface TaskTransitionEvent extends GovernanceEvent {
   readonly transition: string;
   readonly validationResult?: AuditValidationResult;
   readonly dryRun: boolean;
+  /** Whether the transition committed to GitHub state. False when validation rejected the transition. */
+  readonly executed: boolean;
 }
 
 /** Emitted when a task is assigned to a container */

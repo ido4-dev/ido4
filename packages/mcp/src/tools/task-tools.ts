@@ -26,6 +26,27 @@ export function registerTaskTools(server: McpServer, profile: MethodologyProfile
   // --- Dynamic transition tools ---
   registerDynamicTransitionTools(server, profile);
 
+  // --- Methodology metadata ---
+  //
+  // Exposes the resolved MethodologyProfile (states, transitions, principles,
+  // semantics, containers, work items, compliance weights, behaviors) as a tool.
+  //
+  // Mirrors the ido4://methodology/profile MCP resource. The resource is reachable
+  // from the main conversation via @-mention; subagents (Claude Code plugin agents)
+  // can only call tools, so this tool is the way the PM agent grounds its
+  // methodology-specific reasoning in the actual loaded profile rather than
+  // pattern-matched training data.
+
+  server.tool(
+    'get_methodology_profile',
+    'Returns the full resolved methodology profile (states, transitions, principles, semantics, containers, work items, compliance weights, behaviors). Mirrors the ido4://methodology/profile MCP resource. Subagents and tool-only consumers should call this to ground methodology-specific reasoning in the actual loaded profile.',
+    {},
+    async () => handleErrors(async () => {
+      const container = await getContainer();
+      return toCallToolResult({ success: true, data: container.profile });
+    }),
+  );
+
   // --- Read tools ---
 
   server.tool(

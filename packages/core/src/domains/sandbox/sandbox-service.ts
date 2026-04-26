@@ -537,6 +537,7 @@ export class SandboxService implements ISandboxService {
         toStatus: event.toStatus,
         transition: event.transition,
         dryRun: false,
+        executed: true,
       };
 
       container.eventBus.emit(transitionEvent as DomainEvent);

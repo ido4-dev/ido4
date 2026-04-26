@@ -256,7 +256,7 @@ describe('TaskService', () => {
   });
 
   describe('event emission', () => {
-    it('emits TaskTransitionEvent on successful execution', async () => {
+    it('emits TaskTransitionEvent on successful execution with executed: true', async () => {
       await service.startTask({ issueNumber: 42, actor: SYSTEM_ACTOR });
 
       expect(eventBus.emit).toHaveBeenCalledTimes(1);
@@ -266,11 +266,12 @@ describe('TaskService', () => {
       expect((event as any).fromStatus).toBe('Ready for Dev');
       expect((event as any).toStatus).toBe('In Progress');
       expect((event as any).transition).toBe('start');
+      expect((event as any).executed).toBe(true);
       expect(event.sessionId).toBe('test-session');
       expect(event.actor).toEqual(SYSTEM_ACTOR);
     });
 
-    it('does NOT emit event on validation failure', async () => {
+    it('emits TaskTransitionEvent on validation failure with executed: false (Phase 5 F4)', async () => {
       vi.mocked(validator.validateTransition).mockResolvedValue({
         canProceed: false, transition: 'start', reason: 'Failed',
         details: [{ stepName: 'X', passed: false, message: 'Bad', severity: 'error' }],
@@ -278,7 +279,16 @@ describe('TaskService', () => {
       });
 
       await service.startTask({ issueNumber: 42, actor: SYSTEM_ACTOR });
-      expect(eventBus.emit).not.toHaveBeenCalled();
+
+      // Phase 5 F4: failed-validation transitions are persisted to the audit log
+      // with executed: false. Audit consumers filter executed === true for
+      // committed-only views. This serves §3.9 — "agent attempted bypass 5×,
+      // blocked all 5" is institutional memory worth keeping.
+      expect(eventBus.emit).toHaveBeenCalledTimes(1);
+      const event = vi.mocked(eventBus.emit).mock.calls[0]![0];
+      expect(event.type).toBe('task.transition');
+      expect((event as any).executed).toBe(false);
+      expect((event as any).transition).toBe('start');
     });
 
     it('does NOT emit event on dryRun', async () => {

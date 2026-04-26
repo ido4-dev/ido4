@@ -39,6 +39,9 @@ export interface AuditQuery {
   issueNumber?: number;
   sessionId?: string;
   eventType?: string;
+  /** Filter by whether the transition committed to GitHub. Set true for committed-only,
+   *  false for rejected-attempts only. Omit to include both (default). */
+  executed?: boolean;
   limit?: number;
   offset?: number;
 }
@@ -192,6 +195,11 @@ export class JsonlAuditStore implements IAuditStore {
       if (query.issueNumber !== undefined) {
         const issueNumber = (event as Record<string, unknown>).issueNumber;
         if (issueNumber !== query.issueNumber) return false;
+      }
+
+      if (query.executed !== undefined) {
+        const executed = (event as Record<string, unknown>).executed;
+        if (executed !== query.executed) return false;
       }
 
       return true;

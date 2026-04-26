@@ -18,6 +18,22 @@ import type { Suggestion, Warning, AuditEntry, AuditValidationResult } from '../
 export interface ToolResponse<T> {
   /** Whether the operation succeeded */
   success: boolean;
+  /**
+   * Whether a state-changing transition committed to GitHub.
+   *
+   * Present on transition responses. Distinct from `success` — `success: false`
+   * with `executed: false` means validation rejected the transition (no GitHub
+   * mutation occurred); the response's `data.toStatus` and `auditEntry` describe
+   * the *attempted* transition for diagnostic purposes, not a committed state
+   * change.
+   *
+   * Hooks and audit consumers checking for committed transitions should test
+   * `executed === true`, not `success === true`.
+   *
+   * Absent on read-only / non-transition responses (listTasks, getTask, etc.)
+   * where the committed-or-not distinction is meaningless.
+   */
+  executed?: boolean;
   /** The domain-specific data payload */
   data: T;
   /** Suggested next actions for the agent */

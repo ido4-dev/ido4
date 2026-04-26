@@ -9,6 +9,7 @@ export const QueryAuditTrailSchema = {
   issueNumber: z.number().int().positive().optional().describe('Filter by GitHub issue number'),
   sessionId: z.string().optional().describe('Filter by session ID'),
   eventType: z.string().optional().describe('Filter by event type (e.g., "task.transition")'),
+  executed: z.boolean().optional().describe('Filter by whether the transition committed to GitHub. Set true for committed-only, false for rejected-attempts only. Omit to include both.'),
   limit: z.number().int().positive().max(1000).optional().describe('Max events to return (default: 100)'),
   offset: z.number().int().min(0).optional().describe('Skip first N events for pagination'),
 };

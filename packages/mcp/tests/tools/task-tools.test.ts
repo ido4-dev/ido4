@@ -437,4 +437,69 @@ describe('Task Tools', () => {
       expect(parsed.code).toBe('VALIDATION_ERROR');
     });
   });
+
+  describe('get_methodology_profile (Phase 5 F7)', () => {
+    // Phase 5 F7: subagents (Claude Code plugin agents) cannot read MCP
+    // resources, only tools. The ido4://methodology/profile resource is
+    // unreachable from the PM agent. This tool mirrors the resource and
+    // grounds the agent's methodology-specific reasoning in the actual
+    // loaded profile rather than pattern-matched training data.
+
+    it('is registered for Hydro profile', () => {
+      expect(hasRegisteredTool(server, 'get_methodology_profile')).toBe(true);
+    });
+
+    it('returns the resolved Hydro profile via container.profile', async () => {
+      // Add profile to mock container so the tool can return it
+      const containerWithProfile = { ...mockContainer, profile: HYDRO_PROFILE };
+      mockGetContainer.mockResolvedValue(containerWithProfile);
+
+      const result = await callTool(server, 'get_methodology_profile', {}) as { content: Array<{ text: string }> };
+      const parsed = JSON.parse(result.content[0]!.text);
+
+      expect(parsed.success).toBe(true);
+      expect(parsed.data.id).toBe('hydro');
+      // Verify load-bearing fields the PM agent reasons against:
+      expect(Array.isArray(parsed.data.principles)).toBe(true);
+      expect(parsed.data.principles.length).toBe(5); // Hydro: 5 principles
+      expect(Array.isArray(parsed.data.states)).toBe(true);
+      expect(Array.isArray(parsed.data.transitions)).toBe(true);
+      expect(parsed.data.semantics).toBeDefined();
+      expect(Array.isArray(parsed.data.containers)).toBe(true);
+      expect(parsed.data.compliance).toBeDefined();
+      expect(parsed.data.compliance.weights).toBeDefined();
+    });
+
+    it('returns the resolved Scrum profile when registered with SCRUM_PROFILE', async () => {
+      const scrumServer = new McpServer({ name: 'test', version: '0.1.0' });
+      registerTaskTools(scrumServer, SCRUM_PROFILE);
+
+      const containerWithProfile = { ...mockContainer, profile: SCRUM_PROFILE };
+      mockGetContainer.mockResolvedValue(containerWithProfile);
+
+      const result = await callTool(scrumServer, 'get_methodology_profile', {}) as { content: Array<{ text: string }> };
+      const parsed = JSON.parse(result.content[0]!.text);
+
+      expect(parsed.success).toBe(true);
+      expect(parsed.data.id).toBe('scrum');
+      // Sharp regression test: Scrum has only ONE entry in principles[]
+      // (Sprint Singularity); DoR/DoD/sprint-goal live in integrityRules[].
+      expect(parsed.data.principles.length).toBe(1);
+    });
+
+    it('returns the resolved Shape Up profile when registered with SHAPE_UP_PROFILE', async () => {
+      const shapeUpServer = new McpServer({ name: 'test', version: '0.1.0' });
+      registerTaskTools(shapeUpServer, SHAPE_UP_PROFILE);
+
+      const containerWithProfile = { ...mockContainer, profile: SHAPE_UP_PROFILE };
+      mockGetContainer.mockResolvedValue(containerWithProfile);
+
+      const result = await callTool(shapeUpServer, 'get_methodology_profile', {}) as { content: Array<{ text: string }> };
+      const parsed = JSON.parse(result.content[0]!.text);
+
+      expect(parsed.success).toBe(true);
+      expect(parsed.data.id).toBe('shape-up');
+      expect(parsed.data.principles.length).toBe(4); // Shape Up: 4 principles
+    });
+  });
 });

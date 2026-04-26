@@ -139,6 +139,27 @@ describe('JsonlAuditStore', () => {
       expect(events).toHaveLength(2);
     });
 
+    it('filters by executed (Phase 5 F4)', async () => {
+      // Phase 5 F4: failed-validation transitions are persisted with
+      // executed: false. Audit consumers filter executed === true for
+      // committed-only views. omitting the filter returns both attempts
+      // and committed transitions.
+      await store.appendEvent(makeEvent({ transition: 'start', executed: true }));
+      await store.appendEvent(makeEvent({ transition: 'approve', executed: false }));
+      await store.appendEvent(makeEvent({ transition: 'start', executed: true }));
+      await store.appendEvent(makeEvent({ transition: 'block', executed: false }));
+
+      const committed = await store.readEvents({ executed: true });
+      expect(committed.events).toHaveLength(2);
+
+      const attempts = await store.readEvents({ executed: false });
+      expect(attempts.events).toHaveLength(2);
+
+      // No filter — returns all (attempts + committed)
+      const all = await store.readEvents({});
+      expect(all.events).toHaveLength(4);
+    });
+
     it('filters by issueNumber', async () => {
       await store.appendEvent(makeEvent({ issueNumber: 10 }));
       await store.appendEvent(makeEvent({ issueNumber: 20 }));

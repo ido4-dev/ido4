@@ -152,6 +152,33 @@ describe('TaskWorkflowService', () => {
       expect(result.validationResult.canProceed).toBe(false);
       expect(issueRepo.updateTaskStatus).not.toHaveBeenCalled();
     });
+
+    it('returns clean failure (no throw) on never-valid transition (Phase 5 F5)', async () => {
+      // Phase 5 F5 regression test: prior to F5 the engine threw "Unknown
+      // status key: complete" when complete_task was invoked from a state
+      // (e.g., IN_PROGRESS) where the `complete` action is not valid (Hydro's
+      // complete is DONE→DONE-only). The cause was getTargetStatusKey's
+      // fallback returning the action name as a status key, which then
+      // threw at getStatusName(). Fix: short-circuit failed-validation paths
+      // BEFORE computing toStatus; return toStatus = fromStatus (no movement).
+
+      // Task is in IN_PROGRESS — validation fails because `complete` requires DONE
+      vi.mocked(issueRepo.getTask).mockResolvedValue(createMockTaskData({ status: 'In Progress' }));
+      vi.mocked(validator.validateTransition).mockResolvedValue(makeFailingValidation('complete'));
+
+      // Before F5: this would throw "Unknown status key: complete"
+      // After F5: returns clean failure result
+      const result = await service.executeTransition('complete' as TransitionType, {
+        issueNumber: 42, actor: SYSTEM_ACTOR,
+      });
+
+      expect(result.executed).toBe(false);
+      expect(result.validationResult.canProceed).toBe(false);
+      // toStatus equals fromStatus — no movement attempted
+      expect(result.toStatus).toBe('In Progress');
+      expect(result.fromStatus).toBe('In Progress');
+      expect(issueRepo.updateTaskStatus).not.toHaveBeenCalled();
+    });
   });
 
   describe('executeTransition — skipValidation', () => {

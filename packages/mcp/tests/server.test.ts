@@ -145,9 +145,9 @@ describe('createServer', () => {
     expect(hasRegisteredTool(server, 'check_merge_readiness')).toBe(true);
   });
 
-  it('registers 58 tools total', () => {
+  it('registers 59 tools total', () => {
     const server = createServer(HYDRO_PROFILE);
-    expect(getRegisteredToolNames(server)).toHaveLength(58);
+    expect(getRegisteredToolNames(server)).toHaveLength(59);
   });
 
   it('registers resources', () => {
@@ -186,9 +186,9 @@ describe('createServer', () => {
 });
 
 describe('createServer — Scrum profile', () => {
-  it('registers 56 tools total', () => {
+  it('registers 57 tools total', () => {
     const server = createServer(SCRUM_PROFILE);
-    expect(getRegisteredToolNames(server)).toHaveLength(56);
+    expect(getRegisteredToolNames(server)).toHaveLength(57);
   });
 
   it('registers 7 dynamic transition tools', () => {
@@ -258,9 +258,9 @@ describe('createServer — Scrum profile', () => {
 });
 
 describe('createServer — Shape Up profile', () => {
-  it('registers 54 tools total', () => {
+  it('registers 55 tools total', () => {
     const server = createServer(SHAPE_UP_PROFILE);
-    expect(getRegisteredToolNames(server)).toHaveLength(54);
+    expect(getRegisteredToolNames(server)).toHaveLength(55);
   });
 
   it('registers 9 dynamic transition tools', () => {
@@ -436,7 +436,7 @@ describe('createServer — bootstrap mode (null profile)', () => {
     registerPrompts(server, HYDRO_PROFILE);
 
     // Now should have full Hydro tool set + bootstrap entries
-    expect(getRegisteredToolNames(server)).toHaveLength(58);
+    expect(getRegisteredToolNames(server)).toHaveLength(59);
     expect(hasRegisteredTool(server, 'list_waves')).toBe(true);
     expect(hasRegisteredTool(server, 'start_task')).toBe(true);
     expect(hasRegisteredTool(server, 'search_epics')).toBe(true);

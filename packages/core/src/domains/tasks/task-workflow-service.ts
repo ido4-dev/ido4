@@ -56,28 +56,38 @@ export class TaskWorkflowService {
       validationResult = await this.transitionValidator.validateTransition(issueNumber, transition);
     }
 
-    // Fetch current task for fromStatus
+    // Fetch current task for fromStatus (needed for both success and failure paths)
     const task = await this.issueRepository.getTask(issueNumber);
     const fromStatus = task.status;
-    const toStatus = this.getTargetStatus(transition, fromStatus, request);
 
+    // Failed-validation path — do NOT compute toStatus.
+    //
+    // toStatus computation depends on the transition being valid for the
+    // current state. For never-valid invocations (e.g., `complete_task` on
+    // an IN_PROGRESS task in Hydro, where `complete` is DONE→DONE-only),
+    // computing toStatus throws "Unknown status key: <action>" because the
+    // fallback at getTargetStatusKey returns the action name as a status
+    // key. By short-circuiting here we return a clean validation-failure
+    // response with toStatus === fromStatus (no movement attempted).
     if (!validationResult.canProceed) {
       this.logger.debug('Transition blocked by validation', {
         issueNumber,
         transition,
         fromStatus,
-        toStatus,
         reason: validationResult.reason,
       });
       return {
         issueNumber,
         fromStatus,
-        toStatus,
+        toStatus: fromStatus,
         transition,
         validationResult,
         executed: false,
       };
     }
+
+    // Validation passed — safe to compute toStatus.
+    const toStatus = this.getTargetStatus(transition, fromStatus, request);
 
     // Phase 2: Dry run check
     if (dryRun) {
