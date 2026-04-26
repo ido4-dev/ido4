@@ -4,6 +4,33 @@ All notable changes to ido4 are documented here.
 
 All packages (`@ido4/spec-format`, `@ido4/core`, `@ido4/mcp`) are released together at the same version.
 
+## [0.9.0] — 2026-04-27
+
+ido4dev Phase 5 engine substrate — bundled WS1 + WS3 + WS4 release covering the engine fixes, Tier B audit surface, and sandbox UX hardening that gate v1.0 of the `ido4dev` plugin. Behavior change disclosure: audit log shape extended (see WS1 / F4 below).
+
+**WS1 — Engine fixes** (commit `9ad6af0`)
+
+- **F5 — `complete_task` no-throw on never-valid actions.** `task-workflow-service.ts` short-circuits failed-validation paths before computing toStatus; failure responses return `toStatus = fromStatus`. Previously, a `complete_task` against an action that didn't resolve a status key threw `Unknown status key`.
+- **F6 — explicit `executed: boolean` on every transition response.** Added to `ToolResponse` envelope as a sibling of `success`, and to `TaskTransitionEvent` for audit-log persistence. Hooks and audit consumers checking for committed transitions now test `executed === true`, not `success === true`.
+- **F4 — audit log persists all attempted transitions** (behavior change). Removed the `workflowResult.executed` gate at `task-service.ts:267`; every non-dryRun transition attempt is now persisted to `.ido4/audit-log.jsonl` with the new `executed` flag. `AuditQuery` + `query_audit_trail` schema gain optional `executed?: boolean` filter; consumers filter `executed === true` for committed-only views, default returns attempts AND committed. Closes the institutional-memory gap where bypassed transitions disappeared from the trail.
+- **F7 — `get_methodology_profile` MCP tool.** Returns the resolved `MethodologyProfile`. Mirrors the `ido4://methodology/profile` resource for tool-only consumers (Claude Code subagents can't read MCP resources). PM agent's profile-specific reasoning now grounds in a runtime fetch.
+
+**WS3 — Tier B engine surface** (commit `d96a572`)
+
+- **`pull.body` plumbed through `find_task_pr`.** GraphQL queries already selected the field; both repository implementations now include it in the `PullRequestInfo` return shape.
+- **`get_task_comments(issueNumber)` MCP tool.** Wraps existing `IIssueRepository.getIssueComments`. Each comment is classified as `'ai-agent'` when the body contains the `<!-- ido4:context ` marker, otherwise `'human'`.
+- **Spec-to-task lineage.** New `withLineageMarker` / `parseIdo4LineageMarker` utility prepends `<!-- ido4-lineage: ref=... -->` to every body created by `IngestionService.ingestSpec()` (capability issues use `ref=capability:Foo`, tasks use the spec's ref like `T-001`). New `get_task_lineage(issueNumber)` MCP tool reads the marker back. Lineage is informational, not authoritative.
+
+**WS4 — Sandbox UX hardening** (commit `99a414c`)
+
+- **Pre-flight before any mutation.** `preflightCreate(repository)` validates repo format + GitHub auth + repo accessibility + default branch in a single GraphQL query. Empty-repo case (the OBS-06 trigger) now fails clean with remediation; zero orphan issues / zero local config artifacts on rejection.
+- **Best-effort rollback on mid-flight failure.** `createSandbox` accumulates a `CreateMutationLog` as each phase succeeds. On failure, walks reverse: PRs closed → branches deleted → issues closed → Project V2 deleted (gated by sandbox-title safety check) → local config removed. Honest scoping: not a saga; "if we created it, we try to clean it up."
+- **Orphan sandbox cleanup** (OBS-09). New `listOrphanSandboxes()` / `deleteOrphanSandbox(projectId)` methods + `list_orphan_sandboxes` / `delete_orphan_sandbox` MCP tools. Reads viewer's projectsV2 paginated, identifies orphans whose linked repo no longer exists, deletes per orphan with title-based safety guard.
+
+**Tool counts:** Hydro 61 → 63, Scrum 59 → 61, Shape Up 57 → 59 (+2 Tier B tools each: `get_task_comments`, `get_task_lineage`). Bootstrap mode unchanged at 29 tools.
+
+**Tests:** 1,804 passing across 4 packages (was 1,788; +16 new — 9 lineage-marker unit tests + ingestion lineage assertion + 2 PR body assertions + 4 task-tool tests for the new comment + lineage tools).
+
 ## [0.7.2] — 2026-04-12
 
 Infrastructure hardening release. No functional code changes to the parser or MCP server.
