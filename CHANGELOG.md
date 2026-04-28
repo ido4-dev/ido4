@@ -4,6 +4,21 @@ All notable changes to ido4 are documented here.
 
 All packages (`@ido4/spec-format`, `@ido4/core`, `@ido4/mcp`) are released together at the same version.
 
+## [0.9.1] — 2026-04-28
+
+Patch release fixing prefix derivation in `@ido4/spec-format`.
+
+**Bug fix — `derivePrefix` produced regex-violating output for em-dash titles** (`packages/spec-format/src/spec-parse-utils.ts`)
+
+- The shared `derivePrefix(groupName)` helper used `split(/\s+/)`, letting em-dashes and other non-letter characters leak into derived prefixes (e.g., "Warehouse Foundation — Views and Pricing Tables" produced `"WF—VAPT"`). The output also had no length cap, so multi-word titles could exceed the downstream task-ref pattern `[A-Z]{2,5}`. Downstream tools (ido4specs) generating new capability refs from the prefix would emit headings that fail technical-spec parser validation.
+- **Layer 1 fix:** non-letter characters are now treated as separators before splitting, multi-word output is capped at 5 characters, and an all-symbol input falls back to `'GRP'`.
+- **Layer 2 fix (strategic-spec-parser only):** a post-process pass overrides each group's `prefix` with the prefix portion of the first capability ref present (e.g., `### WHF-01:` → `WHF`). Authors already encode their intent in capability IDs; that's now the source of truth. Title-derivation remains as the fallback for groups with no capabilities yet.
+- This closes the prefix-mismatch issue documented as "decision needed" in `architecture/capability-hierarchy.md`. The doc is updated with the resolution.
+
+**Tests:** 1,840 passing (was 1,804; +36 new — 33 in the new `tests/spec-parse-utils.test.ts` covering separators, length cap, edge cases, and a contract battery against `[A-Z]{2,5}`; 3 in `strategic-spec-parser.test.ts` for em-dash titles, cap-ref override, and empty-group fallback).
+
+**Behavior change:** `StrategicGroup.prefix` for groups with capabilities now reflects the cap-ref prefix, not the title initials. Most consumers will see the same value (cap-ref prefix typically tracks the title), but groups whose authors picked a non-initial prefix (e.g., `NCO` for "Notification Core") will now correctly emit that prefix instead of `NC`.
+
 ## [0.9.0] — 2026-04-27
 
 ido4dev Phase 5 engine substrate — bundled WS1 + WS3 + WS4 release covering the engine fixes, Tier B audit surface, and sandbox UX hardening that gate v1.0 of the `ido4dev` plugin. Behavior change disclosure: audit log shape extended (see WS1 / F4 below).
