@@ -50,6 +50,10 @@ The alternative is each service maintaining its own materialized views (a separa
 
 With event sourcing, correctness is reduced to one question: "Are events emitted and persisted correctly?" If yes, all derived data is correct by construction.
 
+### Convergent design pattern
+
+This commitment — append-only storage as single source of truth, derive everything by replay rather than maintaining materialized views — is the same trade Claude Code makes at its session-transcript layer. A source-level analysis (Liu, Zhao, Shang & Shen, ["Dive into Claude Code"](https://arxiv.org/abs/2604.14228), §11.7) frames it as a recurring design commitment in production AI agent systems: every event human-readable, version-controllable, reconstructable without specialized tooling — accepting that richer queries require post-hoc replay. Same reasoning applied at a different layer (their session transcripts, our domain audit trail).
+
 ## Trade-offs
 
 **Cost of replay:** Every analytics or compliance query replays events from the audit store. For small-to-medium projects (hundreds of tasks, thousands of events), this is fast — sub-second. For very large projects, the 30-second cache TTL amortizes replay cost. If this becomes a bottleneck, materialized views can be added as a performance optimization *without changing the architecture* — the audit trail remains the source of truth, views are just caches.

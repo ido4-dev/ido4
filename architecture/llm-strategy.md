@@ -36,6 +36,10 @@ Everything that involves interpretation, analysis, or synthesis uses AI reasonin
 
 The pattern: **deterministic tools gather data, AI skills interpret it.**
 
+### External corroboration
+
+A source-level analysis of Claude Code (Liu, Zhao, Shang & Shen, ["Dive into Claude Code"](https://arxiv.org/abs/2604.14228), §11.1) measures the same ratio at the AI-coding-harness layer: ~1.6% of the codebase is decision logic, ~98.4% is operational infrastructure (permission gates, tool routing, context management, recovery). The same commitment applied in a different domain — production AI systems converge on rich deterministic infrastructure around model judgment.
+
 ## Prompt Design Principles
 
 ### 1. Data First, Then Reasoning
