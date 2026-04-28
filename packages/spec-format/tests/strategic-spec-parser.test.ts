@@ -224,9 +224,84 @@ describe('Strategic Spec Parser', () => {
 
     it('derives prefix from group name', () => {
       const result = parseStrategicSpec(FULL_SPEC);
+      // The FULL_SPEC fixture uses cap-refs whose prefix matches the group
+      // initials (NCO-, EML-, PRF-), so Layer 2 produces the cap-ref prefix.
+      expect(result.groups[0]!.prefix).toBe('NCO');
+      expect(result.groups[1]!.prefix).toBe('EML');
+      expect(result.groups[2]!.prefix).toBe('PRF');
+    });
+
+    it('produces a valid downstream prefix when group title has em-dashes', () => {
+      // Em-dashes, digits, and other non-letter characters must not leak into
+      // the derived prefix — the downstream task-ref pattern is [A-Z]{2,5}.
+      const TASK_REF_PREFIX = /^[A-Z]{2,5}$/;
+      const spec = `# Foo
+> format: strategic-spec | version: 1.0
+
+> Project description.
+
+## Group: V1 Catalog — 10 RPCs
+> priority: must-have
+
+Description.
+
+### V1C-01: Sample Capability
+> priority: must-have | risk: low
+> depends_on: -
+
+A capability description with enough content.
+
+**Success conditions:**
+- one
+- two
+`;
+      const result = parseStrategicSpec(spec);
+      expect(result.groups[0]!.prefix).toMatch(TASK_REF_PREFIX);
+    });
+
+    it('uses capability-ref prefix when available, overriding the title-derived prefix', () => {
+      // Authors encode their intended prefix in capability IDs (e.g., WHF-01).
+      // That ref is the source of truth — Layer 2 of the prefix pipeline.
+      const spec = `# Foo
+> format: strategic-spec | version: 1.0
+
+> Project description.
+
+## Group: Warehouse Foundation — Views and Pricing Tables
+> priority: must-have
+
+Description.
+
+### WHF-01: Sample Capability
+> priority: must-have | risk: low
+> depends_on: -
+
+A capability description with enough content.
+
+**Success conditions:**
+- one
+- two
+`;
+      const result = parseStrategicSpec(spec);
+      // Title alone would derive 'WFVAP'. The cap-ref WHF-01 wins.
+      expect(result.groups[0]!.prefix).toBe('WHF');
+    });
+
+    it('falls back to title-derived prefix when group has no capabilities with refs', () => {
+      // Edge case: a group declared with no capabilities yet (still draft).
+      // Layer 2 finds no override candidate, so Layer 1 (sanitized title) holds.
+      const spec = `# Foo
+> format: strategic-spec | version: 1.0
+
+> Project description.
+
+## Group: Notification Core
+> priority: must-have
+
+Just a description, no capabilities yet.
+`;
+      const result = parseStrategicSpec(spec);
       expect(result.groups[0]!.prefix).toBe('NC');
-      expect(result.groups[1]!.prefix).toBe('EC');
-      expect(result.groups[2]!.prefix).toBe('PRE');
     });
 
     it('extracts group description', () => {

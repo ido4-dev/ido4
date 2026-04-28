@@ -272,18 +272,11 @@ With prefix derivation: `Notification Core` → `NC`. But tasks use `NCO-` prefi
 ```
 Tasks within: `NCO-01A`, `NCO-01B`, `NCO-02A`. Prefix derivation: `Notification Core` → `NC`. But task refs start with `NCO`. Mismatch again.
 
-**Root issue:** The current prefix derivation (initials from the heading name) doesn't always match the strategic spec's prefix convention. The strategic spec uses manually chosen prefixes (NCO for Notification Core, EML for Email Channel). These are 3-letter codes, not always matching initials.
+**Root issue:** Title-derived prefixes (initials from the heading name) don't always match the strategic spec's prefix convention. The strategic spec uses manually chosen prefixes (NCO for Notification Core, EML for Email Channel). These are 2–5-letter codes, not always matching initials.
 
-**Fix:** The technical-spec-writer should use the strategic spec's prefix in the heading, matching how the strategic spec names its capabilities:
-```markdown
-## Capability: Notification Core
-> size: L | risk: medium | prefix: NCO
-```
-But the parser doesn't support a `prefix` metadata field — it derives the prefix.
+**Resolution (v0.9.1):** The strategic-spec parser uses capability refs as the source of truth for the group prefix. After parsing, each group's `prefix` is overridden by the prefix portion of the first capability's ref (e.g., `### WHF-01:` → group prefix `WHF`). Title-derivation (`derivePrefix`) remains only as a fallback for groups with no capabilities yet. This way, `## Group: Warehouse Foundation — Views and Pricing Tables` containing `### WHF-01: …` correctly emits `prefix: "WHF"` rather than `WFVAP`, and downstream tools (ido4specs) generating new task refs stay consistent with what the author already wrote.
 
-**Simplest fix:** Don't validate prefix matching between heading and task refs in the technical spec. The parser already derives a prefix but doesn't enforce task refs match it. Task refs come from the strategic spec (NCO-01A) and the heading name comes from the capability/group name. The prefix mismatch is cosmetic — the ingestion pipeline doesn't use the derived prefix for anything functional.
-
-**Decision needed:** Verify that prefix mismatch between `ParsedGroup.prefix` (derived from heading) and task refs (from strategic spec) doesn't break any downstream logic. If it doesn't, no change needed.
+`derivePrefix` itself was also hardened: non-letter characters (em-dashes, commas, slashes, digits) are stripped before splitting, and multi-word output is capped at 5 characters so it always satisfies the downstream task-ref pattern `[A-Z]{2,5}`.
 
 #### Pipeline Flow After Implementation
 

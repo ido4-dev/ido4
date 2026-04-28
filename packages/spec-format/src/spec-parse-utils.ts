@@ -20,16 +20,27 @@ export function parseMetadataLine(line: string): Record<string, string> {
 
 /**
  * Derive a group prefix from a group name.
- * Single word: first 3 characters uppercased.
- * Multiple words: initials uppercased.
+ *
+ * Output is constrained to satisfy the downstream task-ref pattern `[A-Z]{2,5}`
+ * used by capability/task heading parsers — non-letter characters (em-dashes,
+ * commas, slashes, digits) are treated as separators so they cannot leak into
+ * the prefix, and multi-word output is capped at 5 characters.
+ *
+ * Single word: first 3 letters uppercased.
+ * Multiple words: initials uppercased, capped at 5.
+ * Empty after sanitization: returns 'GRP' as a safe fallback.
  */
 export function derivePrefix(groupName: string): string {
-  const words = groupName.split(/\s+/).filter(Boolean);
+  const words = groupName.replace(/[^a-zA-Z]+/g, ' ').split(/\s+/).filter(Boolean);
+  if (words.length === 0) {
+    return 'GRP';
+  }
   if (words.length === 1) {
     return words[0]!.substring(0, 3).toUpperCase();
   }
   return words
     .map(w => w[0]!)
     .join('')
-    .toUpperCase();
+    .toUpperCase()
+    .substring(0, 5);
 }

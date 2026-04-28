@@ -381,6 +381,23 @@ export function parseStrategicSpec(markdown: string): ParsedStrategicSpec {
   }
   if (state === 'CROSS_CUTTING') flushCrossCutting();
 
+  // --- Post-parse: prefer capability-ref prefix over title-derived prefix ---
+  // The author has already encoded their intended prefix in the capability IDs
+  // (e.g., `### WHF-01:` → `WHF`). Use that as the source of truth so downstream
+  // tools generating new capability refs stay consistent with what the user
+  // already wrote. Falls back to derivePrefix(groupName) when no capability has
+  // a ref, or when the inferred prefix doesn't satisfy the task-ref pattern.
+  const REF_PREFIX = /^([A-Z]{2,5})-\d/;
+  for (const group of groups) {
+    for (const cap of group.capabilities) {
+      const m = REF_PREFIX.exec(cap.ref);
+      if (m && m[1]) {
+        group.prefix = m[1];
+        break;
+      }
+    }
+  }
+
   // --- Post-parse validation ---
 
   // Format marker
