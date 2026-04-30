@@ -225,7 +225,7 @@
           <div class="stage-duration">~15&ndash;30 min</div>
         </div>
         <div class="stage-title">Read &amp; explore</div>
-        <div class="stage-skill">/ido4specs:create-spec</div>
+        <div class="stage-skill">/create-spec</div>
         <div class="stage-detail">Reads your spec, then explores your codebase (or integration targets if greenfield) to ground each capability in real file paths and patterns.</div>
         <div class="stage-output"><span class="arrow-out">&rarr;</span>Technical canvas</div>
       </div>
@@ -238,7 +238,7 @@
           <div class="stage-duration">~10&ndash;20 min</div>
         </div>
         <div class="stage-title">Decompose into tasks</div>
-        <div class="stage-skill">/ido4specs:synthesize-spec</div>
+        <div class="stage-skill">/synthesize-spec</div>
         <div class="stage-detail">Turns each capability into right-sized tasks with effort, risk, AI suitability, dependencies, and verifiable success conditions.</div>
         <div class="stage-output"><span class="arrow-out">&rarr;</span>Technical spec (.md)</div>
       </div>
@@ -254,17 +254,17 @@
         <div style="font-size: 10.5px; opacity: 0.85; margin-bottom: 8px;">Two skills cross-check the spec from different angles.</div>
         <div class="stage-split">
           <div class="substage">
-            <div class="substage-kind">Layer 1 &mdash; deterministic</div>
-            <div class="substage-name">/ido4specs:validate-spec</div>
+            <div class="substage-kind">1. Deterministic pass</div>
+            <div class="substage-name">/validate-spec</div>
             <div class="substage-detail">Parser checks + 8 content assertions (T0&ndash;T8).</div>
           </div>
           <div class="substage">
-            <div class="substage-kind">Layer 2 &mdash; qualitative</div>
-            <div class="substage-name">/ido4specs:review-spec</div>
+            <div class="substage-kind">2. Qualitative pass</div>
+            <div class="substage-name">/review-spec</div>
             <div class="substage-detail">LLM judgment on what the parser can't see.</div>
           </div>
         </div>
-        <div class="stage-refine">If findings: <code>/ido4specs:refine-spec</code> applies edits + re-validates.</div>
+        <div class="stage-refine">If findings: <code>/refine-spec</code> applies edits + re-validates.</div>
       </div>
 
     </div>
