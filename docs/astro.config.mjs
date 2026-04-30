@@ -61,7 +61,14 @@ export default defineConfig({
         {
           label: 'Plugins',
           items: [
-            { label: 'ido4specs', slug: 'plugins/ido4specs' },
+            {
+              label: 'ido4specs',
+              collapsed: false,
+              items: [
+                { label: 'Overview', slug: 'plugins/ido4specs' },
+                { label: 'How it works', slug: 'plugins/ido4specs/how-it-works' },
+              ],
+            },
           ],
         },
         {
