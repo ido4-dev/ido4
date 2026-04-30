@@ -7,6 +7,8 @@ You wrote (or were handed) a spec describing what to build. It's a thoughtful do
 
 `ido4specs` is a [Claude Code](https://www.anthropic.com/claude-code) plugin that runs the gap. It reads the strategic spec, looks at the actual codebase (or the integration targets if it's greenfield), and produces a **technical spec**: a structured markdown artifact where every capability has tasks with effort, risk, AI suitability, dependencies, and code-verifiable success conditions. Plain markdown. Any downstream tool can ingest it — `ido4dev` turns it into GitHub issues, your existing PM tooling can parse it, your team can read it.
 
+In the ido4 suite, **`ido4shape` captures the WHY and the WHAT** (strategic intent + capabilities). **`ido4specs` takes the WHAT and adds the HOW** (concrete tasks grounded in your codebase). **`ido4dev` — or any downstream tool you bring — handles execution** (turning the spec into issues your team works against). This page is about the middle plugin: WHAT → HOW.
+
 The point is **traceability without ceremony**. The strategic spec author sees their language preserved. Engineering sees concrete tasks with file paths. Reviewers see two independent quality layers (deterministic + qualitative). And nothing auto-progresses — there's a human checkpoint at every phase boundary.
 
 ## Pipeline at a glance
@@ -26,12 +28,24 @@ Three phases, three artifacts, three review checkpoints:
 
 | Phase | Skill | Wall time | Output | You review |
 |---|---|---|---|---|
-| 1 | `/ido4specs:create-spec` | ~15–30 min | Technical Canvas | Before continuing to Phase 2 |
-| 2 | `/ido4specs:synthesize-spec` | ~10–20 min | Technical Spec (`.md`) | Before continuing to Phase 3 |
-| 3 | `/ido4specs:review-spec` + `/ido4specs:validate-spec` | ~2–5 min each | Findings + verdict | Before sending downstream |
-| 3+ | `/ido4specs:refine-spec` | ~1–2 min | Edited spec, re-validated | If review surfaced issues |
+| 1 | `/create-spec` | ~15–30 min | Technical Canvas | Before continuing to Phase 2 |
+| 2 | `/synthesize-spec` | ~10–20 min | Technical Spec (`.md`) | Before continuing to Phase 3 |
+| 3 | `/review-spec` + `/validate-spec` | ~2–5 min each | Findings + verdict | Before sending downstream |
+| 3+ | `/refine-spec` | ~1–2 min | Edited spec, re-validated | If review surfaced issues |
 
 Total wall time for a 30+ capability spec: typically 30–60 minutes, mostly Phase 1 (codebase analysis is the heavy stage). You can break between phases — a fresh session picks back up from the last artifact.
+
+## What this doesn't do
+
+`ido4specs` is deliberately scoped. It does not:
+
+- **Write code.** It produces a *spec* describing tasks. Engineering (or your AI coding tools) writes the code from there.
+- **Run tests or CI.** Success conditions in the spec are *verifiable*, but the verification happens elsewhere.
+- **Manage issues or projects.** It outputs markdown. `ido4dev` (or your tool) does the GitHub-issue creation.
+- **Enforce a methodology.** The technical spec is methodology-neutral — no Scrum, no Shape Up, no Hydro. Your team's process layers on top.
+- **Replace strategic spec authoring.** It consumes a strategic spec; producing one is `ido4shape`'s job (or your existing authoring process).
+
+What it *does* do is the translation layer between strategic intent and engineering execution — which is the gap most spec workflows leave open.
 
 ## Before you start
 
@@ -41,12 +55,39 @@ If you don't have one yet, [`ido4shape`](https://github.com/ido4-dev/ido4shape) 
 
 You also need [Claude Code](https://www.anthropic.com/claude-code) installed. `ido4specs` is a Claude Code plugin and runs entirely as skills inside it.
 
-## Phase 1 — `/ido4specs:create-spec`
+**Quick health check.** Once installed, run `/doctor` to confirm everything's in place. It reports plugin version, validator versions, checksums, and the next sensible action given your workspace state. Run it any time something feels off.
+
+**The typical flow at a glance:**
+
+```bash
+# 1. Read the spec, explore code, produce canvas
+/create-spec specs/your-strategic-spec.md
+
+# (review the canvas, then:)
+
+# 2. Decompose canvas into tasks
+/synthesize-spec specs/your-tech-canvas.md
+
+# (review the tech spec, then:)
+
+# 3. Cross-check with both review layers
+/review-spec   specs/your-tech-spec.md     # qualitative
+/validate-spec specs/your-tech-spec.md     # deterministic
+
+# (if either review surfaced findings:)
+
+# 3+. Apply edits + re-validate
+/refine-spec specs/your-tech-spec.md
+```
+
+Each phase is detailed below.
+
+## Phase 1 — `/create-spec`
 
 You invoke:
 
 ```
-/ido4specs:create-spec specs/your-strategic-spec.md
+/create-spec specs/your-strategic-spec.md
 ```
 
 The skill runs in stages and reports progress as it goes:
@@ -65,12 +106,12 @@ The canvas typically lands at 2,000–3,000 lines for a 30+ capability strategic
 
 You'll review the canvas, then invoke Phase 2.
 
-## Phase 2 — `/ido4specs:synthesize-spec`
+## Phase 2 — `/synthesize-spec`
 
 Pure transform: canvas in, technical spec out. No codebase exploration.
 
 ```
-/ido4specs:synthesize-spec specs/your-tech-canvas.md
+/synthesize-spec specs/your-tech-canvas.md
 ```
 
 The skill decomposes each capability in the canvas into right-sized **tasks**. For each task:
@@ -90,22 +131,23 @@ You'll see end-of-phase metrics: capability count, task count, dependency edges,
 
 Two skills, two layers, designed to cross-check each other.
 
-### `/ido4specs:validate-spec` — deterministic content checks
+### `/validate-spec` — deterministic content checks
 
-Runs the bundled `@ido4/tech-spec-format` parser, then applies **eight content assertions** (T0–T8):
-- T0: project header has WHY, constraints, non-goals, stakes
-- T1: tasks are code-grounded (descriptions reference paths or modules)
-- T2: effort traces to canvas complexity
-- T3: risk reflects real unknowns
-- T4: AI calibration is honest (external integrations rarely `full`)
-- T5: success conditions verifiable
-- T6: stakeholder attributions preserved
-- T7: dependency graph is sensible (no cycles, sane topology)
-- T8: capability coherence (1–8 tasks per capability)
+Runs the bundled `@ido4/tech-spec-format` parser, then applies a battery of content assertions:
+
+- Project header has its WHY, constraints, non-goals, and stakes
+- Tasks are code-grounded — descriptions reference paths or modules
+- Effort traces to canvas complexity
+- Risk reflects real unknowns
+- AI calibration is honest (external integrations rarely warrant `full`)
+- Success conditions are independently verifiable
+- Stakeholder attributions preserved
+- Dependency graph is sensible (no cycles, sane topology)
+- Capability coherence — 1–8 tasks per capability, scoped together
 
 Verdict: **PASS** / **PASS WITH WARNINGS** / **FAIL**. The skill interprets parser errors intelligently — broken deps suggest the correct target, cycles identify which edge to reverse — instead of relaying raw parser output.
 
-### `/ido4specs:review-spec` — qualitative LLM judgment
+### `/review-spec` — qualitative LLM judgment
 
 Reads the spec content and produces a **Spec Review Report**:
 - Errors (will block ingestion if present)
@@ -120,14 +162,14 @@ Where `validate-spec` is fast and deterministic, `review-spec` catches what the 
 - Hub-task identification (which tasks block the most others?)
 - Narrative-grade quality (is the description code-grounded enough that an engineer could pick it up?)
 
-Both skills mention each other and `refine-spec` in their end messages, so you can pick the next move based on findings.
+Both skills mention each other and `/refine-spec` in their end messages, so you can pick the next move based on findings.
 
 ## Refining the spec
 
 If the reviews surface issues:
 
 ```
-/ido4specs:refine-spec specs/your-tech-spec.md
+/refine-spec specs/your-tech-spec.md
 ```
 
 The skill takes natural-language instructions ("apply W1 and W2", "split capability X", "change ai: full to ai: assisted on Y") and applies surgical edits via the `Edit` tool. After every edit pass it re-runs the bundled parser to catch structural regressions — if you accidentally introduce a dependency cycle, it tells you immediately rather than at the next `validate-spec`.
@@ -136,7 +178,7 @@ The skill announces the plan before editing. For complex refines (splitting capa
 
 ## What you do with the result
 
-You have a technical spec at `specs/your-spec-tech-spec.md`. It's plain markdown that any downstream tool can read.
+You have a technical spec at `specs/your-tech-spec.md`. It's plain markdown that any downstream tool can read.
 
 The natural pair is [`ido4dev`](https://github.com/ido4-dev/ido4dev), which ingests the spec into GitHub issues — capabilities become parent issues, tasks become sub-issues with the metadata mapped to GitHub Projects custom fields. But the format is open. Read the file with your own tooling, parse it with `@ido4/tech-spec-format` from npm, paste it into your team's wiki, generate Jira tickets — your call.
 
@@ -147,8 +189,8 @@ The traceability comes for free. Every task ID maps back to the strategic capabi
 - **Expect a permission prompt or two on first run.** The validator is invoked via Node.js, and Claude Code asks before running new binaries. Pick "Yes, don't ask again for: `node *`" if you want a smooth flow on subsequent runs.
 - **Phase 1 is the long stage.** 15–30 minutes for 30+ capability specs is normal — codebase exploration is the bulk of it. Token count flowing means progress is real; if it stalls completely, cancel and retry.
 - **Read the canvas before Phase 2.** Phase 2 reads ONLY the canvas, so anything missing from the canvas won't be in the tech spec. Spend 5 minutes reviewing the canvas's "Discoveries & Adjustments" section and risk hot-spots.
-- **Both review layers, not just one.** `validate-spec` and `review-spec` catch different things. Run both before treating the spec as ingestion-ready.
-- **`/ido4specs:doctor` answers "is the plugin healthy?"** Run it any time something seems off. Reports plugin version, validator versions, checksums, workspace state, and the next pipeline action.
+- **Both review layers, not just one.** `/validate-spec` and `/review-spec` catch different things. Run both before treating the spec as ingestion-ready.
+- **`/doctor` answers "is the plugin healthy?"** Run it any time something seems off. Reports plugin version, validator versions, checksums, workspace state, and the next pipeline action.
 - **Skill boundaries are checkpoints.** Nothing auto-progresses. If you take a break, you pick back up by invoking the next phase's skill against the artifact the prior phase produced.
 
 ## Reference
