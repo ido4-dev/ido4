@@ -49,8 +49,10 @@ What it *does* do is the translation layer between strategic intent and engineer
 
 ## Where to go from here
 
+- **[Get started](./get-started/)** — install, prerequisites, and the first-run command flow
 - **[How it works](./how-it-works/)** — detailed walkthrough of each phase, what each skill does, what artifacts are produced
-- *Get started, Skill reference, FAQ + Troubleshooting — coming next as separate pages*
+- **[FAQ + troubleshooting](./faq/)** — common questions, scenario recipes, and what to do when something goes wrong
+- *Skill reference — coming soon as per-skill pages*
 
 ## Reference
 

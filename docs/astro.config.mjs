@@ -66,7 +66,9 @@ export default defineConfig({
               collapsed: false,
               items: [
                 { label: 'Overview', slug: 'plugins/ido4specs' },
+                { label: 'Get started', slug: 'plugins/ido4specs/get-started' },
                 { label: 'How it works', slug: 'plugins/ido4specs/how-it-works' },
+                { label: 'FAQ + troubleshooting', slug: 'plugins/ido4specs/faq' },
               ],
             },
           ],

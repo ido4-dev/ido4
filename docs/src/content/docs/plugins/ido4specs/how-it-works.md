@@ -3,42 +3,7 @@ title: "How it works"
 description: "Detailed walkthrough of the ido4specs pipeline — what each phase does, what artifacts are produced, what you review at each checkpoint."
 ---
 
-This page walks through the three phases of the `ido4specs` pipeline in detail. For the high-level picture and the diagram, see the [Overview](./).
-
-## Before you start
-
-You need a **strategic spec**. That's a markdown document describing capabilities (what should exist), success conditions, dependencies, and cross-cutting concerns. The author is a product owner, founder, lead engineer, or anyone with a clear picture of what the work involves.
-
-If you don't have one yet, [`ido4shape`](https://github.com/ido4-dev/ido4shape) is the upstream plugin that helps you write it through Socratic conversation. It's the natural pair for `ido4specs`. But any markdown spec following the format will work — `ido4specs` ships an example fixture you can use as a template.
-
-You also need [Claude Code](https://www.anthropic.com/claude-code) installed. `ido4specs` is a Claude Code plugin and runs entirely as skills inside it.
-
-**Quick health check.** Once installed, run `/doctor` to confirm everything's in place. It reports plugin version, validator versions, checksums, and the next sensible action given your workspace state. Run it any time something feels off.
-
-**The typical flow at a glance:**
-
-```bash
-# 1. Read the spec, explore code, produce canvas
-/create-spec specs/your-strategic-spec.md
-
-# (review the canvas, then:)
-
-# 2. Decompose canvas into tasks
-/synthesize-spec specs/your-tech-canvas.md
-
-# (review the tech spec, then:)
-
-# 3. Cross-check with both review layers
-/review-spec   specs/your-tech-spec.md     # qualitative
-/validate-spec specs/your-tech-spec.md     # deterministic
-
-# (if either review surfaced findings:)
-
-# 3+. Apply edits + re-validate
-/refine-spec specs/your-tech-spec.md
-```
-
-Each phase is detailed below.
+This page walks through the three phases of the `ido4specs` pipeline in detail. For the high-level picture and the diagram, see the [Overview](./). For installation, prerequisites, and the typical first-run command sequence, see [Get started](./get-started/).
 
 ## Phase 1 — `/create-spec`
 
