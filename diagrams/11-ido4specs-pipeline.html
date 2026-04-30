@@ -8,147 +8,154 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; color: #1c2028; padding: 40px 48px 32px; }
   h1 { font-size: 26px; font-weight: 700; color: #0d1117; margin-bottom: 4px; }
-  .subtitle { font-size: 13px; color: #656d76; margin-bottom: 36px; }
+  .subtitle { font-size: 13px; color: #656d76; margin-bottom: 28px; max-width: 880px; }
 
   .canvas { width: 1100px; margin: 0 auto; }
 
-  /* Pipeline stages (horizontal) */
-  .pipeline { display: flex; align-items: stretch; gap: 0; margin-bottom: 24px; }
-  .stage {
-    flex: 1; border-radius: 10px; padding: 14px 12px; border: 1.5px solid;
-    display: flex; flex-direction: column;
-  }
-  .stage-num { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 3px; }
-  .stage-title { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
-  .stage-actor { font-size: 9.5px; font-weight: 600; margin-bottom: 4px; padding: 2px 6px; border-radius: 3px; display: inline-block; }
-  .stage-detail { font-size: 10px; line-height: 1.5; flex: 1; }
-  .stage-output {
-    margin-top: 8px; padding-top: 6px; border-top: 1px solid rgba(0,0,0,0.08);
-    font-size: 10px; font-weight: 600;
-  }
-  .stage-duration {
-    font-size: 9px; font-weight: 600; margin-top: 4px; padding-top: 4px;
-    border-top: 1px dashed rgba(0,0,0,0.1); opacity: 0.85;
-  }
-
-  .arrow-col { flex: 0 0 24px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #afb8c1; }
-
-  .s-yellow { background: #fff8e1; border-color: #e5c76b; }
-  .s-yellow .stage-num, .s-yellow .stage-title { color: #7c5800; }
-  .s-yellow .stage-actor { background: #ffeeba; color: #7c5800; }
-  .s-yellow .stage-detail, .s-yellow .stage-output, .s-yellow .stage-duration { color: #9a6700; }
-
-  .s-purple { background: #f5f0ff; border-color: #d8b9ff; }
-  .s-purple .stage-num, .s-purple .stage-title { color: #5e35b1; }
-  .s-purple .stage-actor { background: #eddeff; color: #6e40c9; }
-  .s-purple .stage-detail, .s-purple .stage-output, .s-purple .stage-duration { color: #6e40c9; }
-
-  .s-blue { background: #ddf4ff; border-color: #80ccff; }
-  .s-blue .stage-num, .s-blue .stage-title { color: #0550ae; }
-  .s-blue .stage-actor { background: #b6e3ff; color: #0550ae; }
-  .s-blue .stage-detail, .s-blue .stage-output, .s-blue .stage-duration { color: #0969da; }
-
-  .s-green { background: #dafbe1; border-color: #82e596; }
-  .s-green .stage-num, .s-green .stage-title { color: #116329; }
-  .s-green .stage-actor { background: #aceebb; color: #116329; }
-  .s-green .stage-detail, .s-green .stage-output, .s-green .stage-duration { color: #1a7f37; }
-
-  .s-gray { background: #f6f8fa; border-color: #d1d9e0; }
-  .s-gray .stage-num, .s-gray .stage-title { color: #4d5760; }
-  .s-gray .stage-actor { background: #eaeef2; color: #4d5760; }
-  .s-gray .stage-detail, .s-gray .stage-output, .s-gray .stage-duration { color: #656d76; }
-
-  /* Checkpoint pills under the pipeline */
-  .checkpoints { display: flex; align-items: center; margin-bottom: 24px; padding: 0 6px; }
-  .checkpoint-spacer { flex: 1; }
-  .checkpoint {
-    flex: 0 0 auto; padding: 4px 10px; border-radius: 999px;
-    background: #fff; border: 1.5px dashed #afb8c1;
-    font-size: 9px; font-weight: 700; color: #4d5760;
-    text-transform: uppercase; letter-spacing: 0.6px;
-    white-space: nowrap;
-  }
-
-  /* Artifacts row */
-  .artifacts { display: flex; gap: 12px; margin-bottom: 24px; align-items: stretch; }
-  .artifact {
-    flex: 1; border-radius: 8px; padding: 12px 14px; border: 1.5px dashed;
-  }
-  .art-title { font-size: 11px; font-weight: 700; margin-bottom: 4px; }
-  .art-detail { font-size: 10px; line-height: 1.5; }
-
-  .art-spec { border-color: #e5c76b; background: #fffcf0; }
-  .art-spec .art-title { color: #7c5800; }
-  .art-spec .art-detail { color: #9a6700; }
-
-  .art-canvas { border-color: #d8b9ff; background: #faf5ff; }
-  .art-canvas .art-title { color: #5e35b1; }
-  .art-canvas .art-detail { color: #6e40c9; }
-
-  .art-tech { border-color: #80ccff; background: #f0f9ff; }
-  .art-tech .art-title { color: #0550ae; }
-  .art-tech .art-detail { color: #0969da; }
-
-  .art-ready { border-color: #82e596; background: #f0fdf4; }
-  .art-ready .art-title { color: #116329; }
-  .art-ready .art-detail { color: #1a7f37; }
-
-  /* Two-layer review block */
-  .layers {
-    display: flex; gap: 16px; margin-bottom: 24px; align-items: stretch;
-    padding: 14px 16px; background: #f6f8fa; border-radius: 8px;
-    border: 1.5px solid #d1d9e0;
-  }
-  .layers-label {
-    flex: 0 0 130px; font-size: 11px; font-weight: 700;
-    color: #4d5760; text-transform: uppercase; letter-spacing: 0.6px;
-    align-self: center;
-  }
-  .layer {
-    flex: 1; padding: 8px 12px; border-radius: 6px; border: 1.5px solid;
-  }
-  .layer-name { font-size: 11px; font-weight: 700; margin-bottom: 3px; }
-  .layer-kind { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; opacity: 0.8; }
-  .layer-detail { font-size: 10px; line-height: 1.45; }
-  .layer-1 { background: #fff; border-color: #80ccff; }
-  .layer-1 .layer-name, .layer-1 .layer-kind { color: #0550ae; }
-  .layer-1 .layer-detail { color: #0969da; }
-  .layer-2 { background: #fff; border-color: #e5c76b; }
-  .layer-2 .layer-name, .layer-2 .layer-kind { color: #7c5800; }
-  .layer-2 .layer-detail { color: #9a6700; }
-
-  .ecosystem-row { display: flex; gap: 12px; align-items: center; margin-bottom: 22px; }
+  /* Suite orientation strip */
+  .ecosystem-row { display: flex; gap: 12px; align-items: center; margin-bottom: 26px; padding: 10px 14px; background: #f6f8fa; border-radius: 8px; border: 1px solid #d1d9e0; }
   .eco-label {
-    flex: 0 0 130px; font-size: 11px; font-weight: 700;
+    flex: 0 0 110px; font-size: 10px; font-weight: 700;
     color: #4d5760; text-transform: uppercase; letter-spacing: 0.6px;
   }
   .eco-flow { flex: 1; display: flex; gap: 10px; align-items: center; }
   .eco-box {
-    padding: 8px 12px; border-radius: 6px; border: 1.5px solid;
+    padding: 6px 12px; border-radius: 6px; border: 1.5px solid;
     font-size: 11px; font-weight: 600;
   }
-  .eco-arrow { font-size: 16px; color: #afb8c1; }
+  .eco-arrow { font-size: 14px; color: #afb8c1; }
   .eco-shape { background: #fffcf0; border-color: #e5c76b; color: #7c5800; }
   .eco-specs { background: #f0f9ff; border-color: #80ccff; color: #0550ae; font-weight: 700; }
   .eco-dev   { background: #f0fdf4; border-color: #82e596; color: #116329; }
-  .eco-ext   { background: #f6f8fa; border-color: #d1d9e0; color: #4d5760; font-style: italic; }
+  .eco-ext   { background: #fff; border-color: #d1d9e0; color: #4d5760; font-style: italic; }
 
-  /* Footer note */
-  .note {
-    border-radius: 8px; padding: 12px 16px; background: #fff8e1;
-    border: 1.5px solid #e5c76b; font-size: 11px; color: #7c5800;
-    line-height: 1.55;
+  /* Pipeline row with leading INPUT marker */
+  .pipeline-wrap { display: flex; align-items: stretch; gap: 0; margin-bottom: 14px; }
+  .input-marker {
+    flex: 0 0 110px;
+    display: flex; flex-direction: column; align-items: stretch; justify-content: center;
+    padding: 0 6px;
   }
+  .input-label {
+    font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px;
+    color: #7c5800; margin-bottom: 4px; text-align: center;
+  }
+  .input-pill {
+    padding: 9px 10px; border-radius: 8px; border: 1.5px solid #e5c76b;
+    background: #fffcf0; color: #7c5800;
+    font-size: 11px; font-weight: 700; text-align: center;
+    line-height: 1.3;
+  }
+  .input-pill .input-sub { font-size: 9px; font-weight: 500; color: #9a6700; margin-top: 3px; }
+
+  .lead-arrow { flex: 0 0 30px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: #afb8c1; }
+
+  .pipeline { flex: 1; display: flex; align-items: stretch; gap: 0; }
+
+  .stage {
+    flex: 1; border-radius: 10px; padding: 16px 14px; border: 1.5px solid;
+    display: flex; flex-direction: column; position: relative;
+  }
+  .stage-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+  .stage-num {
+    font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
+    padding: 2px 7px; border-radius: 999px;
+    background: rgba(255,255,255,0.6);
+  }
+  .stage-duration {
+    font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 999px;
+    background: rgba(255,255,255,0.7);
+  }
+  .stage-title { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+  .stage-skill {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 10.5px; font-weight: 600; margin-bottom: 8px;
+    opacity: 0.85;
+  }
+  .stage-detail { font-size: 11px; line-height: 1.5; flex: 1; }
+  .stage-output {
+    margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.08);
+    font-size: 11px; font-weight: 700;
+  }
+  .stage-output .arrow-out { font-size: 12px; margin-right: 4px; }
+
+  /* Phase 3 — split into two sub-boxes */
+  .stage-split { display: flex; gap: 8px; flex: 1; }
+  .substage { flex: 1; padding: 8px 10px; border-radius: 6px; background: rgba(255,255,255,0.55); border: 1px solid rgba(0,0,0,0.08); }
+  .substage-kind { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; opacity: 0.9; }
+  .substage-name { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10.5px; font-weight: 700; margin-bottom: 4px; }
+  .substage-detail { font-size: 10px; line-height: 1.4; }
+  .stage-refine { margin-top: 8px; font-size: 10px; font-style: italic; opacity: 0.85; line-height: 1.4; }
+  .stage-refine code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-style: normal; font-size: 10px; }
+
+  .arrow-col { flex: 0 0 22px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #afb8c1; }
+
+  .s-purple { background: #f5f0ff; border-color: #d8b9ff; }
+  .s-purple .stage-num, .s-purple .stage-title, .s-purple .stage-duration { color: #5e35b1; }
+  .s-purple .stage-skill, .s-purple .stage-detail, .s-purple .stage-output { color: #6e40c9; }
+
+  .s-blue { background: #ddf4ff; border-color: #80ccff; }
+  .s-blue .stage-num, .s-blue .stage-title, .s-blue .stage-duration { color: #0550ae; }
+  .s-blue .stage-skill, .s-blue .stage-detail, .s-blue .stage-output { color: #0969da; }
+
+  .s-green { background: #dafbe1; border-color: #82e596; }
+  .s-green .stage-num, .s-green .stage-title, .s-green .stage-duration { color: #116329; }
+  .s-green .stage-skill, .s-green .stage-detail, .s-green .stage-output, .s-green .stage-refine { color: #1a7f37; }
+
+  /* Checkpoint pills */
+  .checkpoints { display: flex; align-items: center; margin-bottom: 24px; padding: 0 6px; }
+  .checkpoint-spacer { flex: 1; }
+  .checkpoint {
+    flex: 0 0 auto; padding: 5px 12px; border-radius: 999px;
+    background: #fff; border: 1.5px dashed #afb8c1;
+    font-size: 10px; font-weight: 700; color: #4d5760;
+    text-transform: uppercase; letter-spacing: 0.6px;
+    white-space: nowrap;
+  }
+
+  /* Artifacts row with explicit arrows */
+  .artifacts-label {
+    font-size: 10px; font-weight: 700; color: #4d5760;
+    text-transform: uppercase; letter-spacing: 0.7px;
+    margin-bottom: 8px;
+  }
+  .artifacts { display: flex; gap: 0; align-items: stretch; margin-bottom: 8px; }
+  .artifact {
+    flex: 1; border-radius: 8px; padding: 11px 13px; border: 1.5px dashed;
+    display: flex; flex-direction: column;
+  }
+  .art-flag { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; opacity: 0.85; }
+  .art-title { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+  .art-detail { font-size: 10px; line-height: 1.4; flex: 1; }
+  .art-arrow { flex: 0 0 24px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #afb8c1; }
+
+  .art-spec { border-color: #e5c76b; background: #fffcf0; }
+  .art-spec .art-flag, .art-spec .art-title { color: #7c5800; }
+  .art-spec .art-detail { color: #9a6700; }
+
+  .art-canvas { border-color: #d8b9ff; background: #faf5ff; }
+  .art-canvas .art-flag, .art-canvas .art-title { color: #5e35b1; }
+  .art-canvas .art-detail { color: #6e40c9; }
+
+  .art-tech { border-color: #80ccff; background: #f0f9ff; }
+  .art-tech .art-flag, .art-tech .art-title { color: #0550ae; }
+  .art-tech .art-detail { color: #0969da; }
+
+  .art-ready { border-color: #82e596; background: #f0fdf4; }
+  .art-ready .art-flag, .art-ready .art-title { color: #116329; }
+  .art-ready .art-detail { color: #1a7f37; }
+
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.92em; }
 </style>
 </head>
 <body>
 
 <h1>ido4specs Pipeline</h1>
-<p class="subtitle">Strategic spec &rarr; reviewable technical spec, in three checkpointed phases. Each phase produces a review-worthy artifact you can inspect before continuing.</p>
+<p class="subtitle">Three phases turn a written spec into a structured technical spec your team or downstream tools can ingest. You review at every phase boundary &mdash; nothing auto-progresses.</p>
 
 <div class="canvas">
 
-  <!-- Suite ecosystem orientation -->
+  <!-- Suite orientation strip -->
   <div class="ecosystem-row">
     <div class="eco-label">In the suite</div>
     <div class="eco-flow">
@@ -161,83 +168,105 @@
     </div>
   </div>
 
-  <!-- Pipeline stages -->
-  <div class="pipeline">
-    <div class="stage s-purple">
-      <div class="stage-num">Phase 1</div>
-      <div class="stage-title">/ido4specs:create-spec</div>
-      <div class="stage-actor">AI: code-analyzer (inline) + parallel Explore subagents on your codebase or integration targets</div>
-      <div class="stage-detail">Parses the strategic spec. Detects project mode (existing / greenfield-with-context / greenfield-standalone). Explores your codebase. Synthesizes a per-capability technical canvas grounded in real file paths and patterns.</div>
-      <div class="stage-output">Output: Technical Canvas</div>
-      <div class="stage-duration">~15&ndash;30 min for 30+ caps</div>
+  <!-- Pipeline row with INPUT marker leading in -->
+  <div class="pipeline-wrap">
+    <div class="input-marker">
+      <div class="input-label">Input</div>
+      <div class="input-pill">
+        Strategic spec
+        <div class="input-sub">.md file you bring</div>
+      </div>
     </div>
-    <div class="arrow-col">&rarr;</div>
-    <div class="stage s-blue">
-      <div class="stage-num">Phase 2</div>
-      <div class="stage-title">/ido4specs:synthesize-spec</div>
-      <div class="stage-actor">AI: technical-spec-writer (inline) &mdash; pure transform, no codebase exploration</div>
-      <div class="stage-detail">Reads the canvas. Decomposes capabilities into right-sized tasks with effort/risk/type/AI metadata and explicit dependencies. Auto-runs structural validation against the bundled parser before returning.</div>
-      <div class="stage-output">Output: Technical Spec (.md)</div>
-      <div class="stage-duration">~10&ndash;20 min</div>
-    </div>
-    <div class="arrow-col">&rarr;</div>
-    <div class="stage s-green">
-      <div class="stage-num">Phase 3</div>
-      <div class="stage-title">/ido4specs:review-spec &amp; /ido4specs:validate-spec</div>
-      <div class="stage-actor">Two layers: deterministic parser (validate) + LLM judgment (review). Plus /ido4specs:refine-spec for edits.</div>
-      <div class="stage-detail">Independent layers cross-check the spec. Deterministic content assertions (T0&ndash;T8) catch structural or metadata issues. Qualitative review surfaces missing dependencies, calibration concerns, descriptions that aren't code-grounded.</div>
-      <div class="stage-output">Output: PASS / PASS WITH WARNINGS / FAIL with findings</div>
-      <div class="stage-duration">~2&ndash;5 min per skill</div>
+    <div class="lead-arrow">&rarr;</div>
+    <div class="pipeline">
+
+      <div class="stage s-purple">
+        <div class="stage-header">
+          <div class="stage-num">Phase 1</div>
+          <div class="stage-duration">~15&ndash;30 min</div>
+        </div>
+        <div class="stage-title">Read &amp; explore</div>
+        <div class="stage-skill">/ido4specs:create-spec</div>
+        <div class="stage-detail">Reads your spec, then explores your codebase (or integration targets if greenfield) to ground each capability in real file paths and patterns.</div>
+        <div class="stage-output"><span class="arrow-out">&rarr;</span>Technical canvas</div>
+      </div>
+
+      <div class="arrow-col">&rarr;</div>
+
+      <div class="stage s-blue">
+        <div class="stage-header">
+          <div class="stage-num">Phase 2</div>
+          <div class="stage-duration">~10&ndash;20 min</div>
+        </div>
+        <div class="stage-title">Decompose into tasks</div>
+        <div class="stage-skill">/ido4specs:synthesize-spec</div>
+        <div class="stage-detail">Turns each capability into right-sized tasks with effort, risk, AI suitability, dependencies, and verifiable success conditions.</div>
+        <div class="stage-output"><span class="arrow-out">&rarr;</span>Technical spec (.md)</div>
+      </div>
+
+      <div class="arrow-col">&rarr;</div>
+
+      <div class="stage s-green">
+        <div class="stage-header">
+          <div class="stage-num">Phase 3</div>
+          <div class="stage-duration">~2&ndash;5 min each</div>
+        </div>
+        <div class="stage-title">Review &amp; validate</div>
+        <div style="font-size: 10.5px; opacity: 0.85; margin-bottom: 8px;">Two skills cross-check the spec from different angles.</div>
+        <div class="stage-split">
+          <div class="substage">
+            <div class="substage-kind">Layer 1 &mdash; deterministic</div>
+            <div class="substage-name">/ido4specs:validate-spec</div>
+            <div class="substage-detail">Parser checks + 8 content assertions (T0&ndash;T8).</div>
+          </div>
+          <div class="substage">
+            <div class="substage-kind">Layer 2 &mdash; qualitative</div>
+            <div class="substage-name">/ido4specs:review-spec</div>
+            <div class="substage-detail">LLM judgment on what the parser can't see.</div>
+          </div>
+        </div>
+        <div class="stage-refine">If findings: <code>/ido4specs:refine-spec</code> applies edits + re-validates.</div>
+      </div>
+
     </div>
   </div>
 
-  <!-- Human checkpoints between phases -->
+  <!-- Checkpoint pills under the pipeline -->
   <div class="checkpoints">
+    <div style="flex: 0 0 140px;"></div>
     <div class="checkpoint">You review the canvas</div>
     <div class="checkpoint-spacer"></div>
     <div class="checkpoint">You review the tech spec</div>
     <div class="checkpoint-spacer"></div>
-    <div class="checkpoint">You decide what's ingestion-ready</div>
+    <div class="checkpoint">You decide it's ingestion-ready</div>
   </div>
 
-  <!-- Intermediate artifacts -->
+  <!-- Artifact lifecycle with arrows -->
+  <div class="artifacts-label">Artifact lifecycle</div>
   <div class="artifacts">
     <div class="artifact art-spec">
-      <div class="art-title">Strategic Spec (input)</div>
-      <div class="art-detail">From ido4shape or hand-authored. Groups, capabilities with priority/risk/depends_on, cross-cutting concerns, success conditions. The WHAT, not the HOW.</div>
+      <div class="art-flag">Input</div>
+      <div class="art-title">Strategic spec</div>
+      <div class="art-detail">From <code>ido4shape</code> or hand-authored. Capabilities, success conditions, cross-cutting concerns. The WHAT, not the HOW.</div>
     </div>
+    <div class="art-arrow">&rarr;</div>
     <div class="artifact art-canvas">
-      <div class="art-title">Technical Canvas</div>
-      <div class="art-detail">Strategic context preserved verbatim + per-capability codebase analysis: relevant modules, patterns, code-level dependencies, complexity assessment, surprises uncovered during exploration.</div>
+      <div class="art-flag">After Phase 1</div>
+      <div class="art-title">Technical canvas</div>
+      <div class="art-detail">Strategic context preserved + per-capability codebase analysis: relevant modules, patterns, dependencies, complexity.</div>
     </div>
+    <div class="art-arrow">&rarr;</div>
     <div class="artifact art-tech">
-      <div class="art-title">Technical Spec</div>
-      <div class="art-detail">Capabilities decomposed into implementation tasks. Per task: effort (S/M/L/XL), risk (low/medium/high/critical), type, AI suitability, depends_on graph, code-verifiable success conditions, file paths.</div>
+      <div class="art-flag">After Phase 2</div>
+      <div class="art-title">Technical spec</div>
+      <div class="art-detail">Capabilities decomposed into tasks. Per task: effort, risk, type, AI suitability, depends_on, success conditions.</div>
     </div>
+    <div class="art-arrow">&rarr;</div>
     <div class="artifact art-ready">
+      <div class="art-flag">After Phase 3</div>
       <div class="art-title">Ingestion-ready</div>
-      <div class="art-detail">Plain markdown that any downstream can consume. Pipe to ido4dev for GitHub issues, or to your own ticket / PM tooling. The spec is the contract.</div>
+      <div class="art-detail">Plain markdown. Pipe to <code>ido4dev</code> for GitHub issues, your own ticket system, or any downstream tool.</div>
     </div>
-  </div>
-
-  <!-- Two-layer review explainer -->
-  <div class="layers">
-    <div class="layers-label">Phase 3<br/>two-layer review</div>
-    <div class="layer layer-1">
-      <div class="layer-kind">Layer 1 &mdash; deterministic</div>
-      <div class="layer-name">/ido4specs:validate-spec</div>
-      <div class="layer-detail">Bundled parser checks structural integrity (heading patterns, ref format, metadata values, dependency graph). Then T0&ndash;T8 content assertions: descriptions code-grounded, success conditions verifiable, metadata calibrated, capability coherence. Fast, cheap, reproducible.</div>
-    </div>
-    <div class="layer layer-2">
-      <div class="layer-kind">Layer 2 &mdash; qualitative</div>
-      <div class="layer-name">/ido4specs:review-spec</div>
-      <div class="layer-detail">LLM-driven review against the spec content. Catches missing dependencies named in description text, sibling-pattern inconsistencies, hub-task identification, narrative-grade quality. Surfaces what the parser can't judge.</div>
-    </div>
-  </div>
-
-  <!-- Traceability / follow-up note -->
-  <div class="note">
-    <strong>Refine + re-validate loop:</strong> when review-spec or validate-spec surfaces findings, <code>/ido4specs:refine-spec</code> applies natural-language edits (typically depends_on additions, metadata corrections, description adjustments) and re-runs the bundled parser to catch structural regressions immediately. Skill boundaries are the human checkpoints &mdash; nothing auto-progresses to the next phase.
   </div>
 
 </div>
