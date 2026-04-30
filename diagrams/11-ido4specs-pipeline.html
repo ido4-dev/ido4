@@ -8,33 +8,58 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; color: #1c2028; padding: 40px 48px 32px; }
   h1 { font-size: 26px; font-weight: 700; color: #0d1117; margin-bottom: 4px; }
-  .subtitle { font-size: 13px; color: #656d76; margin-bottom: 28px; max-width: 880px; }
+  .subtitle { font-size: 13px; color: #656d76; margin-bottom: 28px; max-width: 940px; }
 
-  .canvas { width: 1100px; margin: 0 auto; }
+  .canvas { width: 1240px; margin: 0 auto; }
 
-  /* Suite orientation strip */
-  .ecosystem-row { display: flex; gap: 12px; align-items: center; margin-bottom: 26px; padding: 10px 14px; background: #f6f8fa; border-radius: 8px; border: 1px solid #d1d9e0; }
-  .eco-label {
-    flex: 0 0 110px; font-size: 10px; font-weight: 700;
-    color: #4d5760; text-transform: uppercase; letter-spacing: 0.6px;
+  .section-label {
+    font-size: 10px; font-weight: 700; color: #4d5760;
+    text-transform: uppercase; letter-spacing: 0.7px;
+    margin-bottom: 6px;
   }
-  .eco-flow { flex: 1; display: flex; gap: 10px; align-items: center; }
+
+  /* ─── Shared column widths so ecosystem row + pipeline row align ─── */
+  /* Visual columns from left to right:                                  */
+  /*   [ INPUT (110px) | LEAD-ARROW (30px) | PIPELINE (flex:1) |         */
+  /*     TRAIL-ARROW (30px) | TRAIL-SPACER (130px) ]                     */
+
+  /* ─── Ecosystem row (swim-lane overlay) ─── */
+  .ecosystem-row {
+    display: flex; align-items: stretch; gap: 0;
+    padding: 12px 14px; background: #f6f8fa;
+    border-radius: 8px; border: 1px solid #d1d9e0;
+    margin-bottom: 26px;
+  }
+  .eco-input-cell  { flex: 0 0 110px; display: flex; align-items: center; justify-content: center; }
+  .eco-lead-arrow  { flex: 0 0 30px;  display: flex; align-items: center; justify-content: center; font-size: 16px; color: #afb8c1; }
+  .eco-pipeline-cell { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 12px; }
+  .eco-trail-arrow { flex: 0 0 30px;  display: flex; align-items: center; justify-content: center; font-size: 16px; color: #afb8c1; }
+  .eco-output-cell { flex: 0 0 130px; display: flex; flex-direction: column; align-items: stretch; justify-content: center; gap: 4px; }
+
   .eco-box {
-    padding: 6px 12px; border-radius: 6px; border: 1.5px solid;
+    padding: 7px 12px; border-radius: 6px; border: 1.5px solid;
     font-size: 11px; font-weight: 600;
+    text-align: center; white-space: nowrap;
   }
-  .eco-arrow { font-size: 14px; color: #afb8c1; }
   .eco-shape { background: #fffcf0; border-color: #e5c76b; color: #7c5800; }
-  .eco-specs { background: #f0f9ff; border-color: #80ccff; color: #0550ae; font-weight: 700; }
+  .eco-specs {
+    background: #f0f9ff; border-color: #80ccff; color: #0550ae;
+    font-weight: 700; padding: 9px 16px;
+    width: 100%;
+  }
   .eco-dev   { background: #f0fdf4; border-color: #82e596; color: #116329; }
-  .eco-ext   { background: #fff; border-color: #d1d9e0; color: #4d5760; font-style: italic; }
+  .eco-ext   {
+    font-size: 9.5px; color: #656d76; font-style: italic;
+    text-align: center; padding: 0 4px;
+  }
 
-  /* Pipeline row with leading INPUT marker */
+  /* ─── Pipeline row (matches column structure of ecosystem row) ─── */
   .pipeline-wrap { display: flex; align-items: stretch; gap: 0; margin-bottom: 14px; }
+
   .input-marker {
     flex: 0 0 110px;
     display: flex; flex-direction: column; align-items: stretch; justify-content: center;
-    padding: 0 6px;
+    padding: 0 4px;
   }
   .input-label {
     font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px;
@@ -43,8 +68,7 @@
   .input-pill {
     padding: 9px 10px; border-radius: 8px; border: 1.5px solid #e5c76b;
     background: #fffcf0; color: #7c5800;
-    font-size: 11px; font-weight: 700; text-align: center;
-    line-height: 1.3;
+    font-size: 11px; font-weight: 700; text-align: center; line-height: 1.3;
   }
   .input-pill .input-sub { font-size: 9px; font-weight: 500; color: #9a6700; margin-top: 3px; }
 
@@ -56,6 +80,8 @@
     flex: 1; border-radius: 10px; padding: 16px 14px; border: 1.5px solid;
     display: flex; flex-direction: column; position: relative;
   }
+  .stage.s-green { flex: 1.3; }  /* Phase 3 wider for the two sub-boxes */
+
   .stage-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
   .stage-num {
     font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
@@ -79,7 +105,7 @@
   }
   .stage-output .arrow-out { font-size: 12px; margin-right: 4px; }
 
-  /* Phase 3 — split into two sub-boxes */
+  /* Phase 3 split into two sub-boxes */
   .stage-split { display: flex; gap: 8px; flex: 1; }
   .substage { flex: 1; padding: 8px 10px; border-radius: 6px; background: rgba(255,255,255,0.55); border: 1px solid rgba(0,0,0,0.08); }
   .substage-kind { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; opacity: 0.9; }
@@ -90,6 +116,10 @@
 
   .arrow-col { flex: 0 0 22px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #afb8c1; }
 
+  .trail-arrow-spacer { flex: 0 0 30px; }  /* empty — column reserved for ecosystem row's trail arrow */
+  .trail-spacer       { flex: 0 0 130px; } /* empty — column reserved for ecosystem row's ido4dev cell */
+
+  /* Stage colors */
   .s-purple { background: #f5f0ff; border-color: #d8b9ff; }
   .s-purple .stage-num, .s-purple .stage-title, .s-purple .stage-duration { color: #5e35b1; }
   .s-purple .stage-skill, .s-purple .stage-detail, .s-purple .stage-output { color: #6e40c9; }
@@ -102,7 +132,7 @@
   .s-green .stage-num, .s-green .stage-title, .s-green .stage-duration { color: #116329; }
   .s-green .stage-skill, .s-green .stage-detail, .s-green .stage-output, .s-green .stage-refine { color: #1a7f37; }
 
-  /* Checkpoint pills */
+  /* ─── Checkpoint pills (between phase columns) ─── */
   .checkpoints { display: flex; align-items: center; margin-bottom: 24px; padding: 0 6px; }
   .checkpoint-spacer { flex: 1; }
   .checkpoint {
@@ -113,12 +143,7 @@
     white-space: nowrap;
   }
 
-  /* Artifacts row with explicit arrows */
-  .artifacts-label {
-    font-size: 10px; font-weight: 700; color: #4d5760;
-    text-transform: uppercase; letter-spacing: 0.7px;
-    margin-bottom: 8px;
-  }
+  /* ─── Artifact lifecycle (4 boxes with arrows) ─── */
   .artifacts { display: flex; gap: 0; align-items: stretch; margin-bottom: 8px; }
   .artifact {
     flex: 1; border-radius: 8px; padding: 11px 13px; border: 1.5px dashed;
@@ -155,21 +180,27 @@
 
 <div class="canvas">
 
-  <!-- Suite orientation strip -->
+  <!-- ─── In-the-suite row (swim-lane overlay over the pipeline) ─── -->
+  <div class="section-label">In the suite</div>
   <div class="ecosystem-row">
-    <div class="eco-label">In the suite</div>
-    <div class="eco-flow">
+    <div class="eco-input-cell">
       <div class="eco-box eco-shape">ido4shape</div>
-      <div class="eco-arrow">&rarr;</div>
+    </div>
+    <div class="eco-lead-arrow">&rarr;</div>
+    <div class="eco-pipeline-cell">
       <div class="eco-box eco-specs">ido4specs (this plugin)</div>
-      <div class="eco-arrow">&rarr;</div>
+    </div>
+    <div class="eco-trail-arrow">&rarr;</div>
+    <div class="eco-output-cell">
       <div class="eco-box eco-dev">ido4dev</div>
-      <div class="eco-box eco-ext">or any other downstream tool</div>
+      <div class="eco-ext">or any other downstream tool</div>
     </div>
   </div>
 
-  <!-- Pipeline row with INPUT marker leading in -->
+  <!-- ─── Pipeline row (same column structure as ecosystem row) ─── -->
+  <div class="section-label">Pipeline</div>
   <div class="pipeline-wrap">
+
     <div class="input-marker">
       <div class="input-label">Input</div>
       <div class="input-pill">
@@ -177,7 +208,9 @@
         <div class="input-sub">.md file you bring</div>
       </div>
     </div>
+
     <div class="lead-arrow">&rarr;</div>
+
     <div class="pipeline">
 
       <div class="stage s-purple">
@@ -229,6 +262,11 @@
       </div>
 
     </div>
+
+    <!-- Empty trail columns to reserve space below the ecosystem row's right side -->
+    <div class="trail-arrow-spacer"></div>
+    <div class="trail-spacer"></div>
+
   </div>
 
   <!-- Checkpoint pills under the pipeline -->
@@ -239,10 +277,11 @@
     <div class="checkpoint">You review the tech spec</div>
     <div class="checkpoint-spacer"></div>
     <div class="checkpoint">You decide it's ingestion-ready</div>
+    <div style="flex: 0 0 160px;"></div>
   </div>
 
-  <!-- Artifact lifecycle with arrows -->
-  <div class="artifacts-label">Artifact lifecycle</div>
+  <!-- ─── Artifact lifecycle ─── -->
+  <div class="section-label">Artifact lifecycle</div>
   <div class="artifacts">
     <div class="artifact art-spec">
       <div class="art-flag">Input</div>
