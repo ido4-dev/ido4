@@ -135,4 +135,10 @@ If the lag persists after update, the plugin's release pipeline hasn't caught up
 - **[Overview](./)** — what `ido4specs` does and how it fits in the suite
 - **[Get started](./get-started/)** — install, prerequisites, first run
 - **[How it works](./how-it-works/)** — detailed per-phase walkthrough
-- *Skill reference — coming soon as separate per-skill pages*
+- **Skill reference** — per-skill detail pages:
+  [`/create-spec`](./skills/create-spec/) ·
+  [`/synthesize-spec`](./skills/synthesize-spec/) ·
+  [`/validate-spec`](./skills/validate-spec/) ·
+  [`/review-spec`](./skills/review-spec/) ·
+  [`/refine-spec`](./skills/refine-spec/) ·
+  [`/doctor`](./skills/doctor/)

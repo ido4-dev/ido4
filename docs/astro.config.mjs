@@ -68,6 +68,18 @@ export default defineConfig({
                 { label: 'Overview', slug: 'plugins/ido4specs' },
                 { label: 'Get started', slug: 'plugins/ido4specs/get-started' },
                 { label: 'How it works', slug: 'plugins/ido4specs/how-it-works' },
+                {
+                  label: 'Skill reference',
+                  collapsed: true,
+                  items: [
+                    { label: '/create-spec', slug: 'plugins/ido4specs/skills/create-spec' },
+                    { label: '/synthesize-spec', slug: 'plugins/ido4specs/skills/synthesize-spec' },
+                    { label: '/validate-spec', slug: 'plugins/ido4specs/skills/validate-spec' },
+                    { label: '/review-spec', slug: 'plugins/ido4specs/skills/review-spec' },
+                    { label: '/refine-spec', slug: 'plugins/ido4specs/skills/refine-spec' },
+                    { label: '/doctor', slug: 'plugins/ido4specs/skills/doctor' },
+                  ],
+                },
                 { label: 'FAQ + troubleshooting', slug: 'plugins/ido4specs/faq' },
               ],
             },

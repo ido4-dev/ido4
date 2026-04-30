@@ -102,4 +102,5 @@ For the detail of what each phase does internally, see [How it works](./how-it-w
 ## Where to go next
 
 - **[How it works](./how-it-works/)** — detailed walkthrough of the three phases, what each skill does, and what artifacts are produced
-- *Skill reference, FAQ + Troubleshooting — coming soon as separate pages*
+- **[Skill reference](./skills/create-spec/)** — per-skill pages with stages, inputs, outputs, and common failure modes
+- **[FAQ + troubleshooting](./faq/)** — common questions and scenario recipes

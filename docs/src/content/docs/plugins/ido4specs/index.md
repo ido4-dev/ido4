@@ -51,8 +51,14 @@ What it *does* do is the translation layer between strategic intent and engineer
 
 - **[Get started](./get-started/)** — install, prerequisites, and the first-run command flow
 - **[How it works](./how-it-works/)** — detailed walkthrough of each phase, what each skill does, what artifacts are produced
+- **Skill reference** — per-skill pages with stages, inputs, outputs, and failure modes:
+  [`/create-spec`](./skills/create-spec/) ·
+  [`/synthesize-spec`](./skills/synthesize-spec/) ·
+  [`/validate-spec`](./skills/validate-spec/) ·
+  [`/review-spec`](./skills/review-spec/) ·
+  [`/refine-spec`](./skills/refine-spec/) ·
+  [`/doctor`](./skills/doctor/)
 - **[FAQ + troubleshooting](./faq/)** — common questions, scenario recipes, and what to do when something goes wrong
-- *Skill reference — coming soon as per-skill pages*
 
 ## Reference
 
