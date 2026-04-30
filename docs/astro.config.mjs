@@ -59,6 +59,12 @@ export default defineConfig({
           ],
         },
         {
+          label: 'Plugins',
+          items: [
+            { label: 'ido4specs', slug: 'plugins/ido4specs' },
+          ],
+        },
+        {
           label: 'Skills & Intelligence',
           items: [
             { label: 'Skills Overview', slug: 'skills/overview' },
