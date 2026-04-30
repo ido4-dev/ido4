@@ -11,7 +11,7 @@ The point is **traceability without ceremony**. The strategic spec author sees t
 
 ## Pipeline at a glance
 
-<details>
+<details open>
 <summary>ido4specs Pipeline — full flow with artifacts and checkpoints</summary>
 
 <a href="/diagrams/11-ido4specs-pipeline.html" target="_blank" rel="noopener" title="Click to open interactive diagram">
