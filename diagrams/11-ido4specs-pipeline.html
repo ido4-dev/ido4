@@ -256,12 +256,12 @@
           <div class="substage">
             <div class="substage-kind">1. Deterministic pass</div>
             <div class="substage-name">/validate-spec</div>
-            <div class="substage-detail">Parser checks + 8 content assertions (T0&ndash;T8).</div>
+            <div class="substage-detail">Parser checks structure, metadata, and content rules.</div>
           </div>
           <div class="substage">
             <div class="substage-kind">2. Qualitative pass</div>
             <div class="substage-name">/review-spec</div>
-            <div class="substage-detail">LLM judgment on what the parser can't see.</div>
+            <div class="substage-detail">LLM review of quality, code-grounding, and consistency.</div>
           </div>
         </div>
         <div class="stage-refine">If findings: <code>/refine-spec</code> applies edits + re-validates.</div>
