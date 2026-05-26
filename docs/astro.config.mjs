@@ -62,8 +62,30 @@ export default defineConfig({
           label: 'Plugins',
           items: [
             {
+              label: 'ido4shape',
+              collapsed: true,
+              items: [
+                { label: 'Overview', slug: 'plugins/ido4shape' },
+                { label: 'Get started', slug: 'plugins/ido4shape/get-started' },
+                { label: 'How it works', slug: 'plugins/ido4shape/how-it-works' },
+                {
+                  label: 'Skill reference',
+                  collapsed: true,
+                  items: [
+                    { label: '/create-spec', slug: 'plugins/ido4shape/skills/create-spec' },
+                    { label: '/synthesize-spec', slug: 'plugins/ido4shape/skills/synthesize-spec' },
+                    { label: '/validate-spec', slug: 'plugins/ido4shape/skills/validate-spec' },
+                    { label: '/review-spec', slug: 'plugins/ido4shape/skills/review-spec' },
+                    { label: '/refine-spec', slug: 'plugins/ido4shape/skills/refine-spec' },
+                    { label: '/stakeholder-brief', slug: 'plugins/ido4shape/skills/stakeholder-brief' },
+                  ],
+                },
+                { label: 'FAQ + troubleshooting', slug: 'plugins/ido4shape/faq' },
+              ],
+            },
+            {
               label: 'ido4specs',
-              collapsed: false,
+              collapsed: true,
               items: [
                 { label: 'Overview', slug: 'plugins/ido4specs' },
                 { label: 'Get started', slug: 'plugins/ido4specs/get-started' },
