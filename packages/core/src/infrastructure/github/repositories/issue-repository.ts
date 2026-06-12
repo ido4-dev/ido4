@@ -138,6 +138,8 @@ export class GitHubIssueRepository implements IIssueRepository {
         message: `Status option "${statusKey}" not found in config`,
         resource: 'status_option',
         identifier: statusKey,
+        remediation:
+          'The GitHub Project board no longer matches the methodology profile — a status column was likely renamed or deleted. Restore the column on the board, or re-initialize the project to regenerate field config.',
       });
     }
 
@@ -171,6 +173,8 @@ export class GitHubIssueRepository implements IIssueRepository {
         message: `Field "${fieldKey}" not found in config`,
         resource: 'field',
         identifier: fieldKey,
+        remediation:
+          'The GitHub Project board no longer matches the methodology profile — a field was likely renamed or deleted. Restore the field on the board, or re-initialize the project to regenerate field config.',
       });
     }
 

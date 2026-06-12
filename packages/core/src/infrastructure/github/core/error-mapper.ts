@@ -73,6 +73,8 @@ export class GraphQLErrorMapper {
         statusCode: gqlError.response?.status,
         retryable: false,
         context: { operation, errorType },
+        remediation:
+          'Verify GITHUB_TOKEN is valid and has repo + project scopes, then retry. If the error persists, the GitHub API may be rejecting the request shape — check the operation context.',
         cause: error instanceof Error ? error : undefined,
       });
     }
@@ -129,6 +131,10 @@ export class GraphQLErrorMapper {
         statusCode: status,
         retryable: status >= 500,
         context: { operation },
+        remediation:
+          status >= 500
+            ? 'GitHub returned a server error — retry shortly.'
+            : 'Verify GITHUB_TOKEN scopes (repo + project) and that the request targets an accessible repository.',
         cause: error instanceof Error ? error : undefined,
       });
     }
@@ -139,6 +145,8 @@ export class GraphQLErrorMapper {
       message: `Unexpected GitHub API error during ${operation}: ${message}`,
       retryable: false,
       context: { operation },
+      remediation:
+        'Check network connectivity and that GITHUB_TOKEN is set and valid. If both look right, re-run with the same parameters — transient GitHub failures sometimes surface this way.',
       cause: error instanceof Error ? error : undefined,
     });
   }

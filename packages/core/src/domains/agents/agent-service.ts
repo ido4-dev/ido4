@@ -185,6 +185,7 @@ export class AgentService implements IAgentService {
         message: `Agent "${agentId}" not registered`,
         resource: 'agent',
         identifier: agentId,
+        remediation: 'Register the agent first with register_agent, or check the agentId against list_agents.',
       });
     }
 

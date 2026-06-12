@@ -207,6 +207,8 @@ export class GitHubRepositoryRepository implements IRepositoryRepository {
         message: 'Repository has no default branch',
         statusCode: 422,
         context: { repository: this.config.project.repository },
+        remediation:
+          'The repository is empty. Push an initial commit (e.g., a README) to establish a default branch, then retry.',
       });
     }
 
