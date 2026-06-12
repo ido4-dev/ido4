@@ -4,6 +4,21 @@ All notable changes to ido4 are documented here.
 
 All packages (`@ido4/spec-format`, `@ido4/core`, `@ido4/mcp`) are released together at the same version.
 
+## [0.9.2] — 2026-06-12
+
+Patch release: error-UX hardening in `@ido4/core`. No behavior or schema changes — additive remediation strings only.
+
+**Remediation strings added to user-reachable error paths that lacked them** (ido4dev Phase 5 WS5 error-UX audit; 7 sites):
+
+- `infrastructure/github/core/error-mapper.ts` — the three generic fall-throughs (unclassified GraphQL errors, unclassified HTTP status errors, unknown error shape) now carry guidance: 5xx → retry shortly; 4xx/unclassified → verify `GITHUB_TOKEN` validity and repo + project scopes; unknown → network/token checks.
+- `infrastructure/github/repositories/issue-repository.ts` — "Status option/Field not found in config" now explains the board-vs-profile mismatch (a renamed/deleted Project column) and recommends restore-or-reinitialize.
+- `infrastructure/github/repositories/repository-repository.ts` — "Repository has no default branch" now says: push an initial commit, then retry.
+- `domains/agents/agent-service.ts` — "Agent not registered" now points at `register_agent` / `list_agents`.
+
+Audit inventory for the record: 72 `Ido4Error`-family throw sites in core; 51 already carried remediation; 14 deliberately left (self-explanatory NotFound sites with structured context; `RateLimitError` auto-injects remediation; sanitizer messages already instructive). All 54 MCP tool handlers verified wrapped in `handleErrors`. Full report: `ido4dev/reports/error-ux-audit-2026-06-12.md`.
+
+**Tests:** 1,840 passing (unchanged — additive strings only).
+
 ## [0.9.1] — 2026-04-28
 
 Patch release fixing prefix derivation in `@ido4/spec-format`.
