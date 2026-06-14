@@ -4,6 +4,34 @@ All notable changes to ido4 are documented here.
 
 All packages (`@ido4/spec-format`, `@ido4/core`, `@ido4/mcp`) are released together at the same version.
 
+## [0.10.1] — 2026-06-14
+
+Patch release — audit-trustworthiness + daily-ceremony fixes from the ido4dev synthetic-002/003 runs. No breaking changes (one additive response field).
+
+**A5 — sprint-data path returned empty (two bugs, High).** The daily ceremonies (`get_standup_data` / `get_board_data` / `get_sprint_status`) returned the active sprint with `tasks: []` (or hard-errored "no active container") despite successful assignments — broken on day one of any sprint.
+- `container-service.ts` `listContainers`: a container was `'active'` only once a task *completed*, so a freshly-loaded sprint (work in flight, nothing Done yet) was `'not_started'` and invisible to `resolveActiveContainer`. Now a container with assigned, not-all-done tasks is `'active'`.
+- `task-service.ts` `listTasks` (the bigger one — another Hydro hardcode): it read the container from a hardcoded `fieldValues.Wave` and filtered on `containers['wave']`, so a Scrum task (field `Sprint`) or Shape Up (field `Cycle`) was invisible → empty boards for every non-Hydro project. `TaskService` now takes the profile and maps each container's `taskField` generically (legacy `wave` alias retained).
+
+**A3 — ceremonies no longer dismiss governance findings as "phantom."** The retro/review/standup prompts reconciled PM findings against `query_audit_trail` and called a real deterred-bypass finding a phantom (deterred attempts never reach the audit log). All audit-trail steps across the 3 methodology prompt sets now carry a caveat: PM-persisted `open_findings` + deterred bypass attempts are governance-layer memory absent from the audit trail by design.
+
+**A4 — oversize-pull advisory (additive).** Assigning an XL (oversized) task to a sprint/wave/cycle returns a non-blocking `ContainerAssignResult.warnings[]` entry. Dependency-readiness warnings tracked as a refinement.
+
+**Tests:** 1,850 passing (1237 core + 466 + 106 + 41; +6 over 0.10.0).
+
+## [0.10.0] — 2026-06-14
+
+Governance-quality release driven by the ido4dev synthetic Scrum-org simulation (`ido4dev/reports/synthetic-001`). Two methodology-correctness fixes, one institutional-memory addition. **Behavior change: the default closing transition now requires an approving PR review (P2).**
+
+**P1 — Profile-driven container naming (methodology equality).** `InputSanitizer.validateContainerFormat` hardcoded the Hydro `wave-NNN` pattern for ALL container names, so a Scrum project's `Sprint 1` was rejected and forced into `wave-001-...` (caught live by the synthetic). It now reads the active profile's execution-container `namePattern` / `singular` / `nameExample` (all already declared per profile — Scrum `^Sprint \d+$` / "Sprint 14", Shape Up cycle, Hydro wave); falls back to the wave pattern only for legacy no-profile callers. `ContainerService` threads the rule into both call sites. +3 tests. Pulls forward the minimal slice of methodology-runner Phase 3.
+
+**P2 — Definition-of-Done gate on closing transitions** (behavior change). A story could reach Done via `approve_task` with its linked PR open, unmerged, and unreviewed (a rubber-stamp closure the synthetic value-judge caught). The default closing pipeline ran only `ApprovalRequirementValidation`, which is purely advisory. `PRReviewValidation:1` (requires the linked PR to exist + have ≥1 approving review) existed but was wired only into the tech-debt override. Added it to all three default closing pipelines (Scrum `approve`, Hydro `approve`, Shape Up `ship`). Relaxed overrides unchanged (spike, kill; tech-debt stays at :2). GitHub blocks self-approval, so this genuinely requires another actor's review. +3 tests. **Consumers:** tasks now cannot close without an approving review on their PR — teams that close without PR review must add a profile override.
+
+**P7 — (no engine change; see ido4dev hooks)** Deterred BRE-bypass attempts are now recorded at the PreToolUse gate in the ido4dev plugin (`state.bypass_attempts[]`), closing the gap where a blocked `skipValidation` attempt left no trace for the audit. Noted here because it completes the bypass-visibility story alongside the engine's existing `executed` flag.
+
+**Multi-agent identity (P5 — confirmed already supported).** No code change. The feasibility pass confirmed `createMcpActor()` already resolves distinct `actor.id` from `IDO4_AGENT_ID`, and the audit store filters/groups by `actor.id` — so "one engineer, N agents" is representable today by launching each agent session with a distinct `IDO4_AGENT_ID`. Documented for the record.
+
+**Tests:** 1,847 passing (1234 core + 466 + 106 + 41; +6 over 0.9.2).
+
 ## [0.9.2] — 2026-06-12
 
 Patch release: error-UX hardening in `@ido4/core`. No behavior or schema changes — additive remediation strings only.
