@@ -5,6 +5,7 @@ export { registerProjectTools } from './project-tools.js';
 export { registerEpicTools } from './epic-tools.js';
 export { registerSandboxTools } from './sandbox-tools.js';
 export { registerAuditTools } from './audit-tools.js';
+export { registerFindingTools } from './finding-tools.js';
 export { registerAnalyticsTools } from './analytics-tools.js';
 export { registerAgentTools } from './agent-tools.js';
 export { registerComplianceTools } from './compliance-tools.js';

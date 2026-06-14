@@ -19,6 +19,7 @@ import { registerProjectTools } from './tools/index.js';
 import { registerEpicTools } from './tools/index.js';
 import { registerSandboxTools } from './tools/index.js';
 import { registerAuditTools } from './tools/index.js';
+import { registerFindingTools } from './tools/index.js';
 import { registerAnalyticsTools } from './tools/index.js';
 import { registerAgentTools } from './tools/index.js';
 import { registerComplianceTools } from './tools/index.js';
@@ -92,6 +93,7 @@ export function createServer(profile: MethodologyProfile | null): McpServer {
   registerDependencyTools(server);
   registerSandboxTools(server);
   registerAuditTools(server);
+  registerFindingTools(server);
   registerAnalyticsTools(server);
   registerAgentTools(server);
   registerComplianceTools(server);

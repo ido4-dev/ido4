@@ -204,6 +204,8 @@ export { ProjectInitService } from './domains/projects/index.js';
 // Domain Services — Audit
 export { AuditService } from './domains/audit/index.js';
 export { JsonlAuditStore } from './domains/audit/index.js';
+export { classifyObservation, classifySpecOrphanRate, VALID_FINDING_CATEGORIES } from './domains/audit/index.js';
+export type { Observation, Classification, FindingCategory, FindingSeverity } from './domains/audit/index.js';
 
 // Domain Services — Agents
 export { AgentService } from './domains/agents/index.js';

@@ -11,3 +11,8 @@ export type {
   AuditSummary,
   AuditSummaryOptions,
 } from './audit-store.js';
+export { classifyObservation, classifySpecOrphanRate, VALID_FINDING_CATEGORIES } from './finding-classifier.js';
+export type {
+  Observation, ClosureObservation, BypassObservation, EpicObservation,
+  Classification, FindingCategory, FindingSeverity,
+} from './finding-classifier.js';
