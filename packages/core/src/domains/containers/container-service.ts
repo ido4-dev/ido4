@@ -133,6 +133,18 @@ export class ContainerService implements IContainerService {
       containerName,
     );
 
+    // A4: oversize advisory — pulling an XL item into a sprint is a scope-
+    // discipline concern (XL is sized to span multiple sprints). Non-blocking;
+    // surfaces so the team makes it a conscious call. (Dependency-readiness —
+    // warn when unmet deps are pulled in — is a tracked refinement.)
+    const warnings: string[] = [];
+    try {
+      const task = await this.issueRepository.getTask(issueNumber);
+      if (task?.effort === 'XL') {
+        warnings.push(`Task #${issueNumber} is XL — oversized for a single ${this.nameRule.label ?? 'container'}. Consider splitting it or confirming it belongs in this scope.`);
+      }
+    } catch { /* effort lookup is best-effort; never block the assignment on it */ }
+
     this.logger.info('Task assigned to container', {
       issueNumber,
       containerName,
@@ -143,6 +155,7 @@ export class ContainerService implements IContainerService {
       issueNumber,
       container: containerName,
       integrity,
+      ...(warnings.length ? { warnings } : {}),
     };
   }
 

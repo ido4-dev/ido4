@@ -592,7 +592,7 @@ function generateRetroPrompt(ctx: PromptContext): string {
 
 ### Behavioral Data
 6. Call \`get_analytics\` — velocity, cycle time, throughput, blocking time.
-7. Call \`query_audit_trail\` scoped to the ${container} period.
+7. Call \`query_audit_trail\` scoped to the ${container} period. (Note: PM-persisted \`open_findings\` and deterred BRE-bypass attempts are governance-layer memory that does NOT appear here — never dismiss a governance finding as a "phantom" for being absent from the audit trail.)
 8. Call \`compute_compliance_score\`.
 9. Call \`list_agents\` — team composition.
 
@@ -714,7 +714,7 @@ function generateReviewPrompt(ctx: PromptContext): string {
 
 ### Context Data
 6. Call \`get_analytics\` — velocity, throughput, cycle time for the ${container}.
-7. Call \`query_audit_trail\` scoped to the ${container} period.
+7. Call \`query_audit_trail\` scoped to the ${container} period. (Note: PM-persisted \`open_findings\` and deterred BRE-bypass attempts are governance-layer memory that does NOT appear here — never dismiss a governance finding as a "phantom" for being absent from the audit trail.)
 8. Call \`compute_compliance_score\` — governance health.
 
 ## Sprint Review Framework

@@ -285,6 +285,8 @@ export interface ContainerAssignResult {
   issueNumber: number;
   container: string;
   integrity: IntegrityResult;
+  /** Non-blocking governance advisories (A4) — e.g. pulling an oversized (XL) item into a sprint. */
+  warnings?: string[];
 }
 
 export interface ContainerCompletionResult {

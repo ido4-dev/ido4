@@ -220,6 +220,19 @@ describe('ContainerService', () => {
     it('throws for invalid container format', async () => {
       await expect(service.assignTaskToContainer(42, 'invalid')).rejects.toThrow();
     });
+
+    it('A4: warns when an XL (oversized) task is pulled into a container', async () => {
+      vi.mocked(issueRepo.getTask).mockResolvedValue({ number: 42, effort: 'XL' } as never);
+      const result = await service.assignTaskToContainer(42, 'wave-001-auth');
+      expect(result.warnings).toBeDefined();
+      expect(result.warnings!.some((w) => /XL|oversized/.test(w))).toBe(true);
+    });
+
+    it('A4: no oversize warning for a normal-sized task', async () => {
+      vi.mocked(issueRepo.getTask).mockResolvedValue({ number: 42, effort: 'M' } as never);
+      const result = await service.assignTaskToContainer(42, 'wave-001-auth');
+      expect(result.warnings).toBeUndefined();
+    });
   });
 
   describe('validateContainerCompletion', () => {
