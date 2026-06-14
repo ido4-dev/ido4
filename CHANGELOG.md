@@ -4,6 +4,19 @@ All notable changes to ido4 are documented here.
 
 All packages (`@ido4/spec-format`, `@ido4/core`, `@ido4/mcp`) are released together at the same version.
 
+## [0.11.0] — 2026-06-15
+
+Minor — the airtight fix for AI-audit trustworthiness. New `persist_audit_findings` MCP tool so the PM agent has **no write path at all**; finding category + severity are derived deterministically server-side, making a confident mislabel structurally impossible.
+
+**Why.** Across five ido4dev synthetic iterations the LLM PM agent overrode every soft constraint (prose discipline → a mandatory hard-stop ritual → a deterministic classifier it was told to call) — most starkly in synthetic-004, where it ran the classifier, got the correct "clean" verdict on a healthy task, and then hand-edited the state file anyway to fabricate a critical mislabel. The lesson: the guarantee must be tool-level — remove the agent's ability to write findings by any means.
+
+- **`@ido4/core`** — `finding-classifier.ts` (`classifyObservation` + `classifySpecOrphanRate`): the "what is a ghost closure / rubber stamp / bypass pattern / …" thresholds as pure domain logic. A PR-backed closure can never classify as `ghost_closure`; a clean reviewed closure classifies as nothing. 13 tests.
+- **`@ido4/mcp`** — `persist_audit_findings` tool: the agent supplies observations (facts + a note per audited unit); the tool classifies, composes deterministic ids, embeds the facts as evidence, and read-then-mutates the project-scoped governance state (preserving other fields, dedup by id, FIFO cap 20). The agent never sends a category/severity. Profile-independent (all modes). Tool counts: Hydro 64, Scrum 62, Shape Up 60, bootstrap 30.
+
+**Consumer note (ido4dev):** the project-manager agent loses Write/Edit/Bash; it persists findings only through this tool. Any integration that had the agent writing `open_findings[]` directly should move to `persist_audit_findings`.
+
+**Tests:** 1,863 passing (1250 core + 466 + 106 + 41; +13 over 0.10.1).
+
 ## [0.10.1] — 2026-06-14
 
 Patch release — audit-trustworthiness + daily-ceremony fixes from the ido4dev synthetic-002/003 runs. No breaking changes (one additive response field).
