@@ -24,6 +24,7 @@ import { ValidationError } from '../../shared/errors/index.js';
 
 export class ContainerService implements IContainerService {
   private readonly containerField: string;
+  private readonly nameRule: { pattern?: string; label?: string; example?: string };
 
   constructor(
     private readonly projectRepository: IProjectRepository,
@@ -36,6 +37,13 @@ export class ContainerService implements IContainerService {
     // Find the singular container type (the primary scheduling container)
     const singularContainer = profile.containers.find((c) => c.singularity);
     this.containerField = singularContainer?.taskField ?? 'Wave';
+    // Container-name validation is profile-driven: a Scrum sprint must match
+    // "Sprint N", not Hydro's "wave-NNN". (P1 — methodology-equality fix.)
+    this.nameRule = {
+      pattern: singularContainer?.namePattern,
+      label: singularContainer?.singular,
+      example: singularContainer?.nameExample,
+    };
   }
 
   async listContainers(): Promise<ContainerSummary[]> {
@@ -85,7 +93,7 @@ export class ContainerService implements IContainerService {
   }
 
   async createContainer(name: string, description?: string): Promise<ContainerCreateResult> {
-    const formatResult = InputSanitizer.validateContainerFormat(name);
+    const formatResult = InputSanitizer.validateContainerFormat(name, this.nameRule);
     if (!formatResult.valid) {
       throw new ValidationError({
         message: formatResult.error ?? 'Invalid container name format',
@@ -105,7 +113,7 @@ export class ContainerService implements IContainerService {
   }
 
   async assignTaskToContainer(issueNumber: number, containerName: string): Promise<ContainerAssignResult> {
-    const formatResult = InputSanitizer.validateContainerFormat(containerName);
+    const formatResult = InputSanitizer.validateContainerFormat(containerName, this.nameRule);
     if (!formatResult.valid) {
       throw new ValidationError({
         message: formatResult.error ?? 'Invalid container name format',

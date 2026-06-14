@@ -164,17 +164,35 @@ export class InputSanitizer {
     return { valid: true, value: itemId };
   }
 
-  /** Validate wave format (wave-NNN-description). */
-  static validateContainerFormat(waveName: string): SanitizeResult<string> {
-    if (!waveName || typeof waveName !== 'string') {
-      return { valid: false, value: '', error: 'Wave name is required' };
+  /**
+   * Validate a container name against the active methodology's naming rule.
+   *
+   * The pattern and label come from the profile's execution container
+   * (`namePattern` / `singular` / `nameExample`) so a Scrum sprint validates
+   * as "Sprint 14" and a Shape Up cycle as "cycle-001-...", not forced into
+   * Hydro's "wave-NNN". Falls back to the Hydro wave pattern only when no
+   * profile pattern is supplied (legacy callers).
+   */
+  static validateContainerFormat(
+    name: string,
+    opts?: { pattern?: string; label?: string; example?: string },
+  ): SanitizeResult<string> {
+    const label = opts?.label ?? 'Container';
+    if (!name || typeof name !== 'string') {
+      return { valid: false, value: '', error: `${label} name is required` };
     }
 
-    if (!CONTAINER_FORMAT_PATTERN.test(waveName)) {
-      return { valid: false, value: waveName, error: 'Wave name must match format wave-NNN-description (e.g., wave-001-auth-system)' };
+    const regex = opts?.pattern ? new RegExp(opts.pattern) : CONTAINER_FORMAT_PATTERN;
+    if (!regex.test(name)) {
+      const example = opts?.example ?? 'wave-001-auth-system';
+      return {
+        valid: false,
+        value: name,
+        error: `${label} name must match the methodology's naming rule (e.g., "${example}")`,
+      };
     }
 
-    return { valid: true, value: waveName };
+    return { valid: true, value: name };
   }
 
   /** Sanitize a GitHub issue comment. */

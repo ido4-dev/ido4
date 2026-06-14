@@ -128,6 +128,29 @@ describe('InputSanitizer', () => {
       expect(InputSanitizer.validateContainerFormat('not-a-wave').valid).toBe(false);
       expect(InputSanitizer.validateContainerFormat('wave-001-UPPERCASE').valid).toBe(false);
     });
+
+    // P1 — methodology equality: the pattern comes from the active profile's
+    // execution container, not a hardcoded Hydro wave pattern.
+    it('validates a Scrum sprint name against the profile pattern', () => {
+      const scrum = { pattern: '^Sprint \\d+$', label: 'Sprint', example: 'Sprint 14' };
+      expect(InputSanitizer.validateContainerFormat('Sprint 14', scrum).valid).toBe(true);
+      expect(InputSanitizer.validateContainerFormat('Sprint 1', scrum).valid).toBe(true);
+      const bad = InputSanitizer.validateContainerFormat('wave-001-email', scrum);
+      expect(bad.valid).toBe(false);
+      expect(bad.error).toContain('Sprint'); // label-aware, methodology-native message
+      expect(bad.error).toContain('Sprint 14'); // friendly example, not a raw regex
+    });
+
+    it('validates a Shape Up cycle name against the profile pattern', () => {
+      const shapeup = { pattern: '^cycle-\\d{3}-[a-z0-9-]+$', label: 'Cycle', example: 'cycle-001-notifications' };
+      expect(InputSanitizer.validateContainerFormat('cycle-001-notifications', shapeup).valid).toBe(true);
+      expect(InputSanitizer.validateContainerFormat('Sprint 1', shapeup).valid).toBe(false);
+    });
+
+    it('falls back to the Hydro wave pattern when no profile pattern is supplied', () => {
+      expect(InputSanitizer.validateContainerFormat('wave-001-auth-system').valid).toBe(true);
+      expect(InputSanitizer.validateContainerFormat('Sprint 1').valid).toBe(false);
+    });
   });
 
   describe('validateRepositoryName', () => {
