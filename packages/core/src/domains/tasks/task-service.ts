@@ -37,6 +37,7 @@ import type { ILogger } from '../../shared/logger.js';
 import type { IEventBus } from '../../shared/events/event-bus.js';
 import type { TaskTransitionEvent } from '../../shared/events/types.js';
 import type { TransitionType, ValidationResult } from './types.js';
+import type { MethodologyProfile } from '../../profiles/types.js';
 import type { TaskWorkflowService, WorkflowTransitionResult } from './task-workflow-service.js';
 import type { SuggestionService } from './suggestion-service.js';
 
@@ -52,7 +53,26 @@ export class TaskService implements ITaskService {
     private readonly eventBus: IEventBus,
     private readonly sessionId: string,
     _logger: ILogger,
-  ) {}
+    profile?: MethodologyProfile,
+  ) {
+    // A5: map each container's project field (Scrum 'Sprint', Hydro 'Wave',
+    // Shape Up 'Cycle') to its container id, so listTasks reads the assignment
+    // from the RIGHT field per methodology instead of a hardcoded 'Wave'. The
+    // execution container drives the legacy `wave` filter the aggregators pass.
+    // Falls back to the Hydro field names when no profile is supplied.
+    const containers = profile?.containers ?? [];
+    if (containers.length) {
+      this.containerFields = containers.map((c) => ({ id: c.id, field: c.taskField }));
+      const exec = containers.find((c) => c.managed && c.completionRule && c.completionRule !== 'none') ?? containers[0];
+      this.execContainerId = exec?.id ?? 'wave';
+    } else {
+      this.containerFields = [{ id: 'wave', field: 'Wave' }, { id: 'epic', field: 'Epic' }];
+      this.execContainerId = 'wave';
+    }
+  }
+
+  private readonly containerFields: Array<{ id: string; field: string }>;
+  private readonly execContainerId: string;
 
   async startTask(request: TaskTransitionRequest): Promise<ToolResponse<TaskTransitionData>> {
     return this.executeTransition('start', request);
@@ -101,8 +121,15 @@ export class TaskService implements ITaskService {
 
     let tasks: TaskData[] = items.map((item) => {
       const containers: Record<string, string> = {};
-      if (item.fieldValues.Wave) containers['wave'] = item.fieldValues.Wave;
-      if (item.fieldValues.Epic) containers['epic'] = item.fieldValues.Epic;
+      // A5: read each container from its profile-defined field, not a hardcoded
+      // 'Wave' (which left every Scrum/Shape Up assignment invisible → empty
+      // boards). Alias the execution container to 'wave' for legacy consumers.
+      for (const { id, field } of this.containerFields) {
+        const val = item.fieldValues[field];
+        if (val) containers[id] = val;
+      }
+      const execVal = containers[this.execContainerId];
+      if (execVal) containers['wave'] = execVal;
 
       return {
         id: item.content.url,

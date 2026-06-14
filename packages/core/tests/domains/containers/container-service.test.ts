@@ -129,7 +129,12 @@ describe('ContainerService', () => {
       expect(result[0]!.status).toBe('active');
     });
 
-    it('sets status to not_started when no tasks completed', async () => {
+    it('sets status to active when tasks are assigned but none completed (A5)', async () => {
+      // A5 fix: a container with assigned, in-flight tasks (none done yet) is
+      // 'active' — the current sprint being worked. The old logic marked this
+      // 'not_started' (active only once something completed), which hid the
+      // sprint from resolveActiveContainer and broke every daily ceremony at
+      // the start of a sprint.
       vi.mocked(projectRepo.getProjectItems).mockResolvedValue(
         makeItems(
           { wave: 'wave-001', status: 'Backlog' },
@@ -138,7 +143,7 @@ describe('ContainerService', () => {
       );
 
       const result = await service.listContainers();
-      expect(result[0]!.status).toBe('not_started');
+      expect(result[0]!.status).toBe('active');
     });
 
     it('sorts containers alphabetically', async () => {

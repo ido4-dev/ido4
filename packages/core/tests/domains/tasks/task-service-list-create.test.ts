@@ -12,6 +12,7 @@ import { createMockWorkflowConfig, createMockGitWorkflowConfig, createMockProjec
 import type { IProjectConfig } from '../../../src/container/interfaces.js';
 import { SYSTEM_ACTOR } from '../../../src/index.js';
 import { HYDRO_PROFILE } from '../../../src/profiles/hydro.js';
+import { SCRUM_PROFILE } from '../../../src/profiles/scrum.js';
 
 function createMockIssueRepo(): IIssueRepository {
   return {
@@ -124,6 +125,27 @@ describe('TaskService — listTasks', () => {
     const result = await service.listTasks({ wave: 'wave-001' });
     expect(result.data.tasks).toHaveLength(1);
     expect(result.data.tasks[0]!.containers['wave']).toBe('wave-001');
+  });
+
+  it('A5: reads + filters by the profile container field (Scrum "Sprint", not hardcoded "Wave")', async () => {
+    // The bug: listTasks hardcoded fieldValues.Wave, so a Scrum task (whose
+    // container field is "Sprint") was invisible → every Scrum board/standup
+    // read empty. With the profile, it reads the Sprint field.
+    const issueRepo = createMockIssueRepo();
+    const scrumRepo = createMockProjectRepo();
+    const scrumService = new TaskService(
+      new TaskWorkflowService(issueRepo, createMockValidator(), createMockWorkflowConfig(), new TestLogger(), SCRUM_PROFILE),
+      new SuggestionService(createMockWorkflowConfig(), createMockGitWorkflowConfig(), SCRUM_PROFILE),
+      createMockValidator(), issueRepo, scrumRepo, createMockProjectConfig(),
+      createMockWorkflowConfig(), createMockEventBus(), 'test-session', new TestLogger(), SCRUM_PROFILE,
+    );
+    vi.mocked(scrumRepo.getProjectItems).mockResolvedValue([
+      makeProjectItem({ id: 'PVTI_1', fieldOverrides: { Wave: '', Sprint: 'Sprint 1' } }),
+      makeProjectItem({ id: 'PVTI_2', fieldOverrides: { Wave: '', Sprint: 'Sprint 2' } }),
+    ]);
+    const result = await scrumService.listTasks({ wave: 'Sprint 1' }); // 'wave' is the legacy alias for the exec container
+    expect(result.data.tasks).toHaveLength(1);
+    expect(result.data.tasks[0]!.containers['sprint']).toBe('Sprint 1');
   });
 
   it('returns empty array when no items match', async () => {

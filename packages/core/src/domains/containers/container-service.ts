@@ -69,11 +69,16 @@ export class ContainerService implements IContainerService {
         ? Math.round((counts.completed / counts.total) * 100)
         : 0;
 
+      // A5: a container that has tasks assigned is 'active' as soon as work is
+      // in flight — NOT only once something is completed. The old logic
+      // (`active` iff completed > 0) classified a freshly-loaded sprint with
+      // zero completions as 'not_started', so resolveActiveContainer couldn't
+      // find it and every daily ceremony (standup/board/sprint-status) errored
+      // or read empty for the whole early part of a sprint. Containers only
+      // enter this map when they have ≥1 task, so total > 0 here.
       let status: ContainerSummary['status'] = 'not_started';
-      if (counts.completed === counts.total && counts.total > 0) {
-        status = 'completed';
-      } else if (counts.completed > 0) {
-        status = 'active';
+      if (counts.total > 0) {
+        status = counts.completed === counts.total ? 'completed' : 'active';
       }
 
       summaries.push({

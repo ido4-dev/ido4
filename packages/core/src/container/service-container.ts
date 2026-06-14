@@ -223,7 +223,7 @@ export class ServiceContainer {
     );
     const taskService = new TaskService(
       workflowService, suggestionService, taskTransitionValidator,
-      issueRepository, projectRepository, projectConfig, workflowConfig, eventBus, sessionId, logger,
+      issueRepository, projectRepository, projectConfig, workflowConfig, eventBus, sessionId, logger, profile,
     );
     const containerService = new ContainerService(
       projectRepository, issueRepository, integrityValidator, workflowConfig, profile, logger,
