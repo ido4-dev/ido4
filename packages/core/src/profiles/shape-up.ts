@@ -167,6 +167,7 @@ export const SHAPE_UP_PROFILE: MethodologyProfile = {
       steps: [
         'StatusTransitionValidation:SHIPPED',
         'ApprovalRequirementValidation',
+        'PRReviewValidation:1',
         'ContextCompletenessValidation',
       ],
     },

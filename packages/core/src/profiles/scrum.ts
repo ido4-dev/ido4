@@ -121,6 +121,7 @@ export const SCRUM_PROFILE: MethodologyProfile = {
       steps: [
         'StatusTransitionValidation:DONE',
         'ApprovalRequirementValidation',
+        'PRReviewValidation:1',
         'ContextCompletenessValidation',
         'SubtaskCompletionValidation',
       ],

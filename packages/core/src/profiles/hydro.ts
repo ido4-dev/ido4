@@ -187,6 +187,7 @@ export const HYDRO_PROFILE: MethodologyProfile = {
       steps: [
         'StatusTransitionValidation:DONE',
         'ApprovalRequirementValidation',
+        'PRReviewValidation:1',
         'ContextCompletenessValidation',
         'ContainerIntegrityValidation:epic-wave-integrity',
       ],
