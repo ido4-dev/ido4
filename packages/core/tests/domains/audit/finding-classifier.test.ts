@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { classifyObservation, classifySpecOrphanRate } from '../../../src/domains/audit/finding-classifier.js';
+import { classifyObservation, classifySpecOrphanRate, bypassObservationsFromRecord } from '../../../src/domains/audit/finding-classifier.js';
 
 const cats = (o: any) => classifyObservation(o).map((c) => c.category).sort();
 
@@ -51,5 +51,37 @@ describe('finding-classifier — bypass / epic / spec_orphan', () => {
   it('unknown kind / null → no finding', () => {
     expect(cats({ kind: 'weird' })).toEqual([]);
     expect(cats(null)).toEqual([]);
+  });
+});
+
+describe('bypassObservationsFromRecord — authoritative bypass derivation (synthetic-005)', () => {
+  it('groups the gate record by actor and counts attempts', () => {
+    const record = [
+      { actor_id: 'agent-alpha', tool: 'plan_task' },
+      { actor_id: 'agent-alpha', tool: 'start_task' },
+      { actor_id: 'agent-alpha', tool: 'start_task' },
+      { actor_id: 'agent-beta', tool: 'review_task' },
+      { actor_id: 'agent-beta', tool: 'review_task' },
+    ];
+    const obs = bypassObservationsFromRecord(record);
+    expect(obs).toHaveLength(2);
+    const alpha = obs.find((o) => o.actor_id === 'agent-alpha')!;
+    expect(alpha.attempts).toBe(3); // 1 plan + 2 start — the count the agent undercounted as 2
+    expect(classifyObservation(alpha).map((c) => c.category)).toEqual(['bypass_pattern']);
+    const beta = obs.find((o) => o.actor_id === 'agent-beta')!;
+    expect(beta.attempts).toBe(2);
+    expect(classifyObservation(beta)).toEqual([]); // below threshold — silence
+  });
+  it('sorts heaviest bypasser first', () => {
+    const obs = bypassObservationsFromRecord([
+      { actor_id: 'a' }, { actor_id: 'b' }, { actor_id: 'b' }, { actor_id: 'b' },
+    ]);
+    expect(obs[0].actor_id).toBe('b');
+    expect(obs[0].attempts).toBe(3);
+  });
+  it('missing actor_id falls back to "unknown"; empty/undefined record → no observations', () => {
+    expect(bypassObservationsFromRecord([{ tool: 'plan_task' }])[0].actor_id).toBe('unknown');
+    expect(bypassObservationsFromRecord([])).toEqual([]);
+    expect(bypassObservationsFromRecord(undefined)).toEqual([]);
   });
 });

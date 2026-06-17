@@ -18,9 +18,12 @@ const observation = z.object({
   lineage_ref: z.string().nullable().optional().describe('closure: get_task_lineage ref, or null'),
   ai_suitability: z.string().optional(),
   ai_did_work_then_marked_human_only: z.boolean().optional().describe('closure: aiSuitability flipped to human-only after AI did work'),
-  // bypass facts
-  attempts: z.number().int().optional().describe('bypass: skipValidation attempts by this actor'),
-  executed: z.number().int().optional().describe('bypass: how many executed'),
+  // bypass facts — OPTIONAL and advisory only. The bypass_pattern finding is
+  // derived AUTHORITATIVELY from the deterministic gate record (state.bypass_attempts),
+  // not from these counts, so you cannot under- or over-count a bypass. You do not
+  // need to submit kind:'bypass' observations; the tool reconciles them from the record.
+  attempts: z.number().int().optional().describe('bypass: skipValidation attempts by this actor (advisory; the record is authoritative)'),
+  executed: z.number().int().optional().describe('bypass: how many executed (advisory)'),
   // epic facts
   epic: z.string().optional(),
   distinct_ai_actors: z.number().int().optional().describe('epic: distinct AI actors that touched the epic'),

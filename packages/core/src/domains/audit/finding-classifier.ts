@@ -68,6 +68,34 @@ function classifyClosure(o: ClosureObservation): Classification[] {
   return out;
 }
 
+/**
+ * Authoritative per-actor bypass observations derived from the deterministic
+ * gate record (state.bypass_attempts written by the PreToolUse G1 rule), NOT
+ * from agent-submitted counts. The audit classifies THESE, so an agent that
+ * under-gathers cannot suppress a bypass_pattern finding.
+ *
+ * synthetic-005 OBS-01/OBS-02: the agent reported attempts:2 for agent-alpha
+ * while the gate record held 3 (a plan_task bypass it didn't reconcile),
+ * silently dropping a threshold-crossing finding. Deriving from the record
+ * removes the agent's count from the trust path entirely.
+ */
+export interface GateBypassEntry { actor_id?: string; [k: string]: unknown }
+export function bypassObservationsFromRecord(record: GateBypassEntry[] | undefined): BypassObservation[] {
+  const counts = new Map<string, number>();
+  for (const e of Array.isArray(record) ? record : []) {
+    const actor = e && typeof e.actor_id === 'string' && e.actor_id ? e.actor_id : 'unknown';
+    counts.set(actor, (counts.get(actor) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([actor_id, attempts]) => ({
+      kind: 'bypass' as const,
+      actor_id,
+      attempts,
+      note: `${attempts} BRE-bypass attempt${attempts === 1 ? '' : 's'} recorded for ${actor_id} (derived from the gate record)`,
+    }));
+}
+
 /** spec_orphan is rate-based (a single off-spec closure is normal). One finding or null. */
 export function classifySpecOrphanRate(
   observations: Observation[],
