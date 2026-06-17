@@ -653,7 +653,7 @@ function generateRetroPrompt(ctx: PromptContext): string {
 
 ### Behavioral Data
 6. Call \`get_analytics\` — cycle time, throughput, blocking time.
-7. Call \`query_audit_trail\` scoped to the ${container} period. (Note: PM-persisted \`open_findings\` and deterred BRE-bypass attempts are governance-layer memory that does NOT appear here — never dismiss a governance finding as a "phantom" for being absent from the audit trail.)
+7. Call \`query_audit_trail\` scoped to the ${container} period. (Before any \`skipValidation\`/bypass claim, call \`get_governance_memory\` — deterred BRE-bypass attempts and PM-persisted \`open_findings\` are governance memory that does NOT appear in the audit trail. Reporting "zero \`skipValidation\` events" from the trail alone is a false negative; report deterred attempts as a positive process signal. Never dismiss a governance finding as a "phantom" for being absent from the trail.)
 8. Call \`compute_compliance_score\`.
 9. Call \`list_agents\` — team composition.
 
@@ -777,7 +777,7 @@ function generateReviewPrompt(ctx: PromptContext): string {
 
 ### Context Data
 6. Call \`get_analytics\` — cycle time, throughput, blocking time.
-7. Call \`query_audit_trail\` scoped to the ${container} period. (Note: PM-persisted \`open_findings\` and deterred BRE-bypass attempts are governance-layer memory that does NOT appear here — never dismiss a governance finding as a "phantom" for being absent from the audit trail.)
+7. Call \`query_audit_trail\` scoped to the ${container} period. (Before any \`skipValidation\`/bypass claim, call \`get_governance_memory\` — deterred BRE-bypass attempts and PM-persisted \`open_findings\` are governance memory that does NOT appear in the audit trail. Reporting "zero \`skipValidation\` events" from the trail alone is a false negative; report deterred attempts as a positive process signal. Never dismiss a governance finding as a "phantom" for being absent from the trail.)
 8. Call \`compute_compliance_score\` — governance health.
 
 ## ${Container} Demo Framework

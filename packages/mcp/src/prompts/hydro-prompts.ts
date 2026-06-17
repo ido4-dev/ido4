@@ -695,7 +695,7 @@ export function generateRetroPrompt(ctx: PromptContext): string {
 
 ### Temporal & Behavioral Data
 6. Call \`get_analytics\` for the target ${container} — real cycle time, lead time, throughput (${items}/day), total blocking time.
-7. Call \`query_audit_trail\` scoped to the ${container} period — complete event history with actor breakdown. (Note: PM-persisted \`open_findings\` and deterred BRE-bypass attempts are governance-layer memory that does NOT appear here — never dismiss a governance finding as a "phantom" for being absent from the audit trail.)
+7. Call \`query_audit_trail\` scoped to the ${container} period — complete event history with actor breakdown. (Before any \`skipValidation\`/bypass claim, call \`get_governance_memory\` — deterred BRE-bypass attempts and PM-persisted \`open_findings\` are governance memory that does NOT appear in the audit trail. Reporting "zero \`skipValidation\` events" from the trail alone is a false negative; report deterred attempts as a positive process signal. Never dismiss a governance finding as a "phantom" for being absent from the trail.)
 8. Call \`compute_compliance_score\` — governance health during this ${container} period.
 9. Call \`list_agents\` — team composition during this ${container}.
 
@@ -824,7 +824,7 @@ export function generateReviewPrompt(ctx: PromptContext): string {
 
 ### Governance Data
 6. Call \`get_analytics\` for the target ${container} — throughput, cycle time, blocking time.
-7. Call \`query_audit_trail\` scoped to the ${container} period — transition history for completeness assessment. (Note: PM-persisted \`open_findings\` and deterred BRE-bypass attempts are governance-layer memory that does NOT appear here — never dismiss a governance finding as a "phantom" for being absent from the audit trail.)
+7. Call \`query_audit_trail\` scoped to the ${container} period — transition history for completeness assessment. (Before any \`skipValidation\`/bypass claim, call \`get_governance_memory\` — deterred BRE-bypass attempts and PM-persisted \`open_findings\` are governance memory that does NOT appear in the audit trail. Reporting "zero \`skipValidation\` events" from the trail alone is a false negative; report deterred attempts as a positive process signal. Never dismiss a governance finding as a "phantom" for being absent from the trail.)
 8. Call \`compute_compliance_score\` — governance health for the ${container}.
 9. Call \`validate_epic_integrity\` — structural compliance of delivered work.
 

@@ -96,6 +96,41 @@ describe('persist_audit_findings — airtight derive', () => {
     expect((s.open_findings as unknown[]).length).toBe(1); // ghost_closure on the no-PR terminal close
   });
 
+  it('get_governance_memory surfaces the bypass record (grouped by actor) + open findings — the layer the audit trail lacks', async () => {
+    seedState({
+      bypass_attempts: [
+        { actor_id: 'agent-alpha', tool: 'plan_task' },
+        { actor_id: 'agent-beta', tool: 'review_task' },
+        { actor_id: 'agent-beta', tool: 'review_task' },
+      ],
+      open_findings: [
+        { id: 'audit:rubber_stamp:agent-x:issue-9', category: 'rubber_stamp', resolved: false },
+        { id: 'audit:ghost_closure:agent-y:issue-8', category: 'ghost_closure', resolved: true },
+      ],
+      last_compliance: { grade: 'B', score: 82 },
+      compliance_history: ['A', 'A', 'B'],
+    });
+    const res = (await callTool(createServer(HYDRO_PROFILE), 'get_governance_memory', {})) as { content: Array<{ text: string }> };
+    const out = JSON.parse(res.content[0].text);
+    expect(out.data.bypass_attempts.total).toBe(3);
+    expect(out.data.bypass_attempts.by_actor).toEqual([
+      { actor_id: 'agent-beta', attempts: 2 },
+      { actor_id: 'agent-alpha', attempts: 1 },
+    ]);
+    expect(out.data.open_findings).toHaveLength(1); // resolved one excluded
+    expect(out.data.open_findings[0].category).toBe('rubber_stamp');
+    expect(out.data.last_compliance).toEqual({ grade: 'B', score: 82 });
+    expect(out.data.note).toContain('never "zero"');
+  });
+
+  it('get_governance_memory on a clean project reports a TRUE zero', async () => {
+    seedState({ bypass_attempts: [] });
+    const res = (await callTool(createServer(HYDRO_PROFILE), 'get_governance_memory', {})) as { content: Array<{ text: string }> };
+    const out = JSON.parse(res.content[0].text);
+    expect(out.data.bypass_attempts.total).toBe(0);
+    expect(out.data.note).toContain('provably');
+  });
+
   it('does not resurrect a resolved finding unless the recorded attempts grew', async () => {
     const record3 = [1, 2, 3].map(() => ({ actor_id: 'agent-alpha', tool: 'start_task' }));
     seedState({

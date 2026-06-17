@@ -155,4 +155,44 @@ export function registerFindingTools(server: McpServer): void {
       });
     }),
   );
+
+  // get_governance_memory — read-only accessor for the institutional-memory layer
+  // that ceremonies (retro/standup/compliance) need but the audit trail doesn't
+  // hold. Deterred BRE-bypass attempts NEVER appear in query_audit_trail (they're
+  // blocked before the engine runs); a ceremony reading only the audit trail will
+  // falsely report "zero skipValidation events" (synthetic-006 OBS-01/OBS-09). This
+  // surfaces the gate record + persisted findings so the report is truthful.
+  server.tool(
+    'get_governance_memory',
+    'Read the governance institutional-memory layer that the audit trail does NOT contain: deterred BRE-bypass attempts (grouped by actor), PM-persisted open findings, and the compliance trajectory. Call this in any ceremony (retro/standup/compliance) BEFORE making claims about skipValidation/bypass activity — deterred attempts leave no audit-trail trace, so "zero skipValidation events" from query_audit_trail alone is a false negative. Read-only.',
+    {},
+    async () => handleErrors(async () => {
+      const stateFile = resolveStateFile();
+      let state: Record<string, unknown> = {};
+      if (existsSync(stateFile)) {
+        try { state = JSON.parse(readFileSync(stateFile, 'utf8')); } catch { state = {}; }
+      }
+      const bypassRecord = Array.isArray(state.bypass_attempts) ? (state.bypass_attempts as Array<Record<string, unknown>>) : [];
+      const byActor = bypassObservationsFromRecord(bypassRecord as never).map((o) => ({ actor_id: o.actor_id, attempts: o.attempts }));
+      const openFindings = Array.isArray(state.open_findings)
+        ? (state.open_findings as Array<Record<string, unknown>>).filter((f) => f.resolved !== true)
+        : [];
+      return toCallToolResult({
+        success: true,
+        data: {
+          bypass_attempts: {
+            total: bypassRecord.length,
+            by_actor: byActor,
+            entries: bypassRecord,
+          },
+          open_findings: openFindings,
+          last_compliance: state.last_compliance ?? null,
+          compliance_history: Array.isArray(state.compliance_history) ? state.compliance_history : [],
+          note: bypassRecord.length === 0
+            ? 'No BRE-bypass attempts recorded this project. (A true "zero skipValidation" — and now provably so.)'
+            : `${bypassRecord.length} deterred/recorded BRE-bypass attempt(s) across ${byActor.length} actor(s). These do NOT appear in query_audit_trail — report them as a process signal, never "zero".`,
+        },
+      });
+    }),
+  );
 }

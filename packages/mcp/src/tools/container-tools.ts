@@ -63,11 +63,29 @@ export function registerContainerTools(server: McpServer, profile: MethodologyPr
       async (args) => handleErrors(async () => {
         const container = await getContainer();
         const nameParam = args[`${label}Name`] as string;
+        const issueNumber = args.issueNumber as number;
         const result = await container.containerService.assignTaskToContainer(
-          args.issueNumber as number,
+          issueNumber,
           nameParam,
         );
-        return toCallToolResult(result);
+        // A4 — dependency-readiness advisory (synthetic-006 OBS-02). Pulling a
+        // task whose declared dependencies aren't yet complete adds committed-
+        // but-unstartable scope; the integrity check alone reported maintained.
+        // Non-blocking; surfaces so the sprint composition is a conscious call.
+        const warnings: string[] = Array.isArray(result.warnings) ? [...result.warnings] : [];
+        try {
+          const depCheck = await container.dependencyService.validateDependencies(issueNumber);
+          if (depCheck.unsatisfied.length > 0) {
+            const list = depCheck.unsatisfied.map((n) => `#${n}`).join(', ');
+            warnings.push(
+              `Task #${issueNumber} has ${depCheck.unsatisfied.length} unmet ${depCheck.unsatisfied.length === 1 ? 'dependency' : 'dependencies'} (${list}) — not yet complete. It cannot start until they close; pulling it into ${nameParam} adds committed-but-unstartable scope.`,
+            );
+          }
+          if (depCheck.circular.length > 0) {
+            warnings.push(`Task #${issueNumber} is part of a circular dependency — review before committing it to ${nameParam}.`);
+          }
+        } catch { /* dependency-readiness is best-effort; never block the assignment on it */ }
+        return toCallToolResult(warnings.length ? { ...result, warnings } : result);
       }),
     );
 

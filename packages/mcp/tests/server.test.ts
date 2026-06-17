@@ -145,9 +145,9 @@ describe('createServer', () => {
     expect(hasRegisteredTool(server, 'check_merge_readiness')).toBe(true);
   });
 
-  it('registers 64 tools total', () => {
+  it('registers 65 tools total', () => {
     const server = createServer(HYDRO_PROFILE);
-    expect(getRegisteredToolNames(server)).toHaveLength(64);
+    expect(getRegisteredToolNames(server)).toHaveLength(65);
   });
 
   it('registers resources', () => {
@@ -186,9 +186,9 @@ describe('createServer', () => {
 });
 
 describe('createServer — Scrum profile', () => {
-  it('registers 62 tools total', () => {
+  it('registers 63 tools total', () => {
     const server = createServer(SCRUM_PROFILE);
-    expect(getRegisteredToolNames(server)).toHaveLength(62);
+    expect(getRegisteredToolNames(server)).toHaveLength(63);
   });
 
   it('registers 7 dynamic transition tools', () => {
@@ -258,9 +258,9 @@ describe('createServer — Scrum profile', () => {
 });
 
 describe('createServer — Shape Up profile', () => {
-  it('registers 60 tools total', () => {
+  it('registers 61 tools total', () => {
     const server = createServer(SHAPE_UP_PROFILE);
-    expect(getRegisteredToolNames(server)).toHaveLength(60);
+    expect(getRegisteredToolNames(server)).toHaveLength(61);
   });
 
   it('registers 9 dynamic transition tools', () => {
@@ -336,7 +336,7 @@ describe('createServer — bootstrap mode (null profile)', () => {
   it('registers only profile-independent tools', () => {
     const server = createServer(null);
     const toolNames = getRegisteredToolNames(server);
-    expect(toolNames).toHaveLength(30);
+    expect(toolNames).toHaveLength(31);
   });
 
   it('registers project tools (init + status)', () => {
@@ -383,6 +383,9 @@ describe('createServer — bootstrap mode (null profile)', () => {
     expect(hasRegisteredTool(server, 'get_coordination_state')).toBe(true);
     // Gate
     expect(hasRegisteredTool(server, 'check_merge_readiness')).toBe(true);
+    // Audit findings (airtight derive + governance-memory accessor)
+    expect(hasRegisteredTool(server, 'persist_audit_findings')).toBe(true);
+    expect(hasRegisteredTool(server, 'get_governance_memory')).toBe(true);
   });
 
   it('does NOT register any task transition tools', () => {
@@ -426,7 +429,7 @@ describe('createServer — bootstrap mode (null profile)', () => {
   it('accepts methodology activation after bootstrap', () => {
     // Verify that a bootstrap server can have methodology tools added dynamically
     const server = createServer(null);
-    expect(getRegisteredToolNames(server)).toHaveLength(30);
+    expect(getRegisteredToolNames(server)).toHaveLength(31);
 
     // Simulate what activateMethodology does — register profile-dependent tools
     registerTaskTools(server, HYDRO_PROFILE);
@@ -436,7 +439,7 @@ describe('createServer — bootstrap mode (null profile)', () => {
     registerPrompts(server, HYDRO_PROFILE);
 
     // Now should have full Hydro tool set + bootstrap entries
-    expect(getRegisteredToolNames(server)).toHaveLength(64);
+    expect(getRegisteredToolNames(server)).toHaveLength(65);
     expect(hasRegisteredTool(server, 'list_waves')).toBe(true);
     expect(hasRegisteredTool(server, 'start_task')).toBe(true);
     expect(hasRegisteredTool(server, 'search_epics')).toBe(true);

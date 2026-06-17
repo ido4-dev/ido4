@@ -9,7 +9,11 @@ const mockContainerService = {
   validateContainerCompletion: vi.fn(),
 };
 
-const mockContainer = { containerService: mockContainerService };
+const mockDependencyService = {
+  validateDependencies: vi.fn().mockResolvedValue({ valid: true, unsatisfied: [], circular: [] }),
+};
+
+const mockContainer = { containerService: mockContainerService, dependencyService: mockDependencyService };
 
 const { mockGetContainer } = vi.hoisted(() => ({
   mockGetContainer: vi.fn(),
@@ -75,6 +79,30 @@ describe('Container Tools', () => {
 
     await callTool(server, 'assign_task_to_wave', { issueNumber: 42, waveName: 'Wave 1' });
     expect(mockContainerService.assignTaskToContainer).toHaveBeenCalledWith(42, 'Wave 1');
+  });
+
+  it('A4: assign warns when the task has unmet dependencies (committed-but-unstartable scope)', async () => {
+    mockContainerService.assignTaskToContainer.mockResolvedValue({
+      issueNumber: 11, container: 'Wave 1', integrity: { maintained: true, violations: [] },
+    });
+    mockDependencyService.validateDependencies.mockResolvedValue({ valid: false, unsatisfied: [7, 8], circular: [] });
+
+    const result = await callTool(server, 'assign_task_to_wave', { issueNumber: 11, waveName: 'Wave 1' }) as { content: Array<{ text: string }> };
+    const parsed = JSON.parse(result.content[0]!.text);
+    expect(mockDependencyService.validateDependencies).toHaveBeenCalledWith(11);
+    expect(parsed.warnings).toBeDefined();
+    expect(parsed.warnings.some((w: string) => w.includes('#7') && w.includes('#8') && w.includes('unmet'))).toBe(true);
+  });
+
+  it('A4: assign with all dependencies satisfied adds no warning', async () => {
+    mockContainerService.assignTaskToContainer.mockResolvedValue({
+      issueNumber: 12, container: 'Wave 1', integrity: { maintained: true, violations: [] },
+    });
+    mockDependencyService.validateDependencies.mockResolvedValue({ valid: true, unsatisfied: [], circular: [] });
+
+    const result = await callTool(server, 'assign_task_to_wave', { issueNumber: 12, waveName: 'Wave 1' }) as { content: Array<{ text: string }> };
+    const parsed = JSON.parse(result.content[0]!.text);
+    expect(parsed.warnings).toBeUndefined();
   });
 
   it('validate_wave_completion passes waveName', async () => {
