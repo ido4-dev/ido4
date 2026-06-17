@@ -4,6 +4,15 @@ All notable changes to ido4 are documented here.
 
 All packages (`@ido4/spec-format`, `@ido4/core`, `@ido4/mcp`) are released together at the same version.
 
+## [0.13.1] — 2026-06-18
+
+Patch — two robustness fixes the synthetic-006 A3/A4 verification run surfaced in the 0.13.0 additions.
+
+- **A4 dependency-readiness warning de-duplicated.** `DependencyService.validateDependencies` collected the same unsatisfied dependency once per path through a diamond graph, so the new advisory read *"#11 has 5 unmet dependencies (#5, #7, #5, #8, #5)."* `unsatisfied` is now de-duplicated — each unmet dependency reported once.
+- **`persist_audit_findings` accepts `null` for absent numeric facts.** An agent auditing a no-PR closure naturally passes `pr_number: null`; the optional numeric fields were `.optional()` but not `.nullable()`, so the call failed Zod validation (`-32602`) and forced a retry. The numeric facts are now `.nullable()` (the classifier already treats null as absent). No behavior change for findings.
+
+**Tests:** 1,876 passing (+2 over 0.13.0).
+
 ## [0.13.0] — 2026-06-18
 
 Minor — pre-pilot hardening of the ceremony/advisory layer from ido4dev synthetic-006. Closes the unfinished tail of A3 (ceremonies misreporting bypass activity) and adds the A4 sprint-composition dependency-readiness signal.
