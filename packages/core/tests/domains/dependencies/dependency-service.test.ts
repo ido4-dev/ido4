@@ -178,6 +178,23 @@ describe('DependencyService', () => {
       expect(result.unsatisfied).toContain(3);
     });
 
+    it('reports each unsatisfied dependency ONCE in a diamond graph (synthetic-006 OBS-03)', async () => {
+      // 1 → {2, 3}; both 2 and 3 → 4 (a diamond). 4 is unsatisfied and reachable
+      // via two paths; it must appear exactly once, not duplicated per path.
+      vi.mocked(issueRepo.getTask).mockImplementation(async (num: number) => {
+        if (num === 1) return createMockTaskData({ number: 1, dependencies: '#2, #3' });
+        if (num === 2) return createMockTaskData({ number: 2, status: 'Done', dependencies: '#4' });
+        if (num === 3) return createMockTaskData({ number: 3, status: 'Done', dependencies: '#4' });
+        if (num === 4) return createMockTaskData({ number: 4, status: 'In Progress', dependencies: 'No dependencies' });
+        throw new Error(`Unknown issue ${num}`);
+      });
+
+      const result = await service.validateDependencies(1);
+
+      expect(result.valid).toBe(false);
+      expect(result.unsatisfied).toEqual([4]); // exactly once, not [4, 4]
+    });
+
     it('returns invalid when circular dependencies exist', async () => {
       vi.mocked(issueRepo.getTask).mockImplementation(async (num: number) => {
         if (num === 1) return createMockTaskData({ number: 1, dependencies: '#2' });

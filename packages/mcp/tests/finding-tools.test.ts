@@ -87,6 +87,16 @@ describe('persist_audit_findings — airtight derive', () => {
     expect(out.data.coverage).toMatchObject({ bypass_attempts_recorded: 5, bypass_actors_recorded: 2 });
   });
 
+  it('accepts null for absent numeric facts (no-PR closure passes pr_number:null without a schema retry) — synthetic-006 OBS-05', async () => {
+    seedState({ bypass_attempts: [] });
+    const out = await persist([
+      { kind: 'closure', issue: 6, actor_id: 'agent-beta', terminal: true, pr_found: false, pr_number: null, approving_reviews: null, comment_count: null, lineage_ref: null },
+    ]);
+    // null = absent → ghost_closure (no PR) + silent_closure (no comments), no crash.
+    expect(out.data.categories).toContain('ghost_closure');
+    expect(out.data.coverage.closures_examined).toBe(1);
+  });
+
   it('preserves runner-written state fields (read-then-mutate, never overwrite)', async () => {
     seedState({ bypass_attempts: [], last_compliance: { grade: 'B', score: 82 }, compliance_history: ['A', 'A', 'B'] });
     await persist([{ kind: 'closure', issue: 9, actor_id: 'agent-x', terminal: true, pr_found: false, comment_count: 2 }]);

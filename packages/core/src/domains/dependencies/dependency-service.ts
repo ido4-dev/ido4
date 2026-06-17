@@ -96,8 +96,11 @@ export class DependencyService implements IDependencyService {
   async validateDependencies(issueNumber: number): Promise<DependencyValidationResult> {
     const analysis = await this.analyzeDependencies(issueNumber);
 
-    const unsatisfied: number[] = [];
-    this.collectUnsatisfied(analysis.dependencies, unsatisfied);
+    const collected: number[] = [];
+    this.collectUnsatisfied(analysis.dependencies, collected);
+    // A diamond dependency (the same dep reachable via multiple parents) collects
+    // the same issue more than once; report each unsatisfied issue ONCE.
+    const unsatisfied = [...new Set(collected)];
 
     return {
       valid: unsatisfied.length === 0 && analysis.circularDependencies.length === 0,
