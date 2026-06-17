@@ -4,6 +4,19 @@ All notable changes to ido4 are documented here.
 
 All packages (`@ido4/spec-format`, `@ido4/core`, `@ido4/mcp`) are released together at the same version.
 
+## [0.12.0] — 2026-06-17
+
+Minor — closes the **symmetric** half of the audit-trust problem surfaced by ido4dev synthetic-005. 0.11.0 made a *false positive* (mislabeling clean work) structurally impossible; 0.12.0 makes a *false negative* (silently undercounting a real bypass) structurally impossible, and makes a clean audit's silence self-evidently scoped.
+
+**Why.** In synthetic-005 the gated PM agent correctly produced silence on a clean closure (0.11.0 held), but the realistic run exposed a recall hole: a `plan_task` + `skipValidation` bypass executed ungated and was never reconciled, so the Day-3 audit reported 2 bypasses for an actor who reached for it 3 times — missing a threshold-crossing `bypass_pattern` finding, and the retro asserted the opposite of the truth. The value judge's crux: *a tool whose "0 findings" can mean either "clean" or "I undercounted" — indistinguishable — cannot be trusted.*
+
+- **`@ido4/core`** — new `bypassObservationsFromRecord(record)`: derives authoritative per-actor bypass observations from the deterministic gate record (`state.bypass_attempts`), so the `bypass_pattern` finding no longer depends on the agent counting correctly. +3 tests.
+- **`@ido4/mcp`** — `persist_audit_findings` now (a) reconciles `bypass_pattern` **from the gate record, not the agent's submitted count** (an agent that under-gathers cannot suppress it); (b) returns a **`coverage` summary** (`closures_examined` / `bypass_attempts_recorded` / `bypass_actors_recorded` / `epics_examined` / `distinct_actors_examined` / findings-by-severity) so "0 findings" is provably scoped; (c) no longer silently resurrects a PM-resolved finding unless the recorded evidence actually grew (kills stale re-fire). The `kind:'bypass'` observation is now advisory (the record wins). New `finding-tools.test.ts` (4 tests) covers the synthetic-005 regression directly. Tool counts unchanged: Hydro 64, Scrum 62, Shape Up 60, bootstrap 30.
+
+**Consumer note (ido4dev):** the project-manager agent no longer needs to count or submit `kind:'bypass'` observations — the tool reconciles them. AGENT.md prose updated; the matching plugin-side gate/audit matcher-symmetry fix (so the bypass is *recorded* in the first place) ships in ido4dev.
+
+**Tests:** 1,870 passing (+7 over 0.11.0: 3 core + 4 mcp).
+
 ## [0.11.0] — 2026-06-15
 
 Minor — the airtight fix for AI-audit trustworthiness. New `persist_audit_findings` MCP tool so the PM agent has **no write path at all**; finding category + severity are derived deterministically server-side, making a confident mislabel structurally impossible.
