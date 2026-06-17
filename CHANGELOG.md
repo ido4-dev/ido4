@@ -4,6 +4,18 @@ All notable changes to ido4 are documented here.
 
 All packages (`@ido4/spec-format`, `@ido4/core`, `@ido4/mcp`) are released together at the same version.
 
+## [0.13.0] — 2026-06-18
+
+Minor — pre-pilot hardening of the ceremony/advisory layer from ido4dev synthetic-006. Closes the unfinished tail of A3 (ceremonies misreporting bypass activity) and adds the A4 sprint-composition dependency-readiness signal.
+
+**A3-tail — ceremonies no longer report a false "zero skipValidation events."** synthetic-006 caught the `/retro` ceremony asserting *"zero skipValidation/override events"* while `state.bypass_attempts` held 3 deterred attempts — the exact false-negative the PM audit was just hardened against, one ceremony over. Root cause: ceremonies read only `query_audit_trail`, which by design never contains *deterred* attempts (they're blocked before the engine runs), and had no accessor for the gate record.
+- **`@ido4/mcp`** — new read-only **`get_governance_memory`** tool: returns the institutional-memory layer the audit trail lacks — deterred BRE-bypass attempts (grouped by actor), PM-persisted `open_findings`, and the compliance trajectory. Profile-independent (all modes). Tool counts: Hydro 65, Scrum 63, Shape Up 61, bootstrap 31.
+- The retro + review prompts (all three methodologies) now instruct: call `get_governance_memory` before any `skipValidation`/bypass claim, and report deterred attempts as a *positive process signal* ("the guardrail deterred N attempts") — never "zero" from the audit trail alone.
+
+**A4 — dependency-readiness advisory on sprint/wave/cycle assignment.** synthetic-006: an item with 2 of 3 dependencies unmet was pulled into the active sprint and `assign_task_to_sprint` returned `integrity:{maintained:true}` with no signal. `assign_task_to_{container}` now calls `validateDependencies` and surfaces a non-blocking `warnings[]` entry naming the unmet dependencies (and circular-dependency risk) — committed-but-unstartable scope is now visible. Complements the existing XL-oversize advisory (0.10.1).
+
+**Tests:** 1,874 passing (+4 over 0.12.0: 2 `get_governance_memory` + 2 A4 dependency-readiness).
+
 ## [0.12.0] — 2026-06-17
 
 Minor — closes the **symmetric** half of the audit-trust problem surfaced by ido4dev synthetic-005. 0.11.0 made a *false positive* (mislabeling clean work) structurally impossible; 0.12.0 makes a *false negative* (silently undercounting a real bypass) structurally impossible, and makes a clean audit's silence self-evidently scoped.
